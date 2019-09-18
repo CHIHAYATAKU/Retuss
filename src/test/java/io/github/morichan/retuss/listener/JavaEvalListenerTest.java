@@ -136,11 +136,12 @@ class JavaEvalListenerTest {
 
             // TypeDeclarationContext内には、何も存在しない";"も1つのインスタンスとして生成するため、それを削除する
             for (int i = 0; i < typeDeclarations.size(); i++) {
-                if (!(typeDeclarations.get(i).getChild(0) instanceof JavaParser.ClassOrInterfaceModifierContext) &&
-                        !(typeDeclarations.get(i).getChild(0) instanceof JavaParser.ClassDeclarationContext) &&
-                        !(typeDeclarations.get(i).getChild(0) instanceof JavaParser.EnumDeclarationContext) &&
-                        !(typeDeclarations.get(i).getChild(0) instanceof JavaParser.InterfaceDeclarationContext) &&
-                        !(typeDeclarations.get(i).getChild(0) instanceof JavaParser.AnnotationTypeDeclarationContext)) {
+                if (!(typeDeclarations.get(i).getChild(0) instanceof JavaParser.ClassOrInterfaceModifierContext)
+                        && !(typeDeclarations.get(i).getChild(0) instanceof JavaParser.ClassDeclarationContext)
+                        && !(typeDeclarations.get(i).getChild(0) instanceof JavaParser.EnumDeclarationContext)
+                        && !(typeDeclarations.get(i).getChild(0) instanceof JavaParser.InterfaceDeclarationContext)
+                        && !(typeDeclarations.get(i)
+                                .getChild(0) instanceof JavaParser.AnnotationTypeDeclarationContext)) {
                     typeDeclarations.remove(i);
                     i--;
                 }
@@ -189,10 +190,8 @@ class JavaEvalListenerTest {
             @Test
             void フィールドを3つ返す() {
                 init("class JavaClass {private int number; double point; protected float bias;}");
-                List<Field> expected = Arrays.asList(
-                        new Field(new Type("int"), "number"),
-                        new Field(new Type("double"), "point"),
-                        new Field(new Type("float"), "bias"));
+                List<Field> expected = Arrays.asList(new Field(new Type("int"), "number"),
+                        new Field(new Type("double"), "point"), new Field(new Type("float"), "bias"));
                 expected.get(0).setAccessModifier(AccessModifier.Private);
                 expected.get(1).setAccessModifier(AccessModifier.Package);
                 expected.get(2).setAccessModifier(AccessModifier.Protected);
@@ -218,11 +217,8 @@ class JavaEvalListenerTest {
             @Test
             void メソッドを3つ返す() {
                 init("class JavaClass {public void print() {}protected int getItem() {}void setItem(int item) {}}");
-                List<Method> expected = Arrays.asList(
-                        new Method(new Type("void"), "print"),
-                        new Method(new Type("int"), "getItem"),
-                        new Method(new Type("void"), "setItem")
-                );
+                List<Method> expected = Arrays.asList(new Method(new Type("void"), "print"),
+                        new Method(new Type("int"), "getItem"), new Method(new Type("void"), "setItem"));
                 expected.get(0).setAccessModifier(AccessModifier.Public);
                 expected.get(1).setAccessModifier(AccessModifier.Protected);
                 expected.get(2).setAccessModifier(AccessModifier.Package);
@@ -241,11 +237,8 @@ class JavaEvalListenerTest {
             @Test
             void 引数を持つメソッドを3つ返す() {
                 init("class JavaClass {public double calculate(double x, double y, double z) {}protected Point createPoint(int x, int y) {}private void print(char text) {}}");
-                List<Method> expected = Arrays.asList(
-                        new Method(new Type("double"), "calculate"),
-                        new Method(new Type("Point"), "createPoint"),
-                        new Method(new Type("void"), "print")
-                );
+                List<Method> expected = Arrays.asList(new Method(new Type("double"), "calculate"),
+                        new Method(new Type("Point"), "createPoint"), new Method(new Type("void"), "print"));
                 expected.get(0).setAccessModifier(AccessModifier.Public);
                 expected.get(1).setAccessModifier(AccessModifier.Protected);
                 expected.get(2).setAccessModifier(AccessModifier.Private);
@@ -265,6 +258,12 @@ class JavaEvalListenerTest {
                     assertThat(actual.get(i)).isEqualToComparingFieldByFieldRecursively(expected.get(i));
                 }
             }
+        }
+
+        @Test
+        void 仮のテスト() {
+            init("class JavaClass {public void javaMethod(){int a;a = 3;if(a < 5){int b; b = 10;callMethod();}}  public int callMethod(){return 1;}");
+            assertThat(obj.getTest()).isEqualTo(1);
         }
     }
 

@@ -2,11 +2,15 @@ package io.github.morichan.retuss.listener;
 
 import io.github.morichan.retuss.language.java.*;
 import io.github.morichan.retuss.language.java.Class;
+import io.github.morichan.retuss.language.java.If;
 import io.github.morichan.retuss.parser.java.JavaParser;
 import io.github.morichan.retuss.parser.java.JavaParserBaseListener;
 
 import java.util.ArrayList;
 import java.util.List;
+
+// 後で消す
+import java.io.PrintStream;
 
 /**
  * Javaソースコードのパーサを利用したコンテキストの抽出クラス
@@ -22,9 +26,14 @@ public class JavaEvalListener extends JavaParserBaseListener {
     private MethodBody methodBody;
     private boolean isAbstractMethod = false;
     private boolean hasAbstractMethods = false;
+    // 追加分
+    private int test;
+    private If ifClass;
 
     /**
-     * <p> 構文木のルートノードに入った際の操作を行います </p>
+     * <p>
+     * 構文木のルートノードに入った際の操作を行います
+     * </p>
      *
      * @param ctx 構文木のルートノードのコンテキスト
      */
@@ -69,7 +78,8 @@ public class JavaEvalListener extends JavaParserBaseListener {
         boolean isAlreadySearchedAccessModifier = false;
         isAbstractMethod = false;
 
-        if (ctx.getChildCount() >= 2 && ctx.getChild(ctx.getChildCount() - 1) instanceof JavaParser.MemberDeclarationContext) {
+        if (ctx.getChildCount() >= 2
+                && ctx.getChild(ctx.getChildCount() - 1) instanceof JavaParser.MemberDeclarationContext) {
             for (int i = 0; i < ctx.getChildCount() - 1; i++) {
                 if (ctx.getChild(i).getChild(0) instanceof JavaParser.ClassOrInterfaceModifierContext) {
                     try {
@@ -109,16 +119,21 @@ public class JavaEvalListener extends JavaParserBaseListener {
 
         field.setName(ctx.getChild(1).getChild(0).getChild(0).getChild(0).getText());
 
-        if (ctx.getChild(1).getChild(0).getChildCount() > 1 &&
-                ctx.getChild(1).getChild(0).getChild(2).getChild(0) instanceof JavaParser.ExpressionContext) {
-            if (ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChildCount() == 2 &&
-                    ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1) instanceof JavaParser.CreatorContext &&
-                    ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChildCount() == 2 &&
-                    ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChild(1) instanceof JavaParser.ArrayCreatorRestContext &&
-                    !ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChild(1).getChild(1).getText().equals("]") &&
-                    ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChild(1).getChild(1) instanceof JavaParser.ExpressionContext) {
+        if (ctx.getChild(1).getChild(0).getChildCount() > 1
+                && ctx.getChild(1).getChild(0).getChild(2).getChild(0) instanceof JavaParser.ExpressionContext) {
+            if (ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChildCount() == 2
+                    && ctx.getChild(1).getChild(0).getChild(2).getChild(0)
+                            .getChild(1) instanceof JavaParser.CreatorContext
+                    && ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChildCount() == 2
+                    && ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1)
+                            .getChild(1) instanceof JavaParser.ArrayCreatorRestContext
+                    && !ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChild(1).getChild(1)
+                            .getText().equals("]")
+                    && ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChild(1)
+                            .getChild(1) instanceof JavaParser.ExpressionContext) {
                 // 既定値での配列宣言文
-                field.setArrayLength(new ArrayLength(Integer.parseInt(ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getChild(1).getChild(1).getText())));
+                field.setArrayLength(new ArrayLength(Integer.parseInt(ctx.getChild(1).getChild(0).getChild(2)
+                        .getChild(0).getChild(1).getChild(1).getChild(1).getText())));
             } else {
                 // 既定値の式
                 field.setValue(ctx.getChild(1).getChild(0).getChild(2).getChild(0).getText());
@@ -138,7 +153,8 @@ public class JavaEvalListener extends JavaParserBaseListener {
             accessModifier = null;
         }
 
-        if (isAbstractMethod) method.setAbstract(true);
+        if (isAbstractMethod)
+            method.setAbstract(true);
 
         if (ctx.getChild(0).getChild(0) instanceof JavaParser.TypeTypeContext) {
             if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.AnnotationContext) {
@@ -165,7 +181,8 @@ public class JavaEvalListener extends JavaParserBaseListener {
 
     @Override
     public void enterFormalParameter(JavaParser.FormalParameterContext ctx) {
-        if (!(ctx.getParent().getParent().getParent() instanceof JavaParser.MethodDeclarationContext)) return;
+        if (!(ctx.getParent().getParent().getParent() instanceof JavaParser.MethodDeclarationContext))
+            return;
 
         Argument argument = new Argument();
 
@@ -189,31 +206,100 @@ public class JavaEvalListener extends JavaParserBaseListener {
 
     @Override
     public void enterBlockStatement(JavaParser.BlockStatementContext ctx) {
-        if (!(ctx.getParent().getParent() instanceof JavaParser.MethodBodyContext)) return;
+        if (ctx.getParent().getParent() instanceof JavaParser.MethodBodyContext) {
 
-        if (ctx.getChild(0) instanceof JavaParser.LocalVariableDeclarationContext) {
-            for (int i = 0; i < ctx.getChild(0).getChildCount(); i++) {
-                if (ctx.getChild(0).getChild(i) instanceof JavaParser.VariableModifierContext) continue;
+            if (ctx.getChild(0) instanceof JavaParser.LocalVariableDeclarationContext) {
+                for (int i = 0; i < ctx.getChild(0).getChildCount(); i++) {
+                    if (ctx.getChild(0).getChild(i) instanceof JavaParser.VariableModifierContext)
+                        continue;
 
-                addLocalVariableDeclaration(new Type(ctx.getChild(0).getChild(i).getText()),
-                        (JavaParser.VariableDeclaratorsContext) ctx.getChild(0).getChild(i + 1));
-                return;
+                    addLocalVariableDeclaration(new Type(ctx.getChild(0).getChild(i).getText()),
+                            (JavaParser.VariableDeclaratorsContext) ctx.getChild(0).getChild(i + 1));
+                    return;
+                }
+
+            } else if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
+                if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
+                    if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
+                        if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
+                                && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext
+                                && ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
+                            addAssignment(ctx.getChild(0).getChild(0).getChild(0).getText(),
+                                    ctx.getChild(0).getChild(0).getChild(2).getText());
+
+                        } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
+                                && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
+                            addMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0).getChild(0));
+                        }
+                    }
+                }
             }
-
-        } else if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
-            if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
-                if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
-                    if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext &&
-                            ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext &&
-                            ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
-                        addAssignment(ctx.getChild(0).getChild(0).getChild(0).getText(), ctx.getChild(0).getChild(0).getChild(2).getText());
-                    } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") &&
-                            ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
-                        addMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0).getChild(0));
+        } else if (ctx.getParent().getParent().getParent().getChild(0).getText().equals("if")) {
+            if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
+                if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
+                    if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
+                        if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
+                                && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext
+                                && ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
+                            addAssignmentToIf(ctx.getChild(0).getChild(0).getChild(0).getText(),
+                                    ctx.getChild(0).getChild(0).getChild(2).getText());
+                        } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
+                                && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
+                            addMethodToIf((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0).getChild(0));
+                        }
                     }
                 }
             }
         }
+
+        // 仮
+        // System.out.println("******************************");
+        // for (int i = 0; i < ctx.getChildCount(); i++) {
+        // System.out.println(ctx.getChild(i).getText());
+        // System.out.println(ctx.getParent().getParent().getParent().getChild(0).getText());
+        // System.out.println(ctx.getChild(i) instanceof JavaParser.StatementContext);
+        // }
+        // System.out.println(ctx.getChild(0).getChild(0).getText());
+        // System.out.println("******************************");
+    }
+
+    @Override
+    public void enterStatement(JavaParser.StatementContext ctx) {
+        // if文を見つけた場合、Ifクラスに条件文とif内の処理を格納する
+        // IfクラスをJava > Class > Method > MethodBodyに格納する
+        if (ctx.getChild(0).getText().equals("if")) {
+            ifClass = new If();
+            ifClass.setCondition(ctx.getChild(1).getText());
+        }
+
+        test = ctx.getChildCount();
+        // System.out.println("******************************");
+        // for (int i = 0; i < ctx.getChildCount(); i++) {
+        // System.out.println(ctx.getChild(i).getText());
+        // System.out.println(ctx.getChild(i) instanceof JavaParser.ExpressionContext);
+        // }
+        // System.out.println("******************************");
+
+    }
+
+    @Override
+    public void exitStatement(JavaParser.StatementContext ctx) {
+        if (ctx.getChild(0).getText().equals("if")) {
+            methodBody.addStatement(ifClass);
+            // 確認
+            System.out.println(methodBody.getStatements());
+            System.out.println("******************************");
+            If tmpIf = (If) methodBody.getStatements().get(2);
+            System.out.println(tmpIf.getCondition());
+            System.out.println(tmpIf.getStatements());
+            System.out.println("******************************");
+        }
+
+    }
+
+    // あとで消す
+    public int getTest() {
+        return test;
     }
 
     private void addLocalVariableDeclaration(Type type, JavaParser.VariableDeclaratorsContext ctx) {
@@ -223,7 +309,8 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 LocalVariableDeclaration local = new LocalVariableDeclaration(type, ctx.getChild(i).getText());
                 methodBody.addStatement(local);
             } else {
-                LocalVariableDeclaration local = new LocalVariableDeclaration(type, ctx.getChild(i).getChild(0).getText(), ctx.getChild(i).getChild(2).getText());
+                LocalVariableDeclaration local = new LocalVariableDeclaration(type,
+                        ctx.getChild(i).getChild(0).getText(), ctx.getChild(i).getChild(2).getText());
                 methodBody.addStatement(local);
             }
         }
@@ -234,6 +321,11 @@ public class JavaEvalListener extends JavaParserBaseListener {
         methodBody.addStatement(assignment);
     }
 
+    private void addAssignmentToIf(String name, String value) {
+        Assignment assignment = new Assignment(name, value);
+        ifClass.addStatement(assignment);
+    }
+
     private void addMethod(JavaParser.ExpressionContext ctx) {
         if (ctx.getChildCount() == 1) {
             Method method = new Method(new Type("TmpType"), ctx.getText());
@@ -241,6 +333,16 @@ public class JavaEvalListener extends JavaParserBaseListener {
         } else if (ctx.getChildCount() == 3 && ctx.getChild(1).getText().equals(".")) {
             Method method = new Method(new Type(ctx.getChild(0).getText()), ctx.getChild(2).getText());
             methodBody.addStatement(method);
+        }
+    }
+
+    private void addMethodToIf(JavaParser.ExpressionContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            Method method = new Method(new Type("TmpType"), ctx.getText());
+            ifClass.addStatement(method);
+        } else if (ctx.getChildCount() == 3 && ctx.getChild(1).getText().equals(".")) {
+            Method method = new Method(new Type(ctx.getChild(0).getText()), ctx.getChild(2).getText());
+            ifClass.addStatement(method);
         }
     }
 
