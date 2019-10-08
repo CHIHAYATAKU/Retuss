@@ -235,6 +235,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 }
             }
         } else if (ctx.getParent().getParent().getParent().getChild(0).getText().equals("if")) {
+            // if文の中にある代入文、メソッド呼び出しはifClass.statementsに格納する
             if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
                 if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
                     if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
@@ -265,7 +266,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
 
     @Override
     public void enterStatement(JavaParser.StatementContext ctx) {
-        // if文を見つけた場合、Ifクラスに条件文とif内の処理を格納する
+        // if文を見つけた場合、Ifクラスに条件文を格納する
         // IfクラスをJava > Class > Method > MethodBodyに格納する
         if (ctx.getChild(0).getText().equals("if")) {
             ifClass = new If();
@@ -284,15 +285,16 @@ public class JavaEvalListener extends JavaParserBaseListener {
 
     @Override
     public void exitStatement(JavaParser.StatementContext ctx) {
+        // if文から抜ける時、methodBodyにifClassを追加する
         if (ctx.getChild(0).getText().equals("if")) {
             methodBody.addStatement(ifClass);
             // 確認
-            System.out.println(methodBody.getStatements());
-            System.out.println("******************************");
-            If tmpIf = (If) methodBody.getStatements().get(2);
-            System.out.println(tmpIf.getCondition());
-            System.out.println(tmpIf.getStatements());
-            System.out.println("******************************");
+            // System.out.println(methodBody.getStatements());
+            // System.out.println("******************************");
+            // If tmpIf = (If) methodBody.getStatements().get(2);
+            // System.out.println(tmpIf.getCondition());
+            // System.out.println(tmpIf.getStatements());
+            // System.out.println("******************************");
         }
 
     }

@@ -51,7 +51,8 @@ public class SequenceDiagramDrawer {
     public void resetLifelineFlag() {
         for (Class umlClass : this.umlPackage.getClasses()) {
             for (OperationGraphic og : umlClass.getOperationGraphics()) {
-                if (og.getInteraction() != null) og.getInteraction().resetLifelineFlag();
+                if (og.getInteraction() != null)
+                    og.getInteraction().resetLifelineFlag();
             }
         }
     }
@@ -80,7 +81,8 @@ public class SequenceDiagramDrawer {
     }
 
     public void draw() {
-        if (interactionSetFromClassNameAndOperation == null || interactionSetFromClassNameAndOperation.isEmpty()) return;
+        if (interactionSetFromClassNameAndOperation == null || interactionSetFromClassNameAndOperation.isEmpty())
+            return;
 
         int classIndex = 0;
 
@@ -90,7 +92,8 @@ public class SequenceDiagramDrawer {
                 continue;
             }
 
-            if (classTab.getContent() == null) break;
+            if (classTab.getContent() == null)
+                break;
 
             int operationIndex = 0;
 
@@ -114,10 +117,7 @@ public class SequenceDiagramDrawer {
                 drawDiagramCanvasEdge(gc);
                 drawSequenceNameArea(gc, og.getOperation().toString());
 
-                interactionSetFromClassNameAndOperation
-                        .get(classTab.getId())
-                        .get(operationTab.getId())
-                        .draw(gc);
+                interactionSetFromClassNameAndOperation.get(classTab.getId()).get(operationTab.getId()).draw(gc);
 
                 break;
             }
@@ -141,16 +141,17 @@ public class SequenceDiagramDrawer {
         gc.setFont(sd.getFont());
         gc.fillText(sd.getText(), space * 2, space * 2 + sd.getLayoutBounds().getHeight());
         gc.setFont(name.getFont());
-        gc.fillText(name.getText(), space * 3 + sd.getLayoutBounds().getWidth(), space * 2 + sd.getLayoutBounds().getHeight());
+        gc.fillText(name.getText(), space * 3 + sd.getLayoutBounds().getWidth(),
+                space * 2 + sd.getLayoutBounds().getHeight());
 
         Point2D rightBottomCorner = new Point2D(
                 space * 3 + sd.getLayoutBounds().getWidth() + name.getLayoutBounds().getWidth(),
                 space * 2 + sd.getLayoutBounds().getHeight());
         gc.setStroke(Color.BLACK);
-        gc.strokeLine(space, rightBottomCorner.getY() + space * 2,
-                rightBottomCorner.getX(), rightBottomCorner.getY() + space * 2);
-        gc.strokeLine(rightBottomCorner.getX() + space * 2, space,
-                rightBottomCorner.getX() + space * 2, rightBottomCorner.getY());
+        gc.strokeLine(space, rightBottomCorner.getY() + space * 2, rightBottomCorner.getX(),
+                rightBottomCorner.getY() + space * 2);
+        gc.strokeLine(rightBottomCorner.getX() + space * 2, space, rightBottomCorner.getX() + space * 2,
+                rightBottomCorner.getY());
         gc.strokeLine(rightBottomCorner.getX(), rightBottomCorner.getY() + space * 2,
                 rightBottomCorner.getX() + space * 2, rightBottomCorner.getY());
     }
@@ -170,8 +171,8 @@ public class SequenceDiagramDrawer {
         int sameOperationNameCount = 0;
 
         for (int i = 0; i < umlClass.getOperationGraphics().size(); i++) {
-            if (umlClass.getOperationGraphics().get(i).getOperation().getName().getNameText().
-                    equals(operationGraphic.getOperation().getName().getNameText())) {
+            if (umlClass.getOperationGraphics().get(i).getOperation().getName().getNameText()
+                    .equals(operationGraphic.getOperation().getName().getNameText())) {
                 sameOperationNameCount++;
             }
         }
@@ -249,7 +250,8 @@ public class SequenceDiagramDrawer {
         } else if (mouse.getButton() == MouseButton.SECONDARY) {
             ContextMenu popup = new ContextMenu();
 
-            // MenuItem changeMenu = new MenuItem(interaction.getMessage().getName() + "メッセージの変更");
+            // MenuItem changeMenu = new MenuItem(interaction.getMessage().getName() +
+            // "メッセージの変更");
             // changeMenu.setOnAction(e -> changeSequence(classId, operationId));
             MenuItem deleteMenu = new MenuItem(interaction.getMessage().getName() + "メッセージをモデルから削除");
             deleteMenu.setOnAction(e -> deleteSequence(classId, operationId));
@@ -266,22 +268,27 @@ public class SequenceDiagramDrawer {
         int operationIndex = -1;
 
         becauseOperationIsSpecify: for (int i = 0; i < umlPackage.getClasses().size(); i++) {
-            if (!umlPackage.getClasses().get(i).getName().equals(classId)) continue;
+            if (!umlPackage.getClasses().get(i).getName().equals(classId))
+                continue;
 
             for (int j = 0; j < umlPackage.getClasses().get(i).getOperationGraphics().size(); j++) {
-                if (!umlPackage.getClasses().get(i).getOperationGraphics().get(j).getOperation().toString().equals(operationId)) continue;
+                if (!umlPackage.getClasses().get(i).getOperationGraphics().get(j).getOperation().toString()
+                        .equals(operationId))
+                    continue;
                 classIndex = i;
                 operationIndex = j;
                 break becauseOperationIsSpecify;
             }
         }
 
-        if (operationIndex == -1) return;
+        if (operationIndex == -1)
+            return;
 
         interactionSetFromClassNameAndOperation.get(classId).remove(operationId);
         umlPackage.getClasses().get(classIndex).getOperationGraphics().remove(operationIndex);
 
-        ((TabPane) ((AnchorPane) tabPaneInSequenceTab.getTabs().get(classIndex).getContent()).getChildren().get(0)).getTabs().remove(operationIndex);
+        ((TabPane) ((AnchorPane) tabPaneInSequenceTab.getTabs().get(classIndex).getContent()).getChildren().get(0))
+                .getTabs().remove(operationIndex);
         draw();
     }
 }

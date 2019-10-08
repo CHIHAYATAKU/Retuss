@@ -15,32 +15,39 @@ import io.github.morichan.retuss.language.java.*;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.language.uml.Package;
 
-import  io.github.morichan.retuss.language.cpp.Cpp;
-import  io.github.morichan.retuss.language.cpp.MemberVariable;
-import  io.github.morichan.retuss.language.cpp.MemberFunction;
-import  io.github.morichan.retuss.language.cpp.AccessSpecifier;
+import io.github.morichan.retuss.language.cpp.Cpp;
+import io.github.morichan.retuss.language.cpp.MemberVariable;
+import io.github.morichan.retuss.language.cpp.MemberFunction;
+import io.github.morichan.retuss.language.cpp.AccessSpecifier;
 import io.github.morichan.retuss.window.diagram.AttributeGraphic;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.sequence.Interaction;
 import io.github.morichan.retuss.window.diagram.sequence.Lifeline;
 import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
 import io.github.morichan.retuss.window.diagram.sequence.MessageType;
-
+import io.github.morichan.retuss.window.diagram.sequence.CombinedFragment;
+import io.github.morichan.retuss.window.diagram.sequence.InteractionOperandKind;
+import io.github.morichan.retuss.window.diagram.sequence.InteractionOperand;
 
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 /**
- * <p> UML翻訳者クラス </p>
+ * <p>
+ * UML翻訳者クラス
+ * </p>
  */
 public class UMLTranslator {
 
     private Package classPackage;
 
     /**
-     * <p> Javaからクラス図のパッケージに翻訳します </p>
+     * <p>
+     * Javaからクラス図のパッケージに翻訳します
+     * </p>
      *
      * @param java Javaソースコード
      * @return クラス図のパッケージ
@@ -59,13 +66,16 @@ public class UMLTranslator {
     }
 
     /**
-     * <p> Cppからクラス図のパッケージに翻訳します </p>
+     * <p>
+     * Cppからクラス図のパッケージに翻訳します
+     * </p>
      *
      * @param cpp C++ソースコード
      * @return クラス図のパッケージ
      */
     public Package translate(Cpp cpp) {
-      //  List<Boolean> flagOperationImplementations = classPackage.getClasses().get(0).getFlagOperationsImplementations();
+        // List<Boolean> flagOperationImplementations =
+        // classPackage.getClasses().get(0).getFlagOperationsImplementations();
         classPackage = new Package();
 
         for (io.github.morichan.retuss.language.cpp.Class cppClass : cpp.getClasses()) {
@@ -86,7 +96,8 @@ public class UMLTranslator {
             attribute.setVisibility(convert(field.getAccessModifier()));
             if (field.getValue() != null) {
                 if (field.getArrayLength() != null) {
-                    attribute.setMultiplicityRange(new MultiplicityRange(new Bounder(new OneIdentifier(field.getArrayLength().getLength()))));
+                    attribute.setMultiplicityRange(
+                            new MultiplicityRange(new Bounder(new OneIdentifier(field.getArrayLength().getLength()))));
                 } else {
                     attribute.setDefaultValue(new DefaultValue(new OneIdentifier(field.getValue().toString())));
                 }
@@ -111,15 +122,35 @@ public class UMLTranslator {
 
             if (method.getMethodBody() != null) {
                 for (BlockStatement statement : method.getMethodBody().getStatements()) {
-                    message.addMessage(convert(message, lifeline, statement));
+                    // if文があったらCombinedFragmentを作成する
+                    if (statement instanceof If) {
+                        CombinedFragment fragment = createCombinedFragment((If) statement, message, lifeline);
+                    } else {
+                        message.addMessage(convert(message, lifeline, statement));
+                    }
                 }
             }
 
+            // ここを変更
             operationGraphic.setInteraction(new Interaction(message));
             umlClass.addOperation(operationGraphic, method.isAbstract());
         }
 
         return umlClass;
+    }
+
+    private CombinedFragment createCombinedFragment(If ifClass, MessageOccurrenceSpecification message,
+            Lifeline lifeline) {
+        InteractionOperandKind kind = InteractionOperandKind.Alt;
+
+        for (BlockStatement statement : ifClass.getStatements()) {
+            message.addMessage(convert(message, lifeline, statement));
+        }
+
+        InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition(),
+                new Interaction(message));
+        CombinedFragment fragment = new CombinedFragment(kind, interactionOperand);
+        return fragment;
     }
 
     private String createMessageText(Operation operation) {
@@ -130,7 +161,8 @@ public class UMLTranslator {
         try {
             if (operation.getParameters().size() > 0) {
                 StringJoiner sj = new StringJoiner(", ");
-                for (Parameter param : operation.getParameters()) sj.add(param.toString());
+                for (Parameter param : operation.getParameters())
+                    sj.add(param.toString());
 
                 sb.append("(");
                 sb.append(sj);
@@ -153,12 +185,15 @@ public class UMLTranslator {
             for (OperationGraphic og : umlClass.getOperationGraphics()) {
                 toSearchNextMessage: for (int i = 0; i < og.getInteraction().getMessage().getMessages().size(); i++) {
                     MessageOccurrenceSpecification message = og.getInteraction().getMessage().getMessages().get(i);
-                    if (message.getMessageType() != MessageType.Method) continue;
+                    if (message.getMessageType() != MessageType.Method)
+                        continue;
 
-                    if (umlClass.getName().equals(searchClass(message.getType().getName(), message, message.getLifeline()).getName())) {
+                    if (umlClass.getName().equals(
+                            searchClass(message.getType().getName(), message, message.getLifeline()).getName())) {
                         // 自クラス内のメソッド
                         for (Class sourceUmlClass : umlPackage.getClasses()) {
-                            if (!umlClass.getName().equals(sourceUmlClass.getName())) continue;
+                            if (!umlClass.getName().equals(sourceUmlClass.getName()))
+                                continue;
                             for (OperationGraphic sourceOg : sourceUmlClass.getOperationGraphics()) {
                                 MessageOccurrenceSpecification sourceMessage = sourceOg.getInteraction().getMessage();
 
@@ -173,7 +208,8 @@ public class UMLTranslator {
                     } else {
                         // 他クラス内のメソッド
                         for (Class sourceUmlClass : umlPackage.getClasses()) {
-                            if (umlClass.getName().equals(sourceUmlClass.getName())) continue;
+                            if (umlClass.getName().equals(sourceUmlClass.getName()))
+                                continue;
                             for (OperationGraphic sourceOg : sourceUmlClass.getOperationGraphics()) {
                                 MessageOccurrenceSpecification sourceMessage = sourceOg.getInteraction().getMessage();
 
@@ -181,7 +217,8 @@ public class UMLTranslator {
                                     String instance = "";
 
                                     for (AttributeGraphic ag : umlClass.getAttributeGraphics()) {
-                                        if (sourceUmlClass.getName().equals(ag.getAttribute().getType().getName().getNameText())) {
+                                        if (sourceUmlClass.getName()
+                                                .equals(ag.getAttribute().getType().getName().getNameText())) {
                                             instance = ag.getAttribute().getName().getNameText();
                                             break;
                                         }
@@ -212,10 +249,12 @@ public class UMLTranslator {
     }
 
     /**
-     * <p> 汎化関係のクラスをディープコピーします </p>
+     * <p>
+     * 汎化関係のクラスをディープコピーします
+     * </p>
      *
      * <p>
-     *     手法について詳しくは {@link JavaTranslator#searchGeneralizationClass(List)} を参照してください。
+     * 手法について詳しくは {@link JavaTranslator#searchGeneralizationClass(List)} を参照してください。
      * </p>
      *
      * @param javaClasses Javaのクラスリスト
@@ -224,10 +263,9 @@ public class UMLTranslator {
         for (int i = 0; i < javaClasses.size(); i++) {
             if (javaClasses.get(i).getExtendsClassName() != null) {
                 int finalI = i;
-                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass =
-                        classPackage.getClasses().stream().filter(
-                                cp -> cp.getName().equals(javaClasses.get(finalI).getExtendsClassName())
-                        ).collect(Collectors.toList());
+                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = classPackage.getClasses().stream()
+                        .filter(cp -> cp.getName().equals(javaClasses.get(finalI).getExtendsClassName()))
+                        .collect(Collectors.toList());
                 try {
                     io.github.morichan.retuss.language.uml.Class oneClass = oneExtendsClass.get(0);
                     classPackage.getClasses().get(finalI).setGeneralizationClass(oneClass);
@@ -238,7 +276,7 @@ public class UMLTranslator {
         }
     }
 
-    //C++の変換
+    // C++の変換
 
     private Class createClass(io.github.morichan.retuss.language.cpp.Class cppClass) {
         Class classClass = new Class(cppClass.getName());
@@ -246,13 +284,14 @@ public class UMLTranslator {
         for (MemberVariable memberVariable : cppClass.getMemberVariables()) {
 
             Attribute attribute = new Attribute(new Name(memberVariable.getName()));
-            if(memberVariable.getConstantExpression() != null) {
-                MultiplicityRange multiplicityRange = new MultiplicityRange(new Bounder(memberVariable.getConstantExpression()));
+            if (memberVariable.getConstantExpression() != null) {
+                MultiplicityRange multiplicityRange = new MultiplicityRange(
+                        new Bounder(memberVariable.getConstantExpression()));
                 attribute.setMultiplicityRange(multiplicityRange);
             }
-            if(memberVariable.getType().toString().equals( "string")) {
+            if (memberVariable.getType().toString().equals("string")) {
                 attribute.setType(new Type("String"));
-            }else {
+            } else {
                 attribute.setType(new Type(memberVariable.getType().toString()));
             }
             attribute.setVisibility(convert(memberVariable.getAccessSpecifier()));
@@ -271,8 +310,10 @@ public class UMLTranslator {
                 parameter.setType(new Type(argument.getType().toString()));
                 operation.addParameter(parameter);
             }
-            // Boolean flagOperationsImplementation = memberFunction.getFlagImplementation();
-            // Boolean flagOperationsImplementation = Boolean.valueOf(memberFunction.getFlagImplementation());
+            // Boolean flagOperationsImplementation =
+            // memberFunction.getFlagImplementation();
+            // Boolean flagOperationsImplementation =
+            // Boolean.valueOf(memberFunction.getFlagImplementation());
             // classClass.addFlagOperationsImplementation(flagOperationsImplementation);
             OperationGraphic operationGraphic = new OperationGraphic(operation);
             classClass.addOperation(operationGraphic, memberFunction.isAbstract());
@@ -281,22 +322,22 @@ public class UMLTranslator {
         return classClass;
     }
 
-
     private Visibility convert(AccessSpecifier accessSpecifier) {
         if (accessSpecifier == AccessSpecifier.Public) {
             return Visibility.Public;
         } else if (accessSpecifier == AccessSpecifier.Protected) {
             return Visibility.Protected;
         }
-//        else if (accessSpecifier == AccessSpecifier.Package) {
-//            return Visibility.Package;
-//        }
+        // else if (accessSpecifier == AccessSpecifier.Package) {
+        // return Visibility.Package;
+        // }
         else {
             return Visibility.Private;
         }
     }
 
-    private MessageOccurrenceSpecification convert(MessageOccurrenceSpecification owner, Lifeline lifeline, BlockStatement statement) {
+    private MessageOccurrenceSpecification convert(MessageOccurrenceSpecification owner, Lifeline lifeline,
+            BlockStatement statement) {
         MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
 
         if (statement instanceof LocalVariableDeclaration) {
@@ -336,7 +377,8 @@ public class UMLTranslator {
         return lifeline.getUmlClass();
     }
 
-    private Class searchPreviousDeclaredFieldType(BlockStatement statement, MessageOccurrenceSpecification owner, Lifeline lifeline) {
+    private Class searchPreviousDeclaredFieldType(BlockStatement statement, MessageOccurrenceSpecification owner,
+            Lifeline lifeline) {
         for (MessageOccurrenceSpecification message : owner.getMessages())
             if (message.getName().equals(statement.getName()))
                 return message.getType();
@@ -348,7 +390,8 @@ public class UMLTranslator {
         return new Class("NotKnownType");
     }
 
-    private Class searchPreviousDeclaredFieldType(String instance, MessageOccurrenceSpecification owner, Lifeline lifeline) {
+    private Class searchPreviousDeclaredFieldType(String instance, MessageOccurrenceSpecification owner,
+            Lifeline lifeline) {
         for (MessageOccurrenceSpecification message : owner.getMessages())
             if (message.getName().equals(instance))
                 return message.getType();
@@ -361,10 +404,12 @@ public class UMLTranslator {
     }
 
     /**
-     * <p> 汎化関係のクラスをディープコピーします </p>
+     * <p>
+     * 汎化関係のクラスをディープコピーします
+     * </p>
      *
      * <p>
-     *     手法について詳しくは {@link CppTranslator#searchGeneralizationClass(List)} を参照してください。
+     * 手法について詳しくは {@link CppTranslator#searchGeneralizationClass(List)} を参照してください。
      * </p>
      *
      * @param cppClasses Cppのクラスリスト
@@ -373,10 +418,9 @@ public class UMLTranslator {
         for (int i = 0; i < cppClasses.size(); i++) {
             if (cppClasses.get(i).getExtendsClassName() != null) {
                 int finalI = i;
-                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass =
-                        classPackage.getClasses().stream().filter(
-                                cp -> cp.getName().equals(cppClasses.get(finalI).getExtendsClassName())
-                        ).collect(Collectors.toList());
+                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = classPackage.getClasses().stream()
+                        .filter(cp -> cp.getName().equals(cppClasses.get(finalI).getExtendsClassName()))
+                        .collect(Collectors.toList());
                 try {
                     io.github.morichan.retuss.language.uml.Class oneClass = oneExtendsClass.get(0);
                     classPackage.getClasses().get(finalI).setGeneralizationClass(oneClass);
