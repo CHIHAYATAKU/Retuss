@@ -260,11 +260,12 @@ class JavaEvalListenerTest {
             }
         }
 
-        @Test
-        void 仮のテスト() {
-            init("class JavaClass {public void javaMethod(){int a;a = 3;if(a < 5){int b; b = 10;callMethod();}}  public int callMethod(){return 1;}");
-            assertThat(obj.getTest()).isEqualTo(1);
-        }
+        // @Test
+        // void 仮のテスト() {
+        // init("class JavaClass {public void javaMethod(){int a;a = 3;if(a < 5){int b;
+        // b = 10;callMethod();}} public int callMethod(){return 1;}");
+        // assertThat(obj.getTest()).isEqualTo(1);
+        // }
     }
 
     private void init(String javaCode) {
