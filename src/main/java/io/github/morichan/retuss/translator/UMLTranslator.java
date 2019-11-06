@@ -22,6 +22,7 @@ import io.github.morichan.retuss.language.cpp.AccessSpecifier;
 import io.github.morichan.retuss.window.diagram.AttributeGraphic;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.sequence.Interaction;
+import io.github.morichan.retuss.window.diagram.sequence.InteractionFragment;
 import io.github.morichan.retuss.window.diagram.sequence.Lifeline;
 import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
 import io.github.morichan.retuss.window.diagram.sequence.MessageType;
@@ -124,9 +125,12 @@ public class UMLTranslator {
                 for (BlockStatement statement : method.getMethodBody().getStatements()) {
                     // if文があったらCombinedFragmentを作成する
                     if (statement instanceof If) {
-                        CombinedFragment fragment = createCombinedFragment((If) statement, message, lifeline);
+                        CombinedFragment combinedFragment = createCombinedFragment((If) statement, message, lifeline);
+                        message.addInteractionFragment(combinedFragment);
                     } else {
-                        message.addMessage(convert(message, lifeline, statement));
+                        InteractionFragment interactionFragment = new InteractionFragment();
+                        interactionFragment.setMessage(convert(message, lifeline, statement));
+                        message.addInteractionFragment(interactionFragment);
                     }
                 }
             }
@@ -142,15 +146,17 @@ public class UMLTranslator {
     private CombinedFragment createCombinedFragment(If ifClass, MessageOccurrenceSpecification message,
             Lifeline lifeline) {
         InteractionOperandKind kind = InteractionOperandKind.Alt;
+        InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition());
 
         for (BlockStatement statement : ifClass.getStatements()) {
-            message.addMessage(convert(message, lifeline, statement));
+            InteractionFragment interactionFragment = new InteractionFragment();
+            interactionFragment.setMessage(convert(message, lifeline, statement));
+            interactionOperand.addInteractionFragment(interactionFragment);
         }
 
-        InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition(),
-                new Interaction(message));
-        CombinedFragment fragment = new CombinedFragment(kind, interactionOperand);
-        return fragment;
+        CombinedFragment combinedFragment = new CombinedFragment(kind);
+        combinedFragment.addInteractionOperand(interactionOperand);
+        return combinedFragment;
     }
 
     private String createMessageText(Operation operation) {
@@ -199,7 +205,7 @@ public class UMLTranslator {
 
                                 if (sourceMessage.getName().contains(message.getName() + "(")) {
                                     sourceMessage.setMessageType(MessageType.Method);
-                                    og.getInteraction().getMessage().getMessages().set(i, sourceMessage);
+                                    og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
                                     continue toSearchNextMessage;
                                 }
                             }
@@ -225,7 +231,7 @@ public class UMLTranslator {
                                     }
 
                                     og.getInteraction().getMessage().putInstance(i, instance);
-                                    og.getInteraction().getMessage().getMessages().set(i, sourceMessage);
+                                    og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
                                     continue toSearchNextMessage;
                                 }
                             }

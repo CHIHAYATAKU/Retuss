@@ -26,7 +26,7 @@ public class MessageOccurrenceSpecification {
     private Map<Integer, String> instanceMap = new HashMap<>();
     private String value;
     private Lifeline lifeline;
-    private List<MessageOccurrenceSpecification> messages = new ArrayList<>();
+    private List<InteractionFragment> interactionFragmentList = new ArrayList<>();
 
     public Point2D getBeginPoint() {
         return beginPoint;
@@ -92,11 +92,47 @@ public class MessageOccurrenceSpecification {
         return lifeline;
     }
 
+    public void addInteractionFragment(InteractionFragment interactionFragment) {
+        this.interactionFragmentList.add(interactionFragment);
+    }
+
+    public void addInteractionFragment(int i, MessageOccurrenceSpecification message) {
+        InteractionFragment interactionFragment = new InteractionFragment();
+        interactionFragment.setMessage(message);
+        if (i < interactionFragmentList.size()) {
+            interactionFragmentList.set(i, interactionFragment);
+        } else {
+            interactionFragmentList.add(interactionFragment);
+        }
+    }
+
     public void addMessage(MessageOccurrenceSpecification message) {
-        messages.add(message);
+        InteractionFragment interactionFragment = new InteractionFragment();
+        interactionFragment.setMessage(message);
+        interactionFragmentList.add(interactionFragment);
     }
 
     public List<MessageOccurrenceSpecification> getMessages() {
+        List<MessageOccurrenceSpecification> messages = new ArrayList<MessageOccurrenceSpecification>();
+        MessageOccurrenceSpecification childMessage;
+        for (InteractionFragment interactionFragment : interactionFragmentList) {
+            if (interactionFragment instanceof CombinedFragment) {
+                CombinedFragment cf = (CombinedFragment) interactionFragment;
+                for (InteractionOperand io : cf.getInteractionOperandList()) {
+                    for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
+                        childMessage = interactionFragment2.getMessage();
+                        if (childMessage != null) {
+                            messages.add(childMessage);
+                        }
+                    }
+                }
+            } else {
+                childMessage = interactionFragment.getMessage();
+                if (childMessage != null) {
+                    messages.add(childMessage);
+                }
+            }
+        }
         return messages;
     }
 
@@ -113,31 +149,38 @@ public class MessageOccurrenceSpecification {
         Point2D beforeGoalPoint = new Point2D(beginPoint.getX(), beginPoint.getY());
 
         int count = 0;
+        List<MessageOccurrenceSpecification> messages = getMessages();
         for (MessageOccurrenceSpecification message : messages) {
-            scheduledLifelineForLastDrawing =
-                    message.calculatePoint(beforeGoalPoint, lifeline, scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
+            scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline,
+                    scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
             height += message.calculateHeight();
             beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
             count++;
         }
 
-        if (messages.size() >= 2) height += (messages.size() - 1) * 20;
+        if (messages.size() >= 2)
+            height += (messages.size() - 1) * 20;
 
         endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beginPoint.getY() + height);
 
-        /*if (count == 0) {
-            beginPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), lifeline.getHeadCenterPoint().getY() + 30);
-            endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), lifeline.getHeadCenterPoint().getY() + 60 + y);
-        }*/
+        /*
+         * if (count == 0) { beginPoint = new
+         * Point2D(lifeline.getHeadCenterPoint().getX(),
+         * lifeline.getHeadCenterPoint().getY() + 30); endPoint = new
+         * Point2D(lifeline.getHeadCenterPoint().getX(),
+         * lifeline.getHeadCenterPoint().getY() + 60 + y); }
+         */
     }
 
-    private Point2D calculatePoint(Point2D beforeBeginPoint, Lifeline fromLifeline, Point2D lastLifeline, int sameLifelineCount, String instanceName) {
+    private Point2D calculatePoint(Point2D beforeBeginPoint, Lifeline fromLifeline, Point2D lastLifeline,
+            int sameLifelineCount, String instanceName) {
 
         double height = 40;
         if (hasSameLifeline(fromLifeline)) {
             sameLifelineCount++;
             lifeline = fromLifeline;
-            beginPoint = new Point2D(lifeline.getHeadCenterPoint().getX() + sameLifelineCount * 5, beforeBeginPoint.getY() + 35);
+            beginPoint = new Point2D(lifeline.getHeadCenterPoint().getX() + sameLifelineCount * 5,
+                    beforeBeginPoint.getY() + 35);
         } else {
             sameLifelineCount = 0;
             if (!lifeline.isCalculated()) {
@@ -152,17 +195,22 @@ public class MessageOccurrenceSpecification {
 
         int count = 0;
         Point2D beforeGoalPoint = new Point2D(beginPoint.getX(), beginPoint.getY());
+        List<MessageOccurrenceSpecification> messages = getMessages();
+
         for (MessageOccurrenceSpecification message : messages) {
-            lastLifeline = message.calculatePoint(beforeGoalPoint, lifeline, lastLifeline, sameLifelineCount, instanceMap.get(count));
+            lastLifeline = message.calculatePoint(beforeGoalPoint, lifeline, lastLifeline, sameLifelineCount,
+                    instanceMap.get(count));
             height += message.calculateHeight();
             beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
             count++;
         }
 
-        if (messages.size() >= 2) height += (messages.size() - 1) * 20;
+        if (messages.size() >= 2)
+            height += (messages.size() - 1) * 20;
 
         if (sameLifelineCount != 0) {
-            endPoint = new Point2D(lifeline.getHeadCenterPoint().getX() + sameLifelineCount * 5, beginPoint.getY() + height - 15);
+            endPoint = new Point2D(lifeline.getHeadCenterPoint().getX() + sameLifelineCount * 5,
+                    beginPoint.getY() + height - 15);
         } else {
             endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beginPoint.getY() + height);
         }
@@ -172,12 +220,14 @@ public class MessageOccurrenceSpecification {
 
     private double calculateHeight() {
         double height = 40;
+        List<MessageOccurrenceSpecification> messages = getMessages();
 
         for (MessageOccurrenceSpecification message : messages) {
             height += message.calculateHeight();
         }
 
-        if (messages.size() >= 2) height += (messages.size() - 1) * 20;
+        if (messages.size() >= 2)
+            height += (messages.size() - 1) * 20;
 
         return height;
     }
@@ -208,8 +258,10 @@ public class MessageOccurrenceSpecification {
         String diagramFont = "Consolas";
         double textSize = 12.0;
         String operationName = formExpression();
+        Point2D lastDrawPoint = Point2D.ZERO;
 
         if (!lifeline.isDrawn()) {
+            // ライフラインを描画していない場合
             lifeline.draw(gc);
             lifeline.setDrawn(true);
             fromLifeline = lifeline;
@@ -234,8 +286,9 @@ public class MessageOccurrenceSpecification {
             gc.fillText(operationText.getText(), first.getX() + 5, first.getY() - 5);
 
             gc.strokeLine(first.getX(), first.getY(), beginPoint.getX() - width / 2, beginPoint.getY());
-            double[] arrowTipX = {beginPoint.getX() - width / 2 - 5.0, beginPoint.getX() - width / 2 - 5.0, beginPoint.getX() - width / 2};
-            double[] arrowTipY = {beginPoint.getY() - 3.0, beginPoint.getY() + 3.0, beginPoint.getY()};
+            double[] arrowTipX = { beginPoint.getX() - width / 2 - 5.0, beginPoint.getX() - width / 2 - 5.0,
+                    beginPoint.getX() - width / 2 };
+            double[] arrowTipY = { beginPoint.getY() - 3.0, beginPoint.getY() + 3.0, beginPoint.getY() };
             gc.fillPolygon(arrowTipX, arrowTipY, 3);
             gc.strokePolygon(arrowTipX, arrowTipY, 3);
 
@@ -245,7 +298,10 @@ public class MessageOccurrenceSpecification {
             gc.strokeLine(last.getX() + 5.0, last.getY() - 3.0, last.getX(), last.getY());
             gc.strokeLine(last.getX() + 5.0, last.getY() + 3.0, last.getX(), last.getY());
 
+            lastDrawPoint = new Point2D(last.getX(), last.getY());
+
         } else if (!hasSameLifeline(fromLifeline)) {
+            // メッセージの開始と終わりのライフラインが同一の場合
             Point2D first = new Point2D(arrowFirstX, beginPoint.getY());
             Point2D last = new Point2D(arrowFirstX, endPoint.getY());
 
@@ -264,8 +320,9 @@ public class MessageOccurrenceSpecification {
             gc.fillText(operationText.getText(), first.getX() + 5, first.getY() - 5);
 
             gc.strokeLine(first.getX(), first.getY(), beginPoint.getX() - width / 2, beginPoint.getY());
-            double[] arrowTipX = {beginPoint.getX() - width / 2 - 5.0, beginPoint.getX() - width / 2 - 5.0, beginPoint.getX() - width / 2};
-            double[] arrowTipY = {beginPoint.getY() - 3.0, beginPoint.getY() + 3.0, beginPoint.getY()};
+            double[] arrowTipX = { beginPoint.getX() - width / 2 - 5.0, beginPoint.getX() - width / 2 - 5.0,
+                    beginPoint.getX() - width / 2 };
+            double[] arrowTipY = { beginPoint.getY() - 3.0, beginPoint.getY() + 3.0, beginPoint.getY() };
             gc.fillPolygon(arrowTipX, arrowTipY, 3);
             gc.strokePolygon(arrowTipX, arrowTipY, 3);
 
@@ -275,8 +332,10 @@ public class MessageOccurrenceSpecification {
             gc.strokeLine(last.getX() + 5.0, last.getY() - 3.0, last.getX(), last.getY());
             gc.strokeLine(last.getX() + 5.0, last.getY() + 3.0, last.getX(), last.getY());
 
-        } else {
+            lastDrawPoint = new Point2D(last.getX(), last.getY());
 
+        } else {
+            // ライフラインが描画済みかつ同じライフラインへのメッセージの場合
             // updateMessagePoint();
 
             Point2D arrowFirst = new Point2D(arrowFirstX, beginPoint.getY() - 10);
@@ -286,7 +345,7 @@ public class MessageOccurrenceSpecification {
             gc.fillRect(beginPoint.getX() - width / 2, beginPoint.getY(), width, height);
 
             gc.setStroke(Color.BLACK);
-            gc.strokeRect(beginPoint.getX() - width / 2 , beginPoint.getY(), width, height);
+            gc.strokeRect(beginPoint.getX() - width / 2, beginPoint.getY(), width, height);
 
             Text operationText = new Text(operationName);
             operationText.setFont(Font.font(diagramFont, FontWeight.LIGHT, textSize));
@@ -300,15 +359,33 @@ public class MessageOccurrenceSpecification {
             gc.strokeLine(arrowFirst.getX() + 20, arrowFirst.getY(), arrowFirst.getX() + 20, arrowLast.getY());
             gc.strokeLine(arrowFirst.getX() + 20, arrowLast.getY(), arrowLast.getX(), arrowLast.getY());
 
-            double[] arrowTipX = {arrowLast.getX(), arrowLast.getX() + 5.0, arrowLast.getX() + 5.0};
-            double[] arrowTipY = {arrowLast.getY(), arrowLast.getY() - 3.0, arrowLast.getY() + 3.0};
+            double[] arrowTipX = { arrowLast.getX(), arrowLast.getX() + 5.0, arrowLast.getX() + 5.0 };
+            double[] arrowTipY = { arrowLast.getY(), arrowLast.getY() - 3.0, arrowLast.getY() + 3.0 };
             gc.fillPolygon(arrowTipX, arrowTipY, 3);
             gc.strokePolygon(arrowTipX, arrowTipY, 3);
+
+            lastDrawPoint = new Point2D(arrowLast.getX(), arrowLast.getY());
         }
 
         arrowFirstX = beginPoint.getX() + width / 2;
-        for (MessageOccurrenceSpecification message : messages) {
-            message.draw(gc, arrowFirstX, fromLifeline);
+        for (InteractionFragment interactionFragment : interactionFragmentList) {
+            if (interactionFragment instanceof CombinedFragment) {
+                CombinedFragment cf = (CombinedFragment) interactionFragment;
+                cf.draw(gc, lastDrawPoint, fromLifeline);
+                for (InteractionOperand io : cf.getInteractionOperandList()) {
+                    for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
+                        interactionFragment2.getMessage().draw(gc, arrowFirstX, fromLifeline);
+                    }
+                }
+            } else {
+                interactionFragment.getMessage().draw(gc, arrowFirstX, fromLifeline);
+            }
         }
+        // List<MessageOccurrenceSpecification> messages = getMessages();
+
+        // for (MessageOccurrenceSpecification message : messages) {
+        // message.draw(gc, arrowFirstX, fromLifeline);
+        // }
+
     }
 }
