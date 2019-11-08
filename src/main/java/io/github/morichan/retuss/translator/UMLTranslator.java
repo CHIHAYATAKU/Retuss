@@ -125,7 +125,10 @@ public class UMLTranslator {
                 for (BlockStatement statement : method.getMethodBody().getStatements()) {
                     // if文があったらCombinedFragmentを作成する
                     if (statement instanceof If) {
-                        CombinedFragment combinedFragment = createCombinedFragment((If) statement, message, lifeline);
+                        CombinedFragment combinedFragment = createCombinedFragment(statement, message, lifeline);
+                        message.addInteractionFragment(combinedFragment);
+                    } else if (statement instanceof While) {
+                        CombinedFragment combinedFragment = createCombinedFragment(statement, message, lifeline);
                         message.addInteractionFragment(combinedFragment);
                     } else {
                         InteractionFragment interactionFragment = new InteractionFragment();
@@ -143,20 +146,41 @@ public class UMLTranslator {
         return umlClass;
     }
 
-    private CombinedFragment createCombinedFragment(If ifClass, MessageOccurrenceSpecification message,
+    private CombinedFragment createCombinedFragment(BlockStatement statement, MessageOccurrenceSpecification message,
             Lifeline lifeline) {
-        InteractionOperandKind kind = InteractionOperandKind.alt;
-        InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition());
 
-        for (BlockStatement statement : ifClass.getStatements()) {
-            InteractionFragment interactionFragment = new InteractionFragment();
-            interactionFragment.setMessage(convert(message, lifeline, statement));
-            interactionOperand.addInteractionFragment(interactionFragment);
+        InteractionOperandKind kind = InteractionOperandKind.undefined;
+        CombinedFragment combinedFragment = new CombinedFragment(kind);
+
+        if(statement instanceof If) {
+            If ifClass = (If) statement;
+            kind = InteractionOperandKind.alt;
+            InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition());
+
+            for (BlockStatement blockStatement : ifClass.getStatements()) {
+                InteractionFragment interactionFragment = new InteractionFragment();
+                interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                interactionOperand.addInteractionFragment(interactionFragment);
+            }
+            combinedFragment = new CombinedFragment(kind);
+            combinedFragment.addInteractionOperand(interactionOperand);
+
+        } else if (statement instanceof While) {
+            While whileClass = (While) statement;
+            kind = InteractionOperandKind.loop;
+            InteractionOperand interactionOperand = new InteractionOperand(whileClass.getCondition());
+
+            for (BlockStatement blockStatement : whileClass.getStatements()) {
+                InteractionFragment interactionFragment = new InteractionFragment();
+                interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                interactionOperand.addInteractionFragment(interactionFragment);
+            }
+            combinedFragment = new CombinedFragment(kind);
+            combinedFragment.addInteractionOperand(interactionOperand);
         }
 
-        CombinedFragment combinedFragment = new CombinedFragment(kind);
-        combinedFragment.addInteractionOperand(interactionOperand);
         return combinedFragment;
+
     }
 
     private String createMessageText(Operation operation) {

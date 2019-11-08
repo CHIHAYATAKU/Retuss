@@ -41,15 +41,15 @@ public class CombinedFragment extends InteractionFragment {
     }
 
     public void draw(GraphicsContext gc) {
-        gc.setStroke(Color.RED);
+        gc.setStroke(Color.BLACK);
         // 全体の枠を描画
         gc.strokeRect(beginPoint.getX(), beginPoint.getY(), width, height);
         // 左上の枠を描画
-        gc.strokeLine(beginPoint.getX(), beginPoint.getY() + 20, beginPoint.getX() + 20, beginPoint.getY() + 20);
-        gc.strokeLine(beginPoint.getX() + 20, beginPoint.getY() + 20, beginPoint.getX() + 25, beginPoint.getY() + 15);
-        gc.strokeLine(beginPoint.getX() + 25, beginPoint.getY() + 15, beginPoint.getX() + 25, beginPoint.getY());
+        gc.strokeLine(beginPoint.getX(), beginPoint.getY() + 20, beginPoint.getX() + 25, beginPoint.getY() + 20);
+        gc.strokeLine(beginPoint.getX() + 25, beginPoint.getY() + 20, beginPoint.getX() + 30, beginPoint.getY() + 15);
+        gc.strokeLine(beginPoint.getX() + 30, beginPoint.getY() + 15, beginPoint.getX() + 30, beginPoint.getY());
         // 左上に複合フラグメントの種類を描画する
-        gc.fillText(kind.name(), beginPoint.getX() + 5, beginPoint.getY() + 15);
+        gc.fillText(kind.name(), beginPoint.getX() + 2, beginPoint.getY() + 15);
         // ガード条件を表示する
         gc.fillText(String.format("[ %s ]", interactionOperandList.get(0).getGuard()), beginPoint.getX() + 50, beginPoint.getY() + 15);
 

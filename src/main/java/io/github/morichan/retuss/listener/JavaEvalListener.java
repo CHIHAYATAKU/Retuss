@@ -29,6 +29,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
     // 追加分
     private int test;
     private If ifClass;
+    private While whileClass;
 
     /**
      * <p>
@@ -252,6 +253,24 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 }
             }
         }
+        else if (ctx.getParent().getParent().getParent().getChild(0).getText().equals("while")){
+            // while文の中にある代入文、メソッド呼び出しはwhileClass.statementsに格納する
+            if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
+                if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
+                    if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
+                        if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
+                                && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext
+                                && ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
+                            addAssignmentToWhile(ctx.getChild(0).getChild(0).getChild(0).getText(),
+                                    ctx.getChild(0).getChild(0).getChild(2).getText());
+                        } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
+                                && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
+                            addMethodToWhile((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0).getChild(0));
+                        }
+                    }
+                }
+            }
+        }
 
         // 仮
         // System.out.println("******************************");
@@ -271,6 +290,9 @@ public class JavaEvalListener extends JavaParserBaseListener {
         if (ctx.getChild(0).getText().equals("if")) {
             ifClass = new If();
             ifClass.setCondition(ctx.getChild(1).getText());
+        }else if(ctx.getChild(0).getText().equals("while")){
+            whileClass = new While();
+            whileClass.setCondition(ctx.getChild(1).getText());
         }
 
         test = ctx.getChildCount();
@@ -285,16 +307,19 @@ public class JavaEvalListener extends JavaParserBaseListener {
 
     @Override
     public void exitStatement(JavaParser.StatementContext ctx) {
-        // if文から抜ける時、methodBodyにifClassを追加する
         if (ctx.getChild(0).getText().equals("if")) {
+            // if文から抜ける時、methodBodyにifClassを追加する
             methodBody.addStatement(ifClass);
+        } else if(ctx.getChild(0).getText().equals("while")){
+            // while文から抜ける時、methodBodyにwhileClassを追加する
+            methodBody.addStatement(whileClass);
             // 確認
-            // System.out.println(methodBody.getStatements());
-            // System.out.println("******************************");
-            // If tmpIf = (If) methodBody.getStatements().get(2);
-            // System.out.println(tmpIf.getCondition());
-            // System.out.println(tmpIf.getStatements());
-            // System.out.println("******************************");
+//             System.out.println(methodBody.getStatements());
+//             System.out.println("******************************");
+//             While tmp = (While) methodBody.getStatements().get(3);
+//             System.out.println(tmp.getCondition());
+//             System.out.println(tmp.getStatements());
+//             System.out.println("------------------------------");
         }
 
     }
@@ -328,6 +353,11 @@ public class JavaEvalListener extends JavaParserBaseListener {
         ifClass.addStatement(assignment);
     }
 
+    private void addAssignmentToWhile(String name, String value) {
+        Assignment assignment = new Assignment(name, value);
+        whileClass.addStatement(assignment);
+    }
+
     private void addMethod(JavaParser.ExpressionContext ctx) {
         if (ctx.getChildCount() == 1) {
             Method method = new Method(new Type("TmpType"), ctx.getText());
@@ -345,6 +375,16 @@ public class JavaEvalListener extends JavaParserBaseListener {
         } else if (ctx.getChildCount() == 3 && ctx.getChild(1).getText().equals(".")) {
             Method method = new Method(new Type(ctx.getChild(0).getText()), ctx.getChild(2).getText());
             ifClass.addStatement(method);
+        }
+    }
+
+    private void addMethodToWhile(JavaParser.ExpressionContext ctx) {
+        if (ctx.getChildCount() == 1) {
+            Method method = new Method(new Type("TmpType"), ctx.getText());
+            whileClass.addStatement(method);
+        } else if (ctx.getChildCount() == 3 && ctx.getChild(1).getText().equals(".")) {
+            Method method = new Method(new Type(ctx.getChild(0).getText()), ctx.getChild(2).getText());
+            whileClass.addStatement(method);
         }
     }
 
