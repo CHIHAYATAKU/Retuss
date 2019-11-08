@@ -10,6 +10,10 @@ public class InteractionOperand {
         this.guard = guard;
     }
 
+    public String getGuard(){
+        return this.guard;
+    }
+
     public void addInteractionFragment(InteractionFragment interactionFragment) {
         this.interactionFragmentList.add(interactionFragment);
     }

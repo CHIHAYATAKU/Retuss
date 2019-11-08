@@ -150,16 +150,49 @@ public class MessageOccurrenceSpecification {
 
         int count = 0;
         List<MessageOccurrenceSpecification> messages = getMessages();
-        for (MessageOccurrenceSpecification message : messages) {
-            scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline,
-                    scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
-            height += message.calculateHeight();
-            beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
-            count++;
+//        for (MessageOccurrenceSpecification message : messages) {
+//            scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline,
+//                    scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
+//            height += message.calculateHeight();
+//            beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
+//            count++;
+//        }
+
+        // interactionFragmentでループを回すように変更
+        MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
+        for(InteractionFragment interactionFragment: interactionFragmentList){
+            if(interactionFragment instanceof CombinedFragment){
+                CombinedFragment cf = (CombinedFragment) interactionFragment;
+                // 直前のメッセージのendPointのYを利用する
+                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 35, message.getEndPoint().getY() + 5);
+                for (InteractionOperand io : cf.getInteractionOperandList()) {
+                    double maxEndPointX = 0.0;
+                    for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
+                        message = interactionFragment2.getMessage();
+                        scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline, scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
+                        height += message.calculateHeight();
+                        beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
+                        count++;
+                        if(maxEndPointX < message.getEndPoint().getX()){
+                            maxEndPointX = message.getEndPoint().getX();
+                        }
+                    }
+                    // 複合フラグメント内の最後のメッセージのendPointを利用する
+                    cf.setHeight(message.getEndPoint().getY() - cf.getBeginPoint().getY() + 10);
+                    cf.setWidth(maxEndPointX + 150);
+
+                }
+            }else{
+                message = interactionFragment.getMessage();
+                scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline, scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
+                height += message.calculateHeight();
+                beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
+                count++;
+            }
         }
 
         if (messages.size() >= 2)
-            height += (messages.size() - 1) * 20;
+            height += (messages.size() - 1) * 40;
 
         endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beginPoint.getY() + height);
 
@@ -180,7 +213,7 @@ public class MessageOccurrenceSpecification {
             sameLifelineCount++;
             lifeline = fromLifeline;
             beginPoint = new Point2D(lifeline.getHeadCenterPoint().getX() + sameLifelineCount * 5,
-                    beforeBeginPoint.getY() + 35);
+                    beforeBeginPoint.getY() + 50);
         } else {
             sameLifelineCount = 0;
             if (!lifeline.isCalculated()) {
@@ -371,7 +404,7 @@ public class MessageOccurrenceSpecification {
         for (InteractionFragment interactionFragment : interactionFragmentList) {
             if (interactionFragment instanceof CombinedFragment) {
                 CombinedFragment cf = (CombinedFragment) interactionFragment;
-                cf.draw(gc, lastDrawPoint, fromLifeline);
+                cf.draw(gc);
                 for (InteractionOperand io : cf.getInteractionOperandList()) {
                     for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
                         interactionFragment2.getMessage().draw(gc, arrowFirstX, fromLifeline);

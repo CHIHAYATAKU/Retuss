@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class If implements BlockStatement {
+    private String name = "if";
     private Type type;
     private String condition;
     private List<BlockStatement> statements = new ArrayList<>();
@@ -27,16 +28,16 @@ public class If implements BlockStatement {
 
     @Override
     public String getName() {
-        return this.condition; // 仮
+        return name;
     }
 
     @Override
     public Type getType() {
-        return type; // 仮
+        return type;
     }
 
     @Override
     public String getStatement() {
-        return this.condition; // 仮
+        return "if" + this.condition;
     }
 }

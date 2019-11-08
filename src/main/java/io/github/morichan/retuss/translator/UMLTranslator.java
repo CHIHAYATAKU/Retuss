@@ -145,7 +145,7 @@ public class UMLTranslator {
 
     private CombinedFragment createCombinedFragment(If ifClass, MessageOccurrenceSpecification message,
             Lifeline lifeline) {
-        InteractionOperandKind kind = InteractionOperandKind.Alt;
+        InteractionOperandKind kind = InteractionOperandKind.alt;
         InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition());
 
         for (BlockStatement statement : ifClass.getStatements()) {
