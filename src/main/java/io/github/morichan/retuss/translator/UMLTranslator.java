@@ -213,51 +213,68 @@ public class UMLTranslator {
     private void searchMethod(Package umlPackage) {
         for (Class umlClass : umlPackage.getClasses()) {
             for (OperationGraphic og : umlClass.getOperationGraphics()) {
-                toSearchNextMessage: for (int i = 0; i < og.getInteraction().getMessage().getMessages().size(); i++) {
-                    MessageOccurrenceSpecification message = og.getInteraction().getMessage().getMessages().get(i);
-                    if (message.getMessageType() != MessageType.Method)
-                        continue;
+                searchInteractionFragment(umlPackage, umlClass, og, og.getInteraction().getMessage().getInteractionFragmentList());
+            }
+        }
+    }
 
-                    if (umlClass.getName().equals(
-                            searchClass(message.getType().getName(), message, message.getLifeline()).getName())) {
-                        // 自クラス内のメソッド
-                        for (Class sourceUmlClass : umlPackage.getClasses()) {
-                            if (!umlClass.getName().equals(sourceUmlClass.getName()))
-                                continue;
-                            for (OperationGraphic sourceOg : sourceUmlClass.getOperationGraphics()) {
-                                MessageOccurrenceSpecification sourceMessage = sourceOg.getInteraction().getMessage();
+    private void searchInteractionFragment(Package umlPackage, Class umlClass, OperationGraphic og, List<InteractionFragment> interactionFragmentList){
+        toSearchNextInteractionFragment: for(int i = 0; i < interactionFragmentList.size(); i++) {
+            InteractionFragment interactionFragment = interactionFragmentList.get(i);
+            if (interactionFragment instanceof CombinedFragment) {
+                CombinedFragment cf = (CombinedFragment) interactionFragment;
+                for (InteractionOperand io : cf.getInteractionOperandList()) {
+                    searchInteractionFragment(umlPackage, umlClass, og, io.getInteractionFragmentList());
+                }
+            } else {
+                MessageOccurrenceSpecification message = interactionFragment.getMessage();
+                if (message.getMessageType() != MessageType.Method)
+                    continue;
 
-                                if (sourceMessage.getName().contains(message.getName() + "(")) {
-                                    sourceMessage.setMessageType(MessageType.Method);
-                                    og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
-                                    continue toSearchNextMessage;
-                                }
+                if (umlClass.getName().equals(
+                        searchClass(message.getType().getName(), message, message.getLifeline()).getName())) {
+                    // 自クラス内のメソッド
+                    for (Class sourceUmlClass : umlPackage.getClasses()) {
+                        if (!umlClass.getName().equals(sourceUmlClass.getName()))
+                            continue;
+                        for (OperationGraphic sourceOg : sourceUmlClass.getOperationGraphics()) {
+                            MessageOccurrenceSpecification sourceMessage = sourceOg.getInteraction().getMessage();
+
+                            if (sourceMessage.getName().contains(message.getName() + "(")) {
+                                sourceMessage.setMessageType(MessageType.Method);
+                                // og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
+                                InteractionFragment newInteractionFragment = new InteractionFragment();
+                                newInteractionFragment.setMessage(sourceMessage);
+                                interactionFragmentList.set(i, newInteractionFragment);
+                                continue toSearchNextInteractionFragment;
                             }
                         }
+                    }
 
-                    } else {
-                        // 他クラス内のメソッド
-                        for (Class sourceUmlClass : umlPackage.getClasses()) {
-                            if (umlClass.getName().equals(sourceUmlClass.getName()))
-                                continue;
-                            for (OperationGraphic sourceOg : sourceUmlClass.getOperationGraphics()) {
-                                MessageOccurrenceSpecification sourceMessage = sourceOg.getInteraction().getMessage();
+                } else {
+                    // 他クラス内のメソッド
+                    for (Class sourceUmlClass : umlPackage.getClasses()) {
+                        if (umlClass.getName().equals(sourceUmlClass.getName()))
+                            continue;
+                        for (OperationGraphic sourceOg : sourceUmlClass.getOperationGraphics()) {
+                            MessageOccurrenceSpecification sourceMessage = sourceOg.getInteraction().getMessage();
 
-                                if (sourceMessage.getName().contains(message.getName() + "(")) {
-                                    String instance = "";
+                            if (sourceMessage.getName().contains(message.getName() + "(")) {
+                                String instance = "";
 
-                                    for (AttributeGraphic ag : umlClass.getAttributeGraphics()) {
-                                        if (sourceUmlClass.getName()
-                                                .equals(ag.getAttribute().getType().getName().getNameText())) {
-                                            instance = ag.getAttribute().getName().getNameText();
-                                            break;
-                                        }
+                                for (AttributeGraphic ag : umlClass.getAttributeGraphics()) {
+                                    if (sourceUmlClass.getName().equals(ag.getAttribute().getType().getName().getNameText())) {
+                                        instance = ag.getAttribute().getName().getNameText();
+                                        break;
                                     }
-
-                                    og.getInteraction().getMessage().putInstance(i, instance);
-                                    og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
-                                    continue toSearchNextMessage;
                                 }
+
+                                og.getInteraction().getMessage().putInstance(i, instance);
+                                // og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
+                                InteractionFragment newInteractionFragment = new InteractionFragment();
+                                newInteractionFragment.setMessage(sourceMessage);
+                                interactionFragmentList.set(i, newInteractionFragment);
+                                continue toSearchNextInteractionFragment;
                             }
                         }
                     }
