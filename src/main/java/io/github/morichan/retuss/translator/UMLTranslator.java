@@ -34,7 +34,9 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -124,10 +126,7 @@ public class UMLTranslator {
             if (method.getMethodBody() != null) {
                 for (BlockStatement statement : method.getMethodBody().getStatements()) {
                     // if文があったらCombinedFragmentを作成する
-                    if (statement instanceof If) {
-                        CombinedFragment combinedFragment = createCombinedFragment(statement, message, lifeline);
-                        message.addInteractionFragment(combinedFragment);
-                    } else if (statement instanceof While) {
+                    if (statement instanceof If || statement instanceof While || statement instanceof For) {
                         CombinedFragment combinedFragment = createCombinedFragment(statement, message, lifeline);
                         message.addInteractionFragment(combinedFragment);
                     } else {
@@ -171,6 +170,18 @@ public class UMLTranslator {
             InteractionOperand interactionOperand = new InteractionOperand(whileClass.getCondition());
 
             for (BlockStatement blockStatement : whileClass.getStatements()) {
+                InteractionFragment interactionFragment = new InteractionFragment();
+                interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                interactionOperand.addInteractionFragment(interactionFragment);
+            }
+            combinedFragment = new CombinedFragment(kind);
+            combinedFragment.addInteractionOperand(interactionOperand);
+        } else if (statement instanceof For) {
+            For forClass = (For) statement;
+            kind = InteractionOperandKind.loop;
+            InteractionOperand interactionOperand = new InteractionOperand(forClass.getExpression());
+
+            for (BlockStatement blockStatement : forClass.getStatements()) {
                 InteractionFragment interactionFragment = new InteractionFragment();
                 interactionFragment.setMessage(convert(message, lifeline, blockStatement));
                 interactionOperand.addInteractionFragment(interactionFragment);
@@ -241,11 +252,17 @@ public class UMLTranslator {
                             MessageOccurrenceSpecification sourceMessage = sourceOg.getInteraction().getMessage();
 
                             if (sourceMessage.getName().contains(message.getName() + "(")) {
-                                sourceMessage.setMessageType(MessageType.Method);
-                                // og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
+                                // sourceMessageのinteractionFragmentListをメソッド呼び出しのmessageのinteractionFragmentListに代入する
                                 InteractionFragment newInteractionFragment = new InteractionFragment();
-                                newInteractionFragment.setMessage(sourceMessage);
+                                MessageOccurrenceSpecification callMethodMessage = interactionFragmentList.get(i).getMessage();
+                                callMethodMessage.setInteractionFragmentList(sourceMessage.getInteractionFragmentList());
+                                newInteractionFragment.setMessage(callMethodMessage);
                                 interactionFragmentList.set(i, newInteractionFragment);
+
+//                                sourceMessage.setMessageType(MessageType.Method);
+//                                InteractionFragment newInteractionFragment = new InteractionFragment();
+//                                newInteractionFragment.setMessage(sourceMessage);
+//                                interactionFragmentList.set(i, newInteractionFragment);
                                 continue toSearchNextInteractionFragment;
                             }
                         }

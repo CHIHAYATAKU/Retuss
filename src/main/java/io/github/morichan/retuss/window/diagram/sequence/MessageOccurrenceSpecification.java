@@ -110,6 +110,10 @@ public class MessageOccurrenceSpecification {
         return this.interactionFragmentList;
     }
 
+    public void setInteractionFragmentList(List<InteractionFragment> interactionFragmentList) {
+        this.interactionFragmentList = interactionFragmentList;
+    }
+
     public void addMessage(MessageOccurrenceSpecification message) {
         InteractionFragment interactionFragment = new InteractionFragment();
         interactionFragment.setMessage(message);

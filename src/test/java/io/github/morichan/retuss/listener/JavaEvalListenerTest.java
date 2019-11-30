@@ -262,8 +262,8 @@ class JavaEvalListenerTest {
 
 //         @Test
 //         void 仮のテスト() {
-//         init("class JavaClass {public void main(){int a = 10; a = 20; call(); while(a < 100){ a = 30; call();}}");
-//         assertThat(obj.getTest()).isEqualTo(1);
+//             init("class JavaClass {public void main(){ call(1, 2); }");
+//             assertThat(obj.getTest()).isEqualTo(1);
 //         }
     }
 

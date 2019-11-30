@@ -6,6 +6,10 @@ public class InteractionOperand {
     private String guard;
     private ArrayList<InteractionFragment> interactionFragmentList = new ArrayList<InteractionFragment>();
 
+    public InteractionOperand() {
+        this.guard = "";
+    }
+
     public InteractionOperand(String guard) {
         this.guard = guard;
     }
