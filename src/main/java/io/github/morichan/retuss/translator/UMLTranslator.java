@@ -258,11 +258,6 @@ public class UMLTranslator {
                                 callMethodMessage.setInteractionFragmentList(sourceMessage.getInteractionFragmentList());
                                 newInteractionFragment.setMessage(callMethodMessage);
                                 interactionFragmentList.set(i, newInteractionFragment);
-
-//                                sourceMessage.setMessageType(MessageType.Method);
-//                                InteractionFragment newInteractionFragment = new InteractionFragment();
-//                                newInteractionFragment.setMessage(sourceMessage);
-//                                interactionFragmentList.set(i, newInteractionFragment);
                                 continue toSearchNextInteractionFragment;
                             }
                         }
@@ -288,8 +283,12 @@ public class UMLTranslator {
 
                                 og.getInteraction().getMessage().putInstance(i, instance);
                                 // og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
+
                                 InteractionFragment newInteractionFragment = new InteractionFragment();
-                                newInteractionFragment.setMessage(sourceMessage);
+                                MessageOccurrenceSpecification callMethodMessage = interactionFragmentList.get(i).getMessage();
+                                callMethodMessage.setInteractionFragmentList(sourceMessage.getInteractionFragmentList());
+                                callMethodMessage.setLifeline(sourceMessage.getLifeline());
+                                newInteractionFragment.setMessage(callMethodMessage);
                                 interactionFragmentList.set(i, newInteractionFragment);
                                 continue toSearchNextInteractionFragment;
                             }
