@@ -287,6 +287,7 @@ public class UMLTranslator {
                                 InteractionFragment newInteractionFragment = new InteractionFragment();
                                 MessageOccurrenceSpecification callMethodMessage = interactionFragmentList.get(i).getMessage();
                                 callMethodMessage.setInteractionFragmentList(sourceMessage.getInteractionFragmentList());
+                                // lifelineをsourceMessageと同じにしないとシーケンス図上で別オブジェクトのメソッド呼び出しとして描画されない
                                 callMethodMessage.setLifeline(sourceMessage.getLifeline());
                                 newInteractionFragment.setMessage(callMethodMessage);
                                 interactionFragmentList.set(i, newInteractionFragment);

@@ -9,6 +9,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import org.abego.treelayout.internal.util.java.lang.string.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -283,7 +284,11 @@ public class MessageOccurrenceSpecification {
         } else if (type == MessageType.Assignment) {
             return name + " = " + value + " : " + umlClass.getName();
         } else if (type == MessageType.Method) {
-            return name + "(" + value + ")";
+            if (value == null || value.isEmpty()) {
+                return name + "(" + ")";
+            } else {
+                return name + "(" + value + ")";
+            }
         }
 
         return name;
