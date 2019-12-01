@@ -420,10 +420,21 @@ public class UMLTranslator {
             message.setLifeline(lifeline);
 
         } else if (statement instanceof Method) {
+            Method method = (Method) statement;
             message.setMessageType(MessageType.Method);
             message.setType(new Class(statement.getType().toString()));
             message.setName(statement.getName());
             message.setLifeline(lifeline);
+            if (method.getArguments().size() > 0){
+                // 引数をmessage.valueに設定する ex)"1,2,4"
+                StringBuilder valueStrBuilder = new StringBuilder();
+                for (Argument argument : method.getArguments()){
+                    valueStrBuilder.append(argument.getName());
+                    valueStrBuilder.append(",");
+                }
+                valueStrBuilder.deleteCharAt(valueStrBuilder.length() - 1);
+                message.setValue(valueStrBuilder.toString());
+            }
         }
 
         return message;
