@@ -400,21 +400,32 @@ public class JavaEvalListener extends JavaParserBaseListener {
     }
 
     private void addMethod(JavaParser.ExpressionContext ctx) {
-        if (ctx.getChildCount() == 4){
-            // 引数ありのメソッド呼び出しの場合
-            // ArgumentのListを作る
-        }
+        List<Argument> argumentList = new ArrayList<Argument>();
+        Method method = new Method();
 
         if (ctx.getChild(0).getChildCount() == 1) {
             // 自クラス内のメソッド呼び出しの場合 method();
-            Method method = new Method(new Type("TmpType"), ctx.getChild(0).getText());
-            methodBody.addStatement(method);
+            method.setType(new Type("TmpType"));
+            method.setName(ctx.getChild(0).getText());
         } else if (ctx.getChild(0).getChildCount() == 3 && ctx.getChild(0).getChild(1).getText().equals(".")) {
             // 他クラスのメソッド呼び出しの場合 a.method();
-            Method method = new Method(new Type(ctx.getChild(0).getChild(0).getText()), ctx.getChild(0).getChild(2).getText());
-            methodBody.addStatement(method);
+            method.setType(new Type(ctx.getChild(0).getChild(0).getText()));
+            method.setName(ctx.getChild(0).getChild(2).getText());
         }
-     }
+
+        if (ctx.getChildCount() == 4){
+            // 引数ありのメソッド呼び出しの場合
+            for (int i = 0; i < ctx.getChild(2).getChildCount(); i++){
+                if (!(ctx.getChild(2).getChild(i).getText().equals(","))){
+                    Argument argument = new Argument(new Type("TmpType"), ctx.getChild(2).getChild(i).getText());
+                    argumentList.add(argument);
+                }
+            }
+            method.setArguments(argumentList);
+        }
+
+        methodBody.addStatement(method);
+    }
 
     private void addMethodToIf(JavaParser.ExpressionContext ctx) {
         if (ctx.getChildCount() == 1) {
