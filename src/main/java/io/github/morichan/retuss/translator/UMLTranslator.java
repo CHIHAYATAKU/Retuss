@@ -158,7 +158,11 @@ public class UMLTranslator {
 
             for (BlockStatement blockStatement : ifClass.getStatements()) {
                 InteractionFragment interactionFragment = new InteractionFragment();
-                interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                if (blockStatement instanceof Assignment) {
+                    interactionFragment.setMessage(convertAssignment(message, lifeline, blockStatement, interactionOperand));
+                } else {
+                    interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                }
                 interactionOperand.addInteractionFragment(interactionFragment);
             }
             combinedFragment = new CombinedFragment(kind);
@@ -400,6 +404,19 @@ public class UMLTranslator {
         }
     }
 
+    private MessageOccurrenceSpecification convertAssignment(MessageOccurrenceSpecification owner, Lifeline lifeline,
+                                                   BlockStatement statement, InteractionOperand interactionOperand) {
+        MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
+
+        message.setMessageType(MessageType.Assignment);
+        message.setType(searchPreviousDeclaredFieldType(statement, owner, lifeline, interactionOperand));
+        message.setName(statement.getName());
+        message.setValue(((Assignment) statement).getValue().toString());
+        message.setLifeline(lifeline);
+
+        return message;
+    }
+
     private MessageOccurrenceSpecification convert(MessageOccurrenceSpecification owner, Lifeline lifeline,
             BlockStatement statement) {
         MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
@@ -453,7 +470,29 @@ public class UMLTranslator {
     }
 
     private Class searchPreviousDeclaredFieldType(BlockStatement statement, MessageOccurrenceSpecification owner,
-            Lifeline lifeline) {
+                                                  Lifeline lifeline) {
+
+        for (MessageOccurrenceSpecification message : owner.getMessages())
+            if (message.getName().equals(statement.getName()))
+                return message.getType();
+
+        for (AttributeGraphic ag : lifeline.getUmlClass().getAttributeGraphics())
+            if (ag.getAttribute().getName().getNameText().equals(statement.getName()))
+                return new Class(ag.getAttribute().getType().getName().getNameText());
+
+        return new Class("NotKnownType");
+    }
+
+    private Class searchPreviousDeclaredFieldType(BlockStatement statement, MessageOccurrenceSpecification owner,
+            Lifeline lifeline, InteractionOperand interactionOperand) {
+
+        // 複合フラグメント内にある変数宣言を探す
+        for (InteractionFragment interactionFragment : interactionOperand.getInteractionFragmentList()) {
+            if (interactionFragment.getMessage().getName().equals(statement.getName())) {
+                return interactionFragment.getMessage().getType();
+            }
+        }
+
         for (MessageOccurrenceSpecification message : owner.getMessages())
             if (message.getName().equals(statement.getName()))
                 return message.getType();
