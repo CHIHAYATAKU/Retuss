@@ -227,8 +227,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
                                 && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext
                                 && ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
                             // 代入文
-                            addAssignment(ctx.getChild(0).getChild(0).getChild(0).getText(),
-                                    ctx.getChild(0).getChild(0).getChild(2).getText());
+                            methodBody.addStatement(createAssignment((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0)));
                         } else if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")"))) {
                             // 引数なしのメソッド呼び出し
@@ -253,8 +252,8 @@ public class JavaEvalListener extends JavaParserBaseListener {
                         if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
                                 && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext
                                 && ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
-                            addAssignmentToIf(ctx.getChild(0).getChild(0).getChild(0).getText(),
-                                    ctx.getChild(0).getChild(0).getChild(2).getText());
+                            // 代入文
+                            ifClass.addStatement(createAssignment((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0)));
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
                             // 引数なしのメソッド呼び出し
@@ -279,8 +278,8 @@ public class JavaEvalListener extends JavaParserBaseListener {
                         if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
                                 && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext
                                 && ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
-                            addAssignmentToWhile(ctx.getChild(0).getChild(0).getChild(0).getText(),
-                                    ctx.getChild(0).getChild(0).getChild(2).getText());
+                            // 代入文
+                            whileClass.addStatement(createAssignment((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0)));
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
                             // 引数なしのメソッド呼び出し
@@ -305,8 +304,8 @@ public class JavaEvalListener extends JavaParserBaseListener {
                         if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
                                 && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionContext
                                 && ctx.getChild(0).getChild(0).getChild(1).getText().equals("=")) {
-                            addAssignmentToFor(ctx.getChild(0).getChild(0).getChild(0).getText(),
-                                    ctx.getChild(0).getChild(0).getChild(2).getText());
+                            // 代入文
+                            forClass.addStatement(createAssignment((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0)));
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
                             // 引数なしのメソッド呼び出し
@@ -406,6 +405,10 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 methodBody.addStatement(local);
             }
         }
+    }
+
+    private Assignment createAssignment(JavaParser.ExpressionContext assignmentCtx) {
+        return new Assignment(assignmentCtx.getChild(0).getText(), assignmentCtx.getChild(2).getText());
     }
 
     private void addAssignment(String name, String value) {
