@@ -255,7 +255,13 @@ public class JavaEvalListener extends JavaParserBaseListener {
                                     ctx.getChild(0).getChild(0).getChild(2).getText());
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
-                            addMethodToIf((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0).getChild(0));
+                            addMethodToIf((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                        }
+                    } else if (ctx.getChild(0).getChild(0).getChildCount() == 4) {
+                        if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionListContext
+                                && ctx.getChild(0).getChild(0).getChild(3).getText().equals(")"))) {
+                            // 引数ありのメソッド呼び出し
+                            addMethodToIf((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
                         }
                     }
                 }
@@ -272,7 +278,13 @@ public class JavaEvalListener extends JavaParserBaseListener {
                                     ctx.getChild(0).getChild(0).getChild(2).getText());
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
-                            addMethodToWhile((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0).getChild(0));
+                            addMethodToWhile((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                        }
+                    } else if (ctx.getChild(0).getChild(0).getChildCount() == 4) {
+                        if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionListContext
+                                && ctx.getChild(0).getChild(0).getChild(3).getText().equals(")"))) {
+                            // 引数ありのメソッド呼び出し
+                            addMethodToWhile((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
                         }
                     }
                 }
@@ -289,7 +301,13 @@ public class JavaEvalListener extends JavaParserBaseListener {
                                     ctx.getChild(0).getChild(0).getChild(2).getText());
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
-                            addMethodToFor((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0).getChild(0));
+                            addMethodToFor((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                        }
+                    } else if (ctx.getChild(0).getChild(0).getChildCount() == 4) {
+                        if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionListContext
+                                && ctx.getChild(0).getChild(0).getChild(3).getText().equals(")"))) {
+                            // 引数ありのメソッド呼び出し
+                            addMethodToFor((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
                         }
                     }
                 }
@@ -428,33 +446,87 @@ public class JavaEvalListener extends JavaParserBaseListener {
     }
 
     private void addMethodToIf(JavaParser.ExpressionContext ctx) {
-        if (ctx.getChildCount() == 1) {
-            Method method = new Method(new Type("TmpType"), ctx.getText());
-            ifClass.addStatement(method);
-        } else if (ctx.getChildCount() == 3 && ctx.getChild(1).getText().equals(".")) {
-            Method method = new Method(new Type(ctx.getChild(0).getText()), ctx.getChild(2).getText());
-            ifClass.addStatement(method);
+        List<Argument> argumentList = new ArrayList<Argument>();
+        Method method = new Method();
+
+        if (ctx.getChild(0).getChildCount() == 1) {
+            // 自クラス内のメソッド呼び出しの場合 method();
+            method.setType(new Type("TmpType"));
+            method.setName(ctx.getChild(0).getText());
+        } else if (ctx.getChild(0).getChildCount() == 3 && ctx.getChild(0).getChild(1).getText().equals(".")) {
+            // 他クラスのメソッド呼び出しの場合 a.method();
+            method.setType(new Type(ctx.getChild(0).getChild(0).getText()));
+            method.setName(ctx.getChild(0).getChild(2).getText());
         }
+
+        if (ctx.getChildCount() == 4){
+            // 引数ありのメソッド呼び出しの場合
+            for (int i = 0; i < ctx.getChild(2).getChildCount(); i++){
+                if (!(ctx.getChild(2).getChild(i).getText().equals(","))){
+                    Argument argument = new Argument(new Type("TmpType"), ctx.getChild(2).getChild(i).getText());
+                    argumentList.add(argument);
+                }
+            }
+            method.setArguments(argumentList);
+        }
+
+        ifClass.addStatement(method);
     }
 
     private void addMethodToWhile(JavaParser.ExpressionContext ctx) {
-        if (ctx.getChildCount() == 1) {
-            Method method = new Method(new Type("TmpType"), ctx.getText());
-            whileClass.addStatement(method);
-        } else if (ctx.getChildCount() == 3 && ctx.getChild(1).getText().equals(".")) {
-            Method method = new Method(new Type(ctx.getChild(0).getText()), ctx.getChild(2).getText());
-            whileClass.addStatement(method);
+        List<Argument> argumentList = new ArrayList<Argument>();
+        Method method = new Method();
+
+        if (ctx.getChild(0).getChildCount() == 1) {
+            // 自クラス内のメソッド呼び出しの場合 method();
+            method.setType(new Type("TmpType"));
+            method.setName(ctx.getChild(0).getText());
+        } else if (ctx.getChild(0).getChildCount() == 3 && ctx.getChild(0).getChild(1).getText().equals(".")) {
+            // 他クラスのメソッド呼び出しの場合 a.method();
+            method.setType(new Type(ctx.getChild(0).getChild(0).getText()));
+            method.setName(ctx.getChild(0).getChild(2).getText());
         }
+
+        if (ctx.getChildCount() == 4){
+            // 引数ありのメソッド呼び出しの場合
+            for (int i = 0; i < ctx.getChild(2).getChildCount(); i++){
+                if (!(ctx.getChild(2).getChild(i).getText().equals(","))){
+                    Argument argument = new Argument(new Type("TmpType"), ctx.getChild(2).getChild(i).getText());
+                    argumentList.add(argument);
+                }
+            }
+            method.setArguments(argumentList);
+        }
+
+        whileClass.addStatement(method);
     }
 
     private void addMethodToFor(JavaParser.ExpressionContext ctx) {
-        if (ctx.getChildCount() == 1) {
-            Method method = new Method(new Type("TmpType"), ctx.getText());
-            forClass.addStatement(method);
-        } else if (ctx.getChildCount() == 3 && ctx.getChild(1).getText().equals(".")) {
-            Method method = new Method(new Type(ctx.getChild(0).getText()), ctx.getChild(2).getText());
-            forClass.addStatement(method);
+        List<Argument> argumentList = new ArrayList<Argument>();
+        Method method = new Method();
+
+        if (ctx.getChild(0).getChildCount() == 1) {
+            // 自クラス内のメソッド呼び出しの場合 method();
+            method.setType(new Type("TmpType"));
+            method.setName(ctx.getChild(0).getText());
+        } else if (ctx.getChild(0).getChildCount() == 3 && ctx.getChild(0).getChild(1).getText().equals(".")) {
+            // 他クラスのメソッド呼び出しの場合 a.method();
+            method.setType(new Type(ctx.getChild(0).getChild(0).getText()));
+            method.setName(ctx.getChild(0).getChild(2).getText());
         }
+
+        if (ctx.getChildCount() == 4){
+            // 引数ありのメソッド呼び出しの場合
+            for (int i = 0; i < ctx.getChild(2).getChildCount(); i++){
+                if (!(ctx.getChild(2).getChild(i).getText().equals(","))){
+                    Argument argument = new Argument(new Type("TmpType"), ctx.getChild(2).getChild(i).getText());
+                    argumentList.add(argument);
+                }
+            }
+            method.setArguments(argumentList);
+        }
+
+        forClass.addStatement(method);
     }
 
     private Class searchExtendsClass(JavaParser.ClassDeclarationContext ctx) {
