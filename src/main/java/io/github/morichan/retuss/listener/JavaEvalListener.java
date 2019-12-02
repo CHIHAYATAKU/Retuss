@@ -211,15 +211,14 @@ public class JavaEvalListener extends JavaParserBaseListener {
         if (ctx.getParent().getParent() instanceof JavaParser.MethodBodyContext) {
 
             if (ctx.getChild(0) instanceof JavaParser.LocalVariableDeclarationContext) {
+                // ローカル変数宣言
                 for (int i = 0; i < ctx.getChild(0).getChildCount(); i++) {
                     if (ctx.getChild(0).getChild(i) instanceof JavaParser.VariableModifierContext)
                         continue;
-
-                    addLocalVariableDeclaration(new Type(ctx.getChild(0).getChild(i).getText()),
-                            (JavaParser.VariableDeclaratorsContext) ctx.getChild(0).getChild(i + 1));
+                        methodBody.addStatement(createLocalVariableDeclaration(new Type(ctx.getChild(0).getChild(i).getText()),
+                            (JavaParser.VariableDeclaratorsContext) ctx.getChild(0).getChild(i + 1)));
                     return;
                 }
-
             } else if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
                 if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
                     if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
@@ -245,8 +244,18 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 }
             }
         } else if (ctx.getParent().getParent().getParent().getChild(0).getText().equals("if")) {
-            // if文の中にある代入文、メソッド呼び出しはifClass.statementsに格納する
-            if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
+            // if文の中にある処理はifClass.statementsに格納する
+            if (ctx.getChild(0) instanceof JavaParser.LocalVariableDeclarationContext) {
+                // ローカル変数宣言
+                for (int i = 0; i < ctx.getChild(0).getChildCount(); i++) {
+                    if (ctx.getChild(0).getChild(i) instanceof JavaParser.VariableModifierContext)
+                        continue;
+                    ifClass.addStatement(createLocalVariableDeclaration(new Type(ctx.getChild(0).getChild(i).getText()),
+                            (JavaParser.VariableDeclaratorsContext) ctx.getChild(0).getChild(i + 1)));
+                    return;
+                }
+
+            } else if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
                 if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
                     if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
                         if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
@@ -271,8 +280,18 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 }
             }
         } else if (ctx.getParent().getParent().getParent().getChild(0).getText().equals("while")){
-            // while文の中にある代入文、メソッド呼び出しはwhileClass.statementsに格納する
-            if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
+            // while文の中にある処理はwhileClass.statementsに格納する
+            if (ctx.getChild(0) instanceof JavaParser.LocalVariableDeclarationContext) {
+                // ローカル変数宣言
+                for (int i = 0; i < ctx.getChild(0).getChildCount(); i++) {
+                    if (ctx.getChild(0).getChild(i) instanceof JavaParser.VariableModifierContext)
+                        continue;
+                    whileClass.addStatement(createLocalVariableDeclaration(new Type(ctx.getChild(0).getChild(i).getText()),
+                            (JavaParser.VariableDeclaratorsContext) ctx.getChild(0).getChild(i + 1)));
+                    return;
+                }
+
+            } else if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
                 if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
                     if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
                         if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
@@ -297,8 +316,18 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 }
             }
         } else if (ctx.getParent().getParent().getParent().getChild(0).getText().equals("for") && ctx.getParent().getParent().getParent().getChild(2).getChild(1).getText().equals(";") && ctx.getParent().getParent().getParent().getChild(2).getChild(3).getText().equals(";")){
-            // for(i=0;i<10;i++)のようなfor文の基本形の中にある代入文、メソッド呼び出しはforClass.statementsに格納する
-            if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
+            // for文の基本形の中にある処理forClass.statementsに格納する for(i=0;i<10;i++)のような基本形のみ対応
+            if (ctx.getChild(0) instanceof JavaParser.LocalVariableDeclarationContext) {
+                // ローカル変数宣言
+                for (int i = 0; i < ctx.getChild(0).getChildCount(); i++) {
+                    if (ctx.getChild(0).getChild(i) instanceof JavaParser.VariableModifierContext)
+                        continue;
+                    forClass.addStatement(createLocalVariableDeclaration(new Type(ctx.getChild(0).getChild(i).getText()),
+                            (JavaParser.VariableDeclaratorsContext) ctx.getChild(0).getChild(i + 1)));
+                    return;
+                }
+
+            } else if (ctx.getChild(0) instanceof JavaParser.StatementContext) {
                 if (ctx.getChild(0).getChild(0) instanceof JavaParser.ExpressionContext) {
                     if (ctx.getChild(0).getChild(0).getChildCount() == 3) {
                         if (ctx.getChild(0).getChild(0).getChild(0) instanceof JavaParser.ExpressionContext
@@ -393,42 +422,34 @@ public class JavaEvalListener extends JavaParserBaseListener {
         return test;
     }
 
-    private void addLocalVariableDeclaration(Type type, JavaParser.VariableDeclaratorsContext ctx) {
+    private LocalVariableDeclaration createLocalVariableDeclaration(Type type, JavaParser.VariableDeclaratorsContext ctx){
+        LocalVariableDeclaration local = new LocalVariableDeclaration();
+        local.setType(type);
+        local.setName(ctx.getChild(0).getText());
 
-        for (int i = 0; i < ctx.getChildCount(); i++) {
-            if (ctx.getChild(i).getChildCount() == 1) {
-                LocalVariableDeclaration local = new LocalVariableDeclaration(type, ctx.getChild(i).getText());
-                methodBody.addStatement(local);
-            } else {
-                LocalVariableDeclaration local = new LocalVariableDeclaration(type,
-                        ctx.getChild(i).getChild(0).getText(), ctx.getChild(i).getChild(2).getText());
-                methodBody.addStatement(local);
-            }
+        if (ctx.getChildCount() == 3) {
+            // 初期値ありの場合
+            local.setValue(ctx.getChild(2).getText());
         }
+        return local;
     }
+
+//    private void addLocalVariableDeclaration(Type type, JavaParser.VariableDeclaratorsContext ctx) {
+//
+//        for (int i = 0; i < ctx.getChildCount(); i++) {
+//            if (ctx.getChild(i).getChildCount() == 1) {
+//                LocalVariableDeclaration local = new LocalVariableDeclaration(type, ctx.getChild(i).getText());
+//                methodBody.addStatement(local);
+//            } else {
+//                LocalVariableDeclaration local = new LocalVariableDeclaration(type,
+//                        ctx.getChild(i).getChild(0).getText(), ctx.getChild(i).getChild(2).getText());
+//                methodBody.addStatement(local);
+//            }
+//        }
+//    }
 
     private Assignment createAssignment(JavaParser.ExpressionContext assignmentCtx) {
         return new Assignment(assignmentCtx.getChild(0).getText(), assignmentCtx.getChild(2).getText());
-    }
-
-    private void addAssignment(String name, String value) {
-        Assignment assignment = new Assignment(name, value);
-        methodBody.addStatement(assignment);
-    }
-
-    private void addAssignmentToIf(String name, String value) {
-        Assignment assignment = new Assignment(name, value);
-        ifClass.addStatement(assignment);
-    }
-
-    private void addAssignmentToWhile(String name, String value) {
-        Assignment assignment = new Assignment(name, value);
-        whileClass.addStatement(assignment);
-    }
-
-    private void addAssignmentToFor(String name, String value) {
-        Assignment assignment = new Assignment(name, value);
-        forClass.addStatement(assignment);
     }
 
     private Method createMethod(JavaParser.ExpressionContext ctx) {
