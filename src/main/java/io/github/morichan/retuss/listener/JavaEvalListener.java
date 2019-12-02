@@ -232,13 +232,15 @@ public class JavaEvalListener extends JavaParserBaseListener {
                         } else if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")"))) {
                             // 引数なしのメソッド呼び出し
-                            addMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            methodBody.addStatement(method);
                         }
                     } else if (ctx.getChild(0).getChild(0).getChildCount() == 4) {
                          if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionListContext
                                 && ctx.getChild(0).getChild(0).getChild(3).getText().equals(")"))) {
                              // 引数ありのメソッド呼び出し
-                            addMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                             Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                             methodBody.addStatement(method);
                         }
                     }
                 }
@@ -255,13 +257,16 @@ public class JavaEvalListener extends JavaParserBaseListener {
                                     ctx.getChild(0).getChild(0).getChild(2).getText());
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
-                            addMethodToIf((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            // 引数なしのメソッド呼び出し
+                            Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            ifClass.addStatement(method);
                         }
                     } else if (ctx.getChild(0).getChild(0).getChildCount() == 4) {
                         if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionListContext
                                 && ctx.getChild(0).getChild(0).getChild(3).getText().equals(")"))) {
                             // 引数ありのメソッド呼び出し
-                            addMethodToIf((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            ifClass.addStatement(method);
                         }
                     }
                 }
@@ -278,13 +283,16 @@ public class JavaEvalListener extends JavaParserBaseListener {
                                     ctx.getChild(0).getChild(0).getChild(2).getText());
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
-                            addMethodToWhile((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            // 引数なしのメソッド呼び出し
+                            Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            whileClass.addStatement(method);
                         }
                     } else if (ctx.getChild(0).getChild(0).getChildCount() == 4) {
                         if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionListContext
                                 && ctx.getChild(0).getChild(0).getChild(3).getText().equals(")"))) {
                             // 引数ありのメソッド呼び出し
-                            addMethodToWhile((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            whileClass.addStatement(method);
                         }
                     }
                 }
@@ -301,13 +309,16 @@ public class JavaEvalListener extends JavaParserBaseListener {
                                     ctx.getChild(0).getChild(0).getChild(2).getText());
                         } else if (ctx.getChild(0).getChild(0).getChild(1).getText().equals("(")
                                 && ctx.getChild(0).getChild(0).getChild(2).getText().equals(")")) {
-                            addMethodToFor((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            // 引数なしのメソッド呼び出し
+                            Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            forClass.addStatement(method);
                         }
                     } else if (ctx.getChild(0).getChild(0).getChildCount() == 4) {
                         if ((ctx.getChild(0).getChild(0).getChild(1).getText().equals("(") && ctx.getChild(0).getChild(0).getChild(2) instanceof JavaParser.ExpressionListContext
                                 && ctx.getChild(0).getChild(0).getChild(3).getText().equals(")"))) {
                             // 引数ありのメソッド呼び出し
-                            addMethodToFor((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            Method method = createMethod((JavaParser.ExpressionContext) ctx.getChild(0).getChild(0));
+                            forClass.addStatement(method);
                         }
                     }
                 }
@@ -417,7 +428,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
         forClass.addStatement(assignment);
     }
 
-    private void addMethod(JavaParser.ExpressionContext ctx) {
+    private Method createMethod(JavaParser.ExpressionContext ctx) {
         List<Argument> argumentList = new ArrayList<Argument>();
         Method method = new Method();
 
@@ -442,91 +453,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
             method.setArguments(argumentList);
         }
 
-        methodBody.addStatement(method);
-    }
-
-    private void addMethodToIf(JavaParser.ExpressionContext ctx) {
-        List<Argument> argumentList = new ArrayList<Argument>();
-        Method method = new Method();
-
-        if (ctx.getChild(0).getChildCount() == 1) {
-            // 自クラス内のメソッド呼び出しの場合 method();
-            method.setType(new Type("TmpType"));
-            method.setName(ctx.getChild(0).getText());
-        } else if (ctx.getChild(0).getChildCount() == 3 && ctx.getChild(0).getChild(1).getText().equals(".")) {
-            // 他クラスのメソッド呼び出しの場合 a.method();
-            method.setType(new Type(ctx.getChild(0).getChild(0).getText()));
-            method.setName(ctx.getChild(0).getChild(2).getText());
-        }
-
-        if (ctx.getChildCount() == 4){
-            // 引数ありのメソッド呼び出しの場合
-            for (int i = 0; i < ctx.getChild(2).getChildCount(); i++){
-                if (!(ctx.getChild(2).getChild(i).getText().equals(","))){
-                    Argument argument = new Argument(new Type("TmpType"), ctx.getChild(2).getChild(i).getText());
-                    argumentList.add(argument);
-                }
-            }
-            method.setArguments(argumentList);
-        }
-
-        ifClass.addStatement(method);
-    }
-
-    private void addMethodToWhile(JavaParser.ExpressionContext ctx) {
-        List<Argument> argumentList = new ArrayList<Argument>();
-        Method method = new Method();
-
-        if (ctx.getChild(0).getChildCount() == 1) {
-            // 自クラス内のメソッド呼び出しの場合 method();
-            method.setType(new Type("TmpType"));
-            method.setName(ctx.getChild(0).getText());
-        } else if (ctx.getChild(0).getChildCount() == 3 && ctx.getChild(0).getChild(1).getText().equals(".")) {
-            // 他クラスのメソッド呼び出しの場合 a.method();
-            method.setType(new Type(ctx.getChild(0).getChild(0).getText()));
-            method.setName(ctx.getChild(0).getChild(2).getText());
-        }
-
-        if (ctx.getChildCount() == 4){
-            // 引数ありのメソッド呼び出しの場合
-            for (int i = 0; i < ctx.getChild(2).getChildCount(); i++){
-                if (!(ctx.getChild(2).getChild(i).getText().equals(","))){
-                    Argument argument = new Argument(new Type("TmpType"), ctx.getChild(2).getChild(i).getText());
-                    argumentList.add(argument);
-                }
-            }
-            method.setArguments(argumentList);
-        }
-
-        whileClass.addStatement(method);
-    }
-
-    private void addMethodToFor(JavaParser.ExpressionContext ctx) {
-        List<Argument> argumentList = new ArrayList<Argument>();
-        Method method = new Method();
-
-        if (ctx.getChild(0).getChildCount() == 1) {
-            // 自クラス内のメソッド呼び出しの場合 method();
-            method.setType(new Type("TmpType"));
-            method.setName(ctx.getChild(0).getText());
-        } else if (ctx.getChild(0).getChildCount() == 3 && ctx.getChild(0).getChild(1).getText().equals(".")) {
-            // 他クラスのメソッド呼び出しの場合 a.method();
-            method.setType(new Type(ctx.getChild(0).getChild(0).getText()));
-            method.setName(ctx.getChild(0).getChild(2).getText());
-        }
-
-        if (ctx.getChildCount() == 4){
-            // 引数ありのメソッド呼び出しの場合
-            for (int i = 0; i < ctx.getChild(2).getChildCount(); i++){
-                if (!(ctx.getChild(2).getChild(i).getText().equals(","))){
-                    Argument argument = new Argument(new Type("TmpType"), ctx.getChild(2).getChild(i).getText());
-                    argumentList.add(argument);
-                }
-            }
-            method.setArguments(argumentList);
-        }
-
-        forClass.addStatement(method);
+        return method;
     }
 
     private Class searchExtendsClass(JavaParser.ClassDeclarationContext ctx) {
