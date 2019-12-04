@@ -91,7 +91,8 @@
                                                    <top>
                                                       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                                                         <items>
-                                                          <Button fx:id="normalButtonInSD" mnemonicParsing="false" text="Normal" />
+                                                            <Button fx:id="normalButtonInSD" mnemonicParsing="false" onAction="#normalMessageInSD" text="Normal" />
+                                                            <Button fx:id="messageButtonInSD" mnemonicParsing="false" onAction="#selectMessageInSD" text="Message" />
                                                         </items>
                                                       </ToolBar>
                                                    </top>

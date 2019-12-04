@@ -550,4 +550,12 @@ public class UtilityJavaFXComponent {
     private double norm(Point2D x) {
         return x.getX() * x.getX() + x.getY() * x.getY();
     }
+
+
+    /**
+     * シーケンス図のメッセージ作成画面を表示する
+     */
+    public void showCreateMessageInputDialog() {
+
+    }
 }

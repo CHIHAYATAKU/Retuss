@@ -61,8 +61,11 @@ public class MainController {
     private TabPane tabPaneInSequenceTab;
     @FXML
     private Button normalButtonInSD;
+    @FXML
+    private Button messageButtonInSD;
 
     private List<Button> buttonsInCD = new ArrayList<>();
+    private List<Button> buttonsInSD = new ArrayList<>();
 
     private TextInputDialog mainWindowInputDialog;
     private File filePath = new File(System.getProperty("user.home")); // 初期ディレクトリをホームにする。
@@ -87,6 +90,7 @@ public class MainController {
     @FXML
     private void initialize() {
         buttonsInCD.addAll(Arrays.asList(normalButtonInCD, classButtonInCD, noteButtonInCD, compositionButtonInCD, generalizationButtonInCD));
+        buttonsInSD.addAll(Arrays.asList(normalButtonInSD, messageButtonInSD));
         GraphicsContext gc = classDiagramCanvas.getGraphicsContext2D();
         double scrollBarBreadth = 15.0;
         gc.getCanvas().setWidth(classDiagramScrollPane.getPrefWidth() - scrollBarBreadth);
@@ -224,6 +228,22 @@ public class MainController {
         }
     }
 
+    /**
+     * <p> シーケンス図タブのノーマルボタン選択時のシグナルハンドラ</>
+     */
+    @FXML
+    private void normalMessageInSD() {
+        buttonsInSD = util.bindAllButtonsFalseWithout(buttonsInSD, normalButtonInSD);
+    }
+
+    /**
+     * <p> シーケンス図タブのメッセージボタン選択時のシグナルハンドラ</>
+     */
+    @FXML
+    private void selectMessageInSD() {
+        buttonsInSD = util.bindAllButtonsFalseWithout(buttonsInSD, messageButtonInSD);
+    }
+
     //
     // シグナルハンドラここまで
     //
@@ -318,6 +338,27 @@ public class MainController {
             RelationshipAttributeGraphic relation = classDiagramDrawer.searchDrawnEdge(mouseX, mouseY);
             ContextMenu contextMenu = util.createClassContextMenuInCD("", relation.getType());
             classDiagramScrollPane.setContextMenu(formatContextMenuInCD(contextMenu, relation.getType(), mouseX, mouseY));
+        }
+    }
+
+    /**
+     * <p> シーケンス図キャンバス上で（通常）左クリックした際に実行します </p>
+     *
+     * <p>
+     * 操作ボタンにより動作が異なるが、通常操作以外は描画のみを行います。
+     * また、通常操作時は何も動作しません。
+     * </p>
+     *
+
+     */
+    private void clickedCanvasByPrimaryButtonInSD() {
+        if (util.searchSelectedButtonIn(buttonsInSD) == messageButtonInSD) {
+            String className = showCreateClassNameInputDialog();
+//            classDiagramDrawer.setNodeText(className);
+//            classDiagramDrawer.addDrawnNode(buttonsInCD);
+//            classDiagramDrawer.allReDrawCanvas();
+//            convertUmlToCode();
+//            writeUmlForCode(classDiagramDrawer.getPackage());
         }
     }
 

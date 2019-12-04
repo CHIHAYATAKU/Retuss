@@ -175,7 +175,11 @@ public class UMLTranslator {
 
             for (BlockStatement blockStatement : whileClass.getStatements()) {
                 InteractionFragment interactionFragment = new InteractionFragment();
-                interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                if (blockStatement instanceof Assignment) {
+                    interactionFragment.setMessage(convertAssignment(message, lifeline, blockStatement, interactionOperand));
+                } else {
+                    interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                }
                 interactionOperand.addInteractionFragment(interactionFragment);
             }
             combinedFragment = new CombinedFragment(kind);
@@ -187,7 +191,11 @@ public class UMLTranslator {
 
             for (BlockStatement blockStatement : forClass.getStatements()) {
                 InteractionFragment interactionFragment = new InteractionFragment();
-                interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                if (blockStatement instanceof Assignment) {
+                    interactionFragment.setMessage(convertAssignment(message, lifeline, blockStatement, interactionOperand));
+                } else {
+                    interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                }
                 interactionOperand.addInteractionFragment(interactionFragment);
             }
             combinedFragment = new CombinedFragment(kind);

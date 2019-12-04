@@ -37,6 +37,7 @@ public class Interaction {
 
     public void resetLifelineFlag(MessageOccurrenceSpecification message) {
         for (MessageOccurrenceSpecification childMessage : message.getMessages()) {
+            // TODO: 再帰呼び出しの場合に、ここで無限ループになる
             resetLifelineFlag(childMessage);
         }
         message.getLifeline().setCalculated(false);

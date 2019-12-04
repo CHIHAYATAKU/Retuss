@@ -4,6 +4,8 @@ import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.language.uml.Package;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.sequence.Interaction;
+import io.github.morichan.retuss.window.utility.UtilityJavaFXComponent;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -13,10 +15,15 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +37,8 @@ public class SequenceDiagramDrawer {
     private TabPane tabPaneInSequenceTab;
     private Package umlPackage;
     private Map<String, Map<String, Interaction>> interactionSetFromClassNameAndOperation;
+    private UtilityJavaFXComponent utilComponent = new UtilityJavaFXComponent();
+
 
     public void setSequenceDiagramTabPane(TabPane tabPane) {
         tabPaneInSequenceTab = tabPane;
@@ -253,13 +262,36 @@ public class SequenceDiagramDrawer {
             // MenuItem changeMenu = new MenuItem(interaction.getMessage().getName() +
             // "メッセージの変更");
             // changeMenu.setOnAction(e -> changeSequence(classId, operationId));
+            MenuItem createMessageMenu = new MenuItem("メッセージの作成");
+            createMessageMenu.setOnAction(e -> createMessage(classId, operationId));
             MenuItem deleteMenu = new MenuItem(interaction.getMessage().getName() + "メッセージをモデルから削除");
             deleteMenu.setOnAction(e -> deleteSequence(classId, operationId));
             // popup.getItems().add(changeMenu);
+            popup.getItems().add(createMessageMenu);
             popup.getItems().add(deleteMenu);
 
             pane.setContextMenu(popup);
         }
+    }
+
+    private void createMessage(String classId, String operationId) {
+        // 作成するメッセージの情報を入力する画面表示
+        utilComponent.showCreateMessageInputDialog();
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createMessageInputDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("メッセージの作成");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch(Exception e) {
+
+        }
+
+
+        // メッセージの追加
     }
 
     private void deleteSequence(String classId, String operationId) {
