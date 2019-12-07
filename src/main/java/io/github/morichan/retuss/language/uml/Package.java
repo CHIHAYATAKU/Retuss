@@ -1,5 +1,7 @@
 package io.github.morichan.retuss.language.uml;
 
+import io.github.morichan.retuss.window.diagram.OperationGraphic;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,5 +109,30 @@ public class Package {
      */
     public void emptyClasses() {
         setClasses(null);
+    }
+
+    public Class searchClass(String className) {
+        for (Class umlClass : classes) {
+            if (umlClass.getName().equals(className)) {
+                return umlClass;
+            }
+        }
+        // TODO nullオブジェクトにすると良いらしい
+        return null;
+    }
+
+    /**
+     * <p>  </p>
+     */
+    public OperationGraphic searchOperatingGraphics(String operationName) {
+        for (Class umlClass : classes) {
+            for (OperationGraphic og : umlClass.getOperationGraphics()) {
+                if (og.getOperation().toString().equals(operationName)) {
+                    return og;
+                }
+            }
+        }
+        // TODO nullオブジェクトにすると良いらしい
+        return null;
     }
 }

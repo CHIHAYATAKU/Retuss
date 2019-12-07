@@ -348,7 +348,7 @@ public class MainController {
      * 操作ボタンにより動作が異なるが、通常操作以外は描画のみを行います。
      * また、通常操作時は何も動作しません。
      * </p>
-     *
+
 
      */
     private void clickedCanvasByPrimaryButtonInSD() {

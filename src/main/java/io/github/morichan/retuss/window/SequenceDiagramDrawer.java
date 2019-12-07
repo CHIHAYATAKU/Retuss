@@ -4,6 +4,9 @@ import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.language.uml.Package;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.sequence.Interaction;
+import io.github.morichan.retuss.window.diagram.sequence.InteractionFragment;
+import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
+import io.github.morichan.retuss.window.diagram.sequence.MessageType;
 import io.github.morichan.retuss.window.utility.UtilityJavaFXComponent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
@@ -64,6 +67,20 @@ public class SequenceDiagramDrawer {
                     og.getInteraction().resetLifelineFlag();
             }
         }
+    }
+
+    public void addMessage(OperationGraphic taragetOg, String newMessageName, String newMessageValue) {
+        // メソッド呼び出しの場合のみ対応
+        MessageOccurrenceSpecification newMessage = new MessageOccurrenceSpecification();
+        newMessage.setMessageType(MessageType.Method);
+        newMessage.setName(newMessageName);
+        newMessage.setValue(newMessageValue);
+        newMessage.setLifeline(taragetOg.getInteraction().getMessage().getLifeline());
+
+        InteractionFragment newInteractionFragment = new InteractionFragment();
+        newInteractionFragment.setMessage(newMessage);
+
+        taragetOg.getInteraction().getMessage().getInteractionFragmentList().add(newInteractionFragment);
     }
 
     public void createSequenceTabContent(Tab sequenceDiagramTab) {
@@ -276,22 +293,20 @@ public class SequenceDiagramDrawer {
 
     private void createMessage(String classId, String operationId) {
         // 作成するメッセージの情報を入力する画面表示
-        utilComponent.showCreateMessageInputDialog();
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createMessageInputDialog.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createMessageDialog.fxml"));
             Parent parent = fxmlLoader.load();
+            CreateMessageDialogController createMessageDialogController = fxmlLoader.getController();
+            createMessageDialogController.initialize(this, classId, operationId);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("メッセージの作成");
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
             stage.showAndWait();
-        } catch(Exception e) {
+        } catch (Exception e) {
 
         }
-
-
-        // メッセージの追加
     }
 
     private void deleteSequence(String classId, String operationId) {
