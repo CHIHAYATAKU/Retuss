@@ -38,6 +38,13 @@ public class If implements BlockStatement {
 
     @Override
     public String getStatement() {
-        return "if" + this.condition;
+        StringBuilder sb = new StringBuilder();
+        sb.append("if (" + this.condition + ") {\n");
+        for (BlockStatement blockStatement : this.statements) {
+            sb.append("            ");
+            sb.append(blockStatement.getStatement() + "\n");
+        }
+        sb.append("        }\n");
+        return sb.toString();
     }
 }
