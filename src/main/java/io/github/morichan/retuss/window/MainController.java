@@ -10,6 +10,7 @@ import io.github.morichan.retuss.language.uml.Package;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -17,6 +18,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.BufferedReader;
@@ -97,6 +99,7 @@ public class MainController {
         gc.getCanvas().setHeight(classDiagramScrollPane.getPrefHeight() - scrollBarBreadth);
         classDiagramDrawer = new ClassDiagramDrawer();
         classDiagramDrawer.setGraphicsContext(gc);
+        sequenceDiagramDrawer.setMainController(this);
         classTree.setRoot(new TreeItem<>("Class"));
     }
 
@@ -244,6 +247,28 @@ public class MainController {
         buttonsInSD = util.bindAllButtonsFalseWithout(buttonsInSD, messageButtonInSD);
     }
 
+    /**
+     * <p> シーケンス図タブのキャンバスを右クリックメニューにある「メッセージの追加」をクリック時のシグナルハンドラ </p>
+     * <p> シーケンス図タブのキャンバスはSequenceDiagramDrawerクラスで動的に生成するため、シグナルハンドラも動的に割り当てている </p>
+     * <p> メッセージ作成ダイアログを表示する </p>
+     */
+    public void showCreateMessageDialog(String classId, String operationId) {
+        // 作成するメッセージの情報を入力する画面表示
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createMessageDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            CreateMessageDialogController createMessageDialogController = fxmlLoader.getController();
+            createMessageDialogController.initialize(this, classId, operationId);
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("メッセージの作成");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+
+        }
+    }
     //
     // シグナルハンドラここまで
     //
@@ -397,6 +422,10 @@ public class MainController {
     public Package getClassDiagramDrawerUmlPackage() {
         return classDiagramDrawer.getPackage();
     }
+
+    public CodeController getCodeController() { return this.codeController; }
+
+    public SequenceDiagramDrawer getSequenceDiagramDrawer() { return this.sequenceDiagramDrawer; }
 
     public void writeUmlForCode(Package umlPackage) {
         if (classDiagramTab.isSelected()) {

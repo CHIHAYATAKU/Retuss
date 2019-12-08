@@ -29,24 +29,28 @@ public class CreateMessageDialogController {
     @FXML
     private Button createButton;
 
+    private MainController mainController;
     private SequenceDiagramDrawer sequenceDiagramDrawer;
     private Class targetClass;
     private OperationGraphic targetOg;
 
     @FXML
     private void createMessage() {
+        Class umlClass = sequenceDiagramDrawer.getUmlPackage().searchClass((String) objectCombo.getValue());
         OperationGraphic callOg = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics((String) methodCombo.getValue());
         String methodName = callOg.getOperation().getName().getNameText();
         String parameter = parameterTextField.getText();
 
-        sequenceDiagramDrawer.addMessage(targetOg, methodName, parameter);
+        sequenceDiagramDrawer.addMessage(targetOg, umlClass, methodName, parameter);
         Stage stage = (Stage) createButton.getScene().getWindow();
         stage.close();
         sequenceDiagramDrawer.draw();
+        mainController.getCodeController().createCodeTabs(sequenceDiagramDrawer.getUmlPackage());
     }
 
-    public void initialize(SequenceDiagramDrawer sequenceDiagramDrawer, String classId, String operationId) {
-        this.sequenceDiagramDrawer = sequenceDiagramDrawer;
+    public void initialize(MainController mainController, String classId, String operationId) {
+        this.mainController = mainController;
+        this.sequenceDiagramDrawer = mainController.getSequenceDiagramDrawer();
         this.targetClass = sequenceDiagramDrawer.getUmlPackage().searchClass(classId);
         this.targetOg = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(operationId);
 

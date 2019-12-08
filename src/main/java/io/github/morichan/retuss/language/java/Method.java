@@ -202,7 +202,16 @@ public class Method implements BlockStatement {
 
     @Override
     public String getStatement() {
-        return name + "();";
+        StringBuilder parameterStr = new StringBuilder();
+
+        if (arguments.size() > 0) {
+            parameterStr.append(arguments.get(0).getName());
+            for (int i=1; i<arguments.size(); i++) {
+                parameterStr.append(", ");
+                parameterStr.append(arguments.get(i).getName());
+            }
+        }
+        return name + "(" + parameterStr + ");";
     }
 
     @Override

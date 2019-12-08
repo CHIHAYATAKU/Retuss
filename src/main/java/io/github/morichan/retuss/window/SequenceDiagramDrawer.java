@@ -37,11 +37,15 @@ public class SequenceDiagramDrawer {
     private String diagramFont = "Consolas";
     double space = 5.0;
 
+    private MainController mainController;
     private TabPane tabPaneInSequenceTab;
     private Package umlPackage;
     private Map<String, Map<String, Interaction>> interactionSetFromClassNameAndOperation;
     private UtilityJavaFXComponent utilComponent = new UtilityJavaFXComponent();
 
+
+    public void setMainController(MainController mainController) { this.mainController = mainController; }
+    public MainController getMainController() { return this.mainController; }
 
     public void setSequenceDiagramTabPane(TabPane tabPane) {
         tabPaneInSequenceTab = tabPane;
@@ -69,12 +73,13 @@ public class SequenceDiagramDrawer {
         }
     }
 
-    public void addMessage(OperationGraphic taragetOg, String newMessageName, String newMessageValue) {
+    public void addMessage(OperationGraphic taragetOg, Class umlClass, String newMessageName, String newMessageValue) {
         // メソッド呼び出しの場合のみ対応
         MessageOccurrenceSpecification newMessage = new MessageOccurrenceSpecification();
         newMessage.setMessageType(MessageType.Method);
         newMessage.setName(newMessageName);
         newMessage.setValue(newMessageValue);
+        newMessage.setType(umlClass);
         newMessage.setLifeline(taragetOg.getInteraction().getMessage().getLifeline());
 
         InteractionFragment newInteractionFragment = new InteractionFragment();
@@ -280,7 +285,7 @@ public class SequenceDiagramDrawer {
             // "メッセージの変更");
             // changeMenu.setOnAction(e -> changeSequence(classId, operationId));
             MenuItem createMessageMenu = new MenuItem("メッセージの作成");
-            createMessageMenu.setOnAction(e -> createMessage(classId, operationId));
+            createMessageMenu.setOnAction(e -> mainController.showCreateMessageDialog(classId, operationId));
             MenuItem deleteMenu = new MenuItem(interaction.getMessage().getName() + "メッセージをモデルから削除");
             deleteMenu.setOnAction(e -> deleteSequence(classId, operationId));
             // popup.getItems().add(changeMenu);
@@ -288,24 +293,6 @@ public class SequenceDiagramDrawer {
             popup.getItems().add(deleteMenu);
 
             pane.setContextMenu(popup);
-        }
-    }
-
-    private void createMessage(String classId, String operationId) {
-        // 作成するメッセージの情報を入力する画面表示
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createMessageDialog.fxml"));
-            Parent parent = fxmlLoader.load();
-            CreateMessageDialogController createMessageDialogController = fxmlLoader.getController();
-            createMessageDialogController.initialize(this, classId, operationId);
-            Scene scene = new Scene(parent);
-            Stage stage = new Stage();
-            stage.setTitle("メッセージの作成");
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setScene(scene);
-            stage.showAndWait();
-        } catch (Exception e) {
-
         }
     }
 
