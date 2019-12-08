@@ -18,6 +18,10 @@ public class CombinedFragment extends InteractionFragment {
         this.kind = kind;
     }
 
+    public InteractionOperandKind getInteractionOperandKind() {
+        return this.kind;
+    }
+
     public ArrayList<InteractionOperand> getInteractionOperandList() {
         return this.interactionOperandList;
     }

@@ -9,9 +9,7 @@ import io.github.morichan.retuss.language.java.*;
 import io.github.morichan.retuss.language.java.Class;
 import io.github.morichan.retuss.language.uml.Package;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
-import io.github.morichan.retuss.window.diagram.sequence.Interaction;
-import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
-import io.github.morichan.retuss.window.diagram.sequence.MessageType;
+import io.github.morichan.retuss.window.diagram.sequence.*;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -106,22 +104,29 @@ public class JavaTranslator {
                 MethodBody body = new MethodBody();
                 Pattern p = Pattern.compile(" ([^(]*)[(]");
 
-                for (MessageOccurrenceSpecification message : operationGraphic.getInteraction().getMessage().getMessages()) {
-                    if (message.getMessageType() == MessageType.Declaration) {
-                        LocalVariableDeclaration local = new LocalVariableDeclaration(new Type(message.getType().getName()), message.getName());
-                        if (message.getValue() != null) local.setValue(message.getValue());
-                        body.addStatement(local);
-                    } else if (message.getMessageType() == MessageType.Assignment) {
-                        Assignment assignment = new Assignment(message.getName());
-                        if (message.getValue() != null) assignment.setValue(message.getValue());
-                        body.addStatement(assignment);
-                    } else if (message.getMessageType() == MessageType.Method) {
-                        Matcher m = p.matcher(message.getName());
-                        if (!m.find()) continue;
-                        Method methodSyntax = new Method(new Type(message.getType().getName()), m.group(1));
-                        body.addStatement(methodSyntax);
+                for (InteractionFragment interactionFragment : operationGraphic.getInteraction().getMessage().getInteractionFragmentList()) {
+                    BlockStatement blockStatement = convertInteractionFragmentToBlockStatement(interactionFragment);
+                    if (blockStatement != null) {
+                        body.addStatement(blockStatement);
                     }
                 }
+
+//                for (MessageOccurrenceSpecification message : operationGraphic.getInteraction().getMessage().getMessages()) {
+//                    if (message.getMessageType() == MessageType.Declaration) {
+//                        LocalVariableDeclaration local = new LocalVariableDeclaration(new Type(message.getType().getName()), message.getName());
+//                        if (message.getValue() != null) local.setValue(message.getValue());
+//                        body.addStatement(local);
+//                    } else if (message.getMessageType() == MessageType.Assignment) {
+//                        Assignment assignment = new Assignment(message.getName());
+//                        if (message.getValue() != null) assignment.setValue(message.getValue());
+//                        body.addStatement(assignment);
+//                    } else if (message.getMessageType() == MessageType.Method) {
+//                        Matcher m = p.matcher(message.getName());
+//                        if (!m.find()) continue;
+//                        Method methodSyntax = new Method(new Type(message.getType().getName()), m.group(1));
+//                        body.addStatement(methodSyntax);
+//                    }
+//                }
 
                 method.setMethodBody(body);
             }
@@ -248,5 +253,56 @@ public class JavaTranslator {
                 java.getClasses().get(finalI).setExtendsClass(oneGeneralizationJavaClass.get(0));
             }
         }
+    }
+
+    /**
+     *
+     */
+    private BlockStatement convertInteractionFragmentToBlockStatement(InteractionFragment interactionFragment) {
+        if (interactionFragment instanceof CombinedFragment) {
+            CombinedFragment cf = (CombinedFragment) interactionFragment;
+            if (cf.getInteractionOperandKind() == InteractionOperandKind.alt) {
+                If ifClass = new If();
+                // if文のみ対応、else if, elseには未対応
+                ifClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());
+                for (InteractionFragment interactionFragmentInAlt : cf.getInteractionOperandList().get(0).getInteractionFragmentList()) {
+                    ifClass.addStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInAlt));
+                }
+                return ifClass;
+            }
+//            else if (cf.getInteractionOperandKind() == InteractionOperandKind.loop) {
+//            }
+        } else {
+            MessageOccurrenceSpecification message = interactionFragment.getMessage();
+            if (message.getMessageType() == MessageType.Declaration) {
+                LocalVariableDeclaration local = new LocalVariableDeclaration(new Type(message.getType().getName()), message.getName());
+                if (message.getValue() != null) local.setValue(message.getValue());
+                return local;
+            } else if (message.getMessageType() == MessageType.Assignment) {
+                Assignment assignment = new Assignment(message.getName());
+                if (message.getValue() != null) assignment.setValue(message.getValue());
+                return assignment;
+            } else if (message.getMessageType() == MessageType.Method) {
+                Pattern p = Pattern.compile(" ([^(]*)[(]");
+                Matcher m = p.matcher(message.getName());
+                Method method = new Method();
+                method.setType(new Type(message.getType().getName()));
+                if (!m.find()) {
+                    method.setName(message.getName());
+                } else {
+                    method.setName(m.group(1));
+                }
+
+                if (!(message.getValue() == null || message.getValue().isEmpty())) {
+                    String[] parameterNameList = message.getValue().split(",");
+                    for (String parameterName : parameterNameList) {
+                        // メソッド呼び出しの場合、messageが引数の型名を保存していない
+                        method.addArgument(new Argument(new Type("Tmp"), parameterName));
+                    }
+                }
+                return method;
+            }
+        }
+        return null;
     }
 }
