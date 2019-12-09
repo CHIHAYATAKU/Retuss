@@ -269,9 +269,14 @@ public class JavaTranslator {
                     ifClass.addStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInAlt));
                 }
                 return ifClass;
+            } else if (cf.getInteractionOperandKind() == InteractionOperandKind.loop) {
+                While whileClass = new While();
+                whileClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());
+                for (InteractionFragment interactionFragmentInAlt : cf.getInteractionOperandList().get(0).getInteractionFragmentList()) {
+                    whileClass.addStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInAlt));
+                }
+                return whileClass;
             }
-//            else if (cf.getInteractionOperandKind() == InteractionOperandKind.loop) {
-//            }
         } else {
             MessageOccurrenceSpecification message = interactionFragment.getMessage();
             if (message.getMessageType() == MessageType.Declaration) {

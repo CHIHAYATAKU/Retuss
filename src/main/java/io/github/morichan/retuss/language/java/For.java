@@ -58,6 +58,13 @@ public class For implements BlockStatement {
 
     @Override
     public String getStatement() {
-        return this.name + "(" + this.forInit + ";" + this.expression+ ";" + this.forUpdate + ")";
+        StringBuilder sb = new StringBuilder();
+        sb.append("for (" + this.forInit + "; " + this.expression+ "; " + this.forUpdate + " ) {\n");
+        for (BlockStatement blockStatement : this.statements) {
+            sb.append("            ");
+            sb.append(blockStatement.getStatement() + "\n");
+        }
+        sb.append("        }\n");
+        return sb.toString();
     }
 }

@@ -38,6 +38,13 @@ public class While implements BlockStatement{
 
     @Override
     public String getStatement() {
-        return this.name + this.condition;
+        StringBuilder sb = new StringBuilder();
+        sb.append("while (" + this.condition + ") {\n");
+        for (BlockStatement blockStatement : this.statements) {
+            sb.append("            ");
+            sb.append(blockStatement.getStatement() + "\n");
+        }
+        sb.append("        }\n");
+        return sb.toString();
     }
 }
