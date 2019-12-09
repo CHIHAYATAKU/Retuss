@@ -79,7 +79,7 @@ public class CreateMessageDialogController {
         OperationGraphic callOg = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(methodCombo.getValue());
         String parameter = parameterTextField.getText();
 
-        sequenceDiagramDrawer.addMessage(targetOg, callClass, callOg, parameter);
+        sequenceDiagramDrawer.addCallMethodMessage(targetOg, callClass, callOg, parameter);
         Stage stage = (Stage) createButton.getScene().getWindow();
         stage.close();
         sequenceDiagramDrawer.draw();

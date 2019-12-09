@@ -73,8 +73,7 @@ public class SequenceDiagramDrawer {
         }
     }
 
-    public void addMessage(OperationGraphic taragetOg, Class umlClass, OperationGraphic callOg, String parameter) {
-        // メソッド呼び出しの場合のみ対応
+    public void addCallMethodMessage(OperationGraphic taragetOg, Class umlClass, OperationGraphic callOg, String parameter) {
         String methodName = callOg.getOperation().getName().getNameText();
 
         MessageOccurrenceSpecification newMessage = new MessageOccurrenceSpecification();
@@ -82,7 +81,6 @@ public class SequenceDiagramDrawer {
         newMessage.setName(methodName);
         newMessage.setValue(parameter);
         newMessage.setType(umlClass);
-//        newMessage.setLifeline(taragetOg.getInteraction().getMessage().getLifeline());
         newMessage.setLifeline(callOg.getInteraction().getMessage().getLifeline());
 
         InteractionFragment newInteractionFragment = new InteractionFragment();
