@@ -25,6 +25,7 @@ public class MessageOccurrenceSpecification {
     private Class umlClass;
     private String name;
     private Map<Integer, String> instanceMap = new HashMap<>();
+    private String instance;
     private String value;
     private Lifeline lifeline;
     private List<InteractionFragment> interactionFragmentList = new ArrayList<>();
@@ -347,7 +348,7 @@ public class MessageOccurrenceSpecification {
             lastDrawPoint = new Point2D(last.getX(), last.getY());
 
         } else if (!hasSameLifeline(fromLifeline)) {
-            // メッセージの開始と終わりのライフラインが同一の場合
+            // メッセージの開始と終わりのライフラインが異なる場合
             Point2D first = new Point2D(arrowFirstX, beginPoint.getY());
             Point2D last = new Point2D(arrowFirstX, endPoint.getY());
 

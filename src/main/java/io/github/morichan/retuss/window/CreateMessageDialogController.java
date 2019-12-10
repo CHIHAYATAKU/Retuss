@@ -1,9 +1,11 @@
 package io.github.morichan.retuss.window;
 
+import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.retuss.language.java.Field;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.AttributeGraphic;
+import io.github.morichan.retuss.window.diagram.sequence.Lifeline;
 import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -41,7 +43,9 @@ public class CreateMessageDialogController {
     public void initialize(MainController mainController, String classId, String operationId) {
         this.mainController = mainController;
         this.sequenceDiagramDrawer = mainController.getSequenceDiagramDrawer();
+        // messageを追加するクラス
         this.targetClass = sequenceDiagramDrawer.getUmlPackage().searchClass(classId);
+        // messageを追加するOperationGraphic
         this.targetOg = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(operationId);
 
         // 追加対象クラス名をclassComboに追加
@@ -77,9 +81,22 @@ public class CreateMessageDialogController {
     private void createMessage() {
         Class callClass = sequenceDiagramDrawer.getUmlPackage().searchClass(classCombo.getValue());
         OperationGraphic callOg = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(methodCombo.getValue());
-        String parameter = parameterTextField.getText();
 
-        sequenceDiagramDrawer.addCallMethodMessage(targetOg, callClass, callOg, parameter);
+        String methodName = callOg.getOperation().getName().getNameText();
+        String parameter = parameterTextField.getText();
+        Class umlClass = callClass;
+        if (!callClass.getName().equals(targetClass)) {
+            // 呼び出すメソッドを持つクラスのインスタンスをフィールドから探す
+            for (AttributeGraphic ag : targetClass.getAttributeGraphics()) {
+                if (ag.getAttribute().getType().getName().getNameText().equals(callClass.getName())) {
+                    umlClass = new Class(ag.getAttribute().getName().getNameText());
+                    break;
+                }
+            }
+        }
+        Lifeline lifeline = callOg.getInteraction().getMessage().getLifeline();
+        sequenceDiagramDrawer.addCallMethodMessage(targetOg, methodName, parameter, umlClass, lifeline);
+
         Stage stage = (Stage) createButton.getScene().getWindow();
         stage.close();
         sequenceDiagramDrawer.draw();

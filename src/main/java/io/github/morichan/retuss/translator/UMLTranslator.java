@@ -107,6 +107,8 @@ public class UMLTranslator {
             }
             umlClass.addAttribute(attribute);
         }
+
+        Lifeline lifeline = new Lifeline(umlClass);
         for (Method method : javaClass.getMethods()) {
             Operation operation = new Operation(new Name(method.getName()));
             operation.setReturnType(new Type(method.getType().toString()));
@@ -117,7 +119,7 @@ public class UMLTranslator {
                 operation.addParameter(parameter);
             }
             OperationGraphic operationGraphic = new OperationGraphic(operation);
-            Lifeline lifeline = new Lifeline(umlClass);
+//            Lifeline lifeline = new Lifeline(umlClass);
             MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
             message.setLifeline(lifeline);
             message.setType(umlClass);
@@ -293,7 +295,7 @@ public class UMLTranslator {
                                     }
                                 }
 
-                                og.getInteraction().getMessage().putInstance(i, instance);
+                                // og.getInteraction().getMessage().putInstance(i, instance);
                                 // og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
 
                                 InteractionFragment newInteractionFragment = new InteractionFragment();

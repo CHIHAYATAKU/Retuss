@@ -202,16 +202,23 @@ public class Method implements BlockStatement {
 
     @Override
     public String getStatement() {
-        StringBuilder parameterStr = new StringBuilder();
+        StringBuilder callMethodStr = new StringBuilder();
+
+        if (!type.toString().equals("TmpType")) {
+            callMethodStr.append(type.toString());
+            callMethodStr.append(".");
+        }
+        callMethodStr.append(name + "(");
 
         if (arguments.size() > 0) {
-            parameterStr.append(arguments.get(0).getName());
+            callMethodStr.append(arguments.get(0).getName());
             for (int i=1; i<arguments.size(); i++) {
-                parameterStr.append(", ");
-                parameterStr.append(arguments.get(i).getName());
+                callMethodStr.append(", ");
+                callMethodStr.append(arguments.get(i).getName());
             }
         }
-        return name + "(" + parameterStr + ");";
+        callMethodStr.append(");");
+        return callMethodStr.toString();
     }
 
     @Override

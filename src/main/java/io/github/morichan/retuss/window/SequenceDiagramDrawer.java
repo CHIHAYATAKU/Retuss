@@ -1,12 +1,10 @@
 package io.github.morichan.retuss.window;
 
+import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.language.uml.Package;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
-import io.github.morichan.retuss.window.diagram.sequence.Interaction;
-import io.github.morichan.retuss.window.diagram.sequence.InteractionFragment;
-import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
-import io.github.morichan.retuss.window.diagram.sequence.MessageType;
+import io.github.morichan.retuss.window.diagram.sequence.*;
 import io.github.morichan.retuss.window.utility.UtilityJavaFXComponent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
@@ -73,20 +71,19 @@ public class SequenceDiagramDrawer {
         }
     }
 
-    public void addCallMethodMessage(OperationGraphic taragetOg, Class umlClass, OperationGraphic callOg, String parameter) {
-        String methodName = callOg.getOperation().getName().getNameText();
+    public void addCallMethodMessage(OperationGraphic targetOg, String methodName, String parameter, Class umlClass, Lifeline lifeline) {
 
         MessageOccurrenceSpecification newMessage = new MessageOccurrenceSpecification();
         newMessage.setMessageType(MessageType.Method);
         newMessage.setName(methodName);
         newMessage.setValue(parameter);
         newMessage.setType(umlClass);
-        newMessage.setLifeline(callOg.getInteraction().getMessage().getLifeline());
+        newMessage.setLifeline(lifeline);
 
         InteractionFragment newInteractionFragment = new InteractionFragment();
         newInteractionFragment.setMessage(newMessage);
 
-        taragetOg.getInteraction().getMessage().getInteractionFragmentList().add(newInteractionFragment);
+        targetOg.getInteraction().getMessage().getInteractionFragmentList().add(newInteractionFragment);
     }
 
     public void createSequenceTabContent(Tab sequenceDiagramTab) {

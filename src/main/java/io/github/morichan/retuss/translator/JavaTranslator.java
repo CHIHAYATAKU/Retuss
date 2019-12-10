@@ -270,6 +270,7 @@ public class JavaTranslator {
                 }
                 return ifClass;
             } else if (cf.getInteractionOperandKind() == InteractionOperandKind.loop) {
+                // TODO: for文への対応
                 While whileClass = new While();
                 whileClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());
                 for (InteractionFragment interactionFragmentInAlt : cf.getInteractionOperandList().get(0).getInteractionFragmentList()) {
