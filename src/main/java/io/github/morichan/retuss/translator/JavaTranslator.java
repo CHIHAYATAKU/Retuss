@@ -261,7 +261,7 @@ public class JavaTranslator {
     private BlockStatement convertInteractionFragmentToBlockStatement(InteractionFragment interactionFragment) {
         if (interactionFragment instanceof CombinedFragment) {
             CombinedFragment cf = (CombinedFragment) interactionFragment;
-            if (cf.getInteractionOperandKind() == InteractionOperandKind.alt) {
+            if (cf.getInteractionOperandKind() == InteractionOperandKind.opt) {
                 If ifClass = new If();
                 // if文のみ対応、else if, elseには未対応
                 ifClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());

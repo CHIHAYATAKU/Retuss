@@ -155,7 +155,7 @@ public class UMLTranslator {
 
         if(statement instanceof If) {
             If ifClass = (If) statement;
-            kind = InteractionOperandKind.alt;
+            kind = InteractionOperandKind.opt;
             InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition());
 
             for (BlockStatement blockStatement : ifClass.getStatements()) {
