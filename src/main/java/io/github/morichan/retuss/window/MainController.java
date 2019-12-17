@@ -4,7 +4,9 @@ import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.translator.Language;
 import io.github.morichan.retuss.window.diagram.ContentType;
 import io.github.morichan.retuss.window.diagram.NodeDiagram;
+import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.RelationshipAttributeGraphic;
+import io.github.morichan.retuss.window.diagram.sequence.InteractionFragment;
 import io.github.morichan.retuss.window.utility.UtilityJavaFXComponent;
 import io.github.morichan.retuss.language.uml.Package;
 import javafx.fxml.FXML;
@@ -269,6 +271,14 @@ public class MainController {
 
         }
     }
+
+    public void deleteInteractionFragment(String classId, String operationId, InteractionFragment target) {
+        OperationGraphic og = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(operationId);
+        og.getInteraction().deleteInteractionFragment(target);
+        sequenceDiagramDrawer.draw();
+        getCodeController().createCodeTabs(sequenceDiagramDrawer.getUmlPackage());
+    }
+
     //
     // シグナルハンドラここまで
     //

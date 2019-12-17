@@ -2,7 +2,10 @@ package io.github.morichan.retuss.window.diagram.sequence;
 
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
+import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
+
+import java.util.ArrayList;
 
 public class Interaction {
 
@@ -53,6 +56,59 @@ public class Interaction {
         // message.setLifeline(lifeline);
         message.calculatePoint();
         message.draw(gc);
+    }
+
+    public InteractionFragment searchNearbyInteractionFragment(double mouseX, double mouseY) {
+        double minDistance = 99999.9;
+        double manhattanDistance = 0.0;
+        InteractionFragment nearbyInteractinFragment = new InteractionFragment();
+
+        // 複合フラグメントの入れ子には対応していない
+        for (InteractionFragment interactionFragment : message.getInteractionFragmentList()) {
+            if (interactionFragment instanceof CombinedFragment) {
+                CombinedFragment cf = (CombinedFragment) interactionFragment;
+                for (InteractionOperand io: cf.getInteractionOperandList()) {
+                    for (InteractionFragment interactionFragmentInCf : io.getInteractionFragmentList()) {
+                        Point2D endPoint = interactionFragmentInCf.getMessage().getEndPoint();
+                        manhattanDistance = calcManhattanDistance(mouseX, mouseY, endPoint.getX(), endPoint.getY());
+                        if (manhattanDistance < minDistance) {
+                            minDistance = manhattanDistance;
+                            nearbyInteractinFragment = interactionFragmentInCf;
+                        }
+                    }
+                }
+            } else {
+                Point2D endPoint = interactionFragment.getMessage().getEndPoint();
+                manhattanDistance = calcManhattanDistance(mouseX, mouseY, endPoint.getX(), endPoint.getY());
+                if (manhattanDistance < minDistance) {
+                    minDistance = manhattanDistance;
+                    nearbyInteractinFragment = interactionFragment;
+                }
+            }
+        }
+        return nearbyInteractinFragment;
+    }
+
+    public void deleteInteractionFragment(InteractionFragment target) {
+        if (message.getInteractionFragmentList().remove(target)) {
+            return;
+        }
+
+        // 複合フラグメント内のメッセージを削除する場合
+        for (InteractionFragment interactionFragment : message.getInteractionFragmentList()) {
+            if (interactionFragment instanceof CombinedFragment) {
+                CombinedFragment cf = (CombinedFragment) interactionFragment;
+                for (InteractionOperand io : cf.getInteractionOperandList()) {
+                    if (io.getInteractionFragmentList().remove(target)) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private double calcManhattanDistance(double x1, double y1, double x2, double y2) {
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
     }
 
     @Deprecated

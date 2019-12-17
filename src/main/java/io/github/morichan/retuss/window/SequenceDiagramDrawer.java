@@ -71,6 +71,14 @@ public class SequenceDiagramDrawer {
         }
     }
 
+    /**
+     * <p> targetOgにメソッド呼び出しのメッセージを追加する。 </p>
+     * @param targetOg
+     * @param methodName
+     * @param parameter
+     * @param umlClass
+     * @param lifeline
+     */
     public void addCallMethodMessage(OperationGraphic targetOg, String methodName, String parameter, Class umlClass, Lifeline lifeline) {
 
         MessageOccurrenceSpecification newMessage = new MessageOccurrenceSpecification();
@@ -279,15 +287,19 @@ public class SequenceDiagramDrawer {
         } else if (mouse.getButton() == MouseButton.SECONDARY) {
             ContextMenu popup = new ContextMenu();
 
-            // MenuItem changeMenu = new MenuItem(interaction.getMessage().getName() +
-            // "メッセージの変更");
-            // changeMenu.setOnAction(e -> changeSequence(classId, operationId));
+            InteractionFragment targetInteractionFragment = interaction.searchNearbyInteractionFragment(mouse.getX(), mouse.getY());
+
             MenuItem createMessageMenu = new MenuItem("メッセージの作成");
             createMessageMenu.setOnAction(e -> mainController.showCreateMessageDialog(classId, operationId));
+
+            MenuItem deleteMessageMenu = new MenuItem( targetInteractionFragment.getMessage().getMessageSignature() + "メッセージの削除");
+            deleteMessageMenu.setOnAction(e -> mainController.deleteInteractionFragment(classId, operationId, targetInteractionFragment));
+
             MenuItem deleteMenu = new MenuItem(interaction.getMessage().getName() + "メッセージをモデルから削除");
             deleteMenu.setOnAction(e -> deleteSequence(classId, operationId));
-            // popup.getItems().add(changeMenu);
+
             popup.getItems().add(createMessageMenu);
+            popup.getItems().add(deleteMessageMenu);
             popup.getItems().add(deleteMenu);
 
             pane.setContextMenu(popup);

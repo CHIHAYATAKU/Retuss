@@ -29,6 +29,7 @@ public class MessageOccurrenceSpecification {
     private String value;
     private Lifeline lifeline;
     private List<InteractionFragment> interactionFragmentList = new ArrayList<>();
+    private String messageSignature;
 
     public Point2D getBeginPoint() {
         return beginPoint;
@@ -144,6 +145,14 @@ public class MessageOccurrenceSpecification {
             }
         }
         return messages;
+    }
+
+    public void setMessageSignature(String messageSignature) {
+        this.messageSignature = messageSignature;
+    }
+
+    public String getMessageSignature() {
+        return this.messageSignature;
     }
 
     public boolean hasSameLifeline(Lifeline lifeline) {
@@ -275,24 +284,24 @@ public class MessageOccurrenceSpecification {
         return height;
     }
 
-    private String formExpression() {
+    private void formExpression() {
         if (type == MessageType.Declaration) {
             if (value == null) {
-                return name + " : " + umlClass.getName();
+                setMessageSignature(name + " : " + umlClass.getName());
             } else {
-                return name + " = " + value + " : " + umlClass.getName();
+                setMessageSignature(name + " = " + value + " : " + umlClass.getName());
             }
         } else if (type == MessageType.Assignment) {
-            return name + " = " + value + " : " + umlClass.getName();
+            setMessageSignature(name + " = " + value + " : " + umlClass.getName());
         } else if (type == MessageType.Method) {
             if (value == null || value.isEmpty()) {
-                return name + "(" + ")";
+                setMessageSignature(name + "(" + ")");
             } else {
-                return name + "(" + value + ")";
+                setMessageSignature(name + "(" + value + ")");
             }
+        } else {
+            setMessageSignature(name);
         }
-
-        return name;
     }
 
     public void draw(GraphicsContext gc) {
@@ -304,7 +313,8 @@ public class MessageOccurrenceSpecification {
         double height = endPoint.getY() - beginPoint.getY();
         String diagramFont = "Consolas";
         double textSize = 12.0;
-        String operationName = formExpression();
+        formExpression();
+        String operationName = getMessageSignature();
         Point2D lastDrawPoint = Point2D.ZERO;
 
         if (!lifeline.isDrawn()) {
@@ -435,4 +445,5 @@ public class MessageOccurrenceSpecification {
         // }
 
     }
+    
 }
