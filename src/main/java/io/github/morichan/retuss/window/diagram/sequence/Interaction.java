@@ -59,21 +59,29 @@ public class Interaction {
     }
 
     public InteractionFragment searchNearbyInteractionFragment(double mouseX, double mouseY) {
-        double minDistance = 99999.9;
+        double limitDistance = 100.0;
+        double minDistance = 9999.9;
         double manhattanDistance = 0.0;
-        InteractionFragment nearbyInteractinFragment = new InteractionFragment();
+        InteractionFragment nearbyInteractionFragment = new InteractionFragment();
 
         // 複合フラグメントの入れ子には対応していない
         for (InteractionFragment interactionFragment : message.getInteractionFragmentList()) {
             if (interactionFragment instanceof CombinedFragment) {
                 CombinedFragment cf = (CombinedFragment) interactionFragment;
+                Point2D beginPoint = cf.getBeginPoint();
+                manhattanDistance = calcManhattanDistance(mouseX, mouseY, beginPoint.getX(), beginPoint.getY());
+                if (manhattanDistance < minDistance) {
+                    minDistance = manhattanDistance;
+                    nearbyInteractionFragment = cf;
+                }
+
                 for (InteractionOperand io: cf.getInteractionOperandList()) {
                     for (InteractionFragment interactionFragmentInCf : io.getInteractionFragmentList()) {
                         Point2D endPoint = interactionFragmentInCf.getMessage().getEndPoint();
                         manhattanDistance = calcManhattanDistance(mouseX, mouseY, endPoint.getX(), endPoint.getY());
                         if (manhattanDistance < minDistance) {
                             minDistance = manhattanDistance;
-                            nearbyInteractinFragment = interactionFragmentInCf;
+                            nearbyInteractionFragment = interactionFragmentInCf;
                         }
                     }
                 }
@@ -82,11 +90,16 @@ public class Interaction {
                 manhattanDistance = calcManhattanDistance(mouseX, mouseY, endPoint.getX(), endPoint.getY());
                 if (manhattanDistance < minDistance) {
                     minDistance = manhattanDistance;
-                    nearbyInteractinFragment = interactionFragment;
+                    nearbyInteractionFragment = interactionFragment;
                 }
             }
         }
-        return nearbyInteractinFragment;
+
+        if (minDistance < limitDistance) {
+            return nearbyInteractionFragment;
+        } else {
+            return null;
+        }
     }
 
     public void deleteInteractionFragment(InteractionFragment target) {

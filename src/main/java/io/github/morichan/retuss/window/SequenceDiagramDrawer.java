@@ -291,15 +291,21 @@ public class SequenceDiagramDrawer {
 
             MenuItem createMessageMenu = new MenuItem("メッセージの作成");
             createMessageMenu.setOnAction(e -> mainController.showCreateMessageDialog(classId, operationId));
+            popup.getItems().add(createMessageMenu);
 
-            MenuItem deleteMessageMenu = new MenuItem( targetInteractionFragment.getMessage().getMessageSignature() + "メッセージの削除");
-            deleteMessageMenu.setOnAction(e -> mainController.deleteInteractionFragment(classId, operationId, targetInteractionFragment));
+            if (targetInteractionFragment != null) {
+                MenuItem deleteMessageMenu;
+                if (targetInteractionFragment instanceof CombinedFragment) {
+                    deleteMessageMenu = new MenuItem( "複合フラグメント" + ((CombinedFragment) targetInteractionFragment).getInteractionOperandKind() + "の削除");
+                } else {
+                    deleteMessageMenu = new MenuItem( targetInteractionFragment.getMessage().getMessageSignature() + "メッセージの削除");
+                }
+                deleteMessageMenu.setOnAction(e -> mainController.deleteInteractionFragment(classId, operationId, targetInteractionFragment));
+                popup.getItems().add(deleteMessageMenu);
+            }
 
             MenuItem deleteMenu = new MenuItem(interaction.getMessage().getName() + "メッセージをモデルから削除");
             deleteMenu.setOnAction(e -> deleteSequence(classId, operationId));
-
-            popup.getItems().add(createMessageMenu);
-            popup.getItems().add(deleteMessageMenu);
             popup.getItems().add(deleteMenu);
 
             pane.setContextMenu(popup);
