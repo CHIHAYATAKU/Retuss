@@ -293,6 +293,10 @@ public class SequenceDiagramDrawer {
             createMessageMenu.setOnAction(e -> mainController.showCreateMessageDialog(classId, operationId));
             popup.getItems().add(createMessageMenu);
 
+            MenuItem createCombinedFragmentMenu = new MenuItem("複合フラグメントの作成");
+            createCombinedFragmentMenu.setOnAction(e -> mainController.showCreateCombinedFragmentDialog(classId, operationId));
+            popup.getItems().add(createCombinedFragmentMenu);
+
             if (targetInteractionFragment != null) {
                 MenuItem deleteMessageMenu;
                 if (targetInteractionFragment instanceof CombinedFragment) {

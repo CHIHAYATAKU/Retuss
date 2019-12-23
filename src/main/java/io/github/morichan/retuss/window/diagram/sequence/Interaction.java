@@ -102,6 +102,19 @@ public class Interaction {
         }
     }
 
+    public void addCombinedFragment(InteractionOperandKind interactionOperandKind, ArrayList<InteractionOperand> interactionOperandList) {
+        CombinedFragment newCF = new CombinedFragment(interactionOperandKind);
+        newCF.setInteractionOperandList(interactionOperandList);
+        message.getInteractionFragmentList().add(newCF);
+    }
+
+    public void addCombinedFragment(InteractionOperandKind interactionOperandKind, ArrayList<InteractionOperand> interactionOperandList, String textNextToKind) {
+        CombinedFragment newCF = new CombinedFragment(interactionOperandKind);
+        newCF.setInteractionOperandList(interactionOperandList);
+        newCF.setTextNextToKind(textNextToKind);
+        message.getInteractionFragmentList().add(newCF);
+    }
+
     public void deleteInteractionFragment(InteractionFragment target) {
         if (message.getInteractionFragmentList().remove(target)) {
             return;

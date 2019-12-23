@@ -270,13 +270,23 @@ public class JavaTranslator {
                 }
                 return ifClass;
             } else if (cf.getInteractionOperandKind() == InteractionOperandKind.loop) {
-                // TODO: for文への対応
-                While whileClass = new While();
-                whileClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());
-                for (InteractionFragment interactionFragmentInAlt : cf.getInteractionOperandList().get(0).getInteractionFragmentList()) {
-                    whileClass.addStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInAlt));
+                if (!cf.getTextNextToKind().isEmpty()) {
+                    // for文
+                    For forClass = new For();
+                    forClass.setForInit("i=0");
+                    forClass.setExpression("i<" + cf.getTextNextToKind());
+                    forClass.setForUpdate("i++");
+                    return forClass;
+                } else if(cf.getInteractionOperandList().size() > 0 && !cf.getInteractionOperandList().get(0).getGuard().isEmpty()) {
+                    While whileClass = new While();
+                    whileClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());
+                    for (InteractionFragment interactionFragmentInAlt : cf.getInteractionOperandList().get(0).getInteractionFragmentList()) {
+                        whileClass.addStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInAlt));
+                    }
+                    return whileClass;
+                } else {
+                    return new While();
                 }
-                return whileClass;
             }
         } else {
             MessageOccurrenceSpecification message = interactionFragment.getMessage();

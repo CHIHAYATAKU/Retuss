@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 public class CombinedFragment extends InteractionFragment {
     private InteractionOperandKind kind;
+    private String textNextToKind = "";
     private ArrayList<InteractionOperand> interactionOperandList = new ArrayList<InteractionOperand>();
     private int minInt = 0;
     private int maxInt = 0;
@@ -22,8 +23,22 @@ public class CombinedFragment extends InteractionFragment {
         return this.kind;
     }
 
+    public void setTextNextToKind(String textNextToKind) {
+        this.textNextToKind = textNextToKind;
+    }
+
+    public String getTextNextToKind() {
+        return this.textNextToKind;
+    }
+
     public ArrayList<InteractionOperand> getInteractionOperandList() {
         return this.interactionOperandList;
+    }
+
+
+
+    public void setInteractionOperandList(ArrayList<InteractionOperand> interactionOperandList) {
+        this.interactionOperandList = interactionOperandList;
     }
 
     public void addInteractionOperand(InteractionOperand interactionOperand) {
@@ -58,17 +73,22 @@ public class CombinedFragment extends InteractionFragment {
 
 
     public void draw(GraphicsContext gc) {
+        int kindNameAreaSize = (kind.name().length() + textNextToKind.length()) * 7;
         gc.setStroke(Color.BLACK);
         // 全体の枠を描画
         gc.strokeRect(beginPoint.getX(), beginPoint.getY(), width, height);
         // 左上の枠を描画
-        gc.strokeLine(beginPoint.getX(), beginPoint.getY() + 20, beginPoint.getX() + 25, beginPoint.getY() + 20);
-        gc.strokeLine(beginPoint.getX() + 25, beginPoint.getY() + 20, beginPoint.getX() + 30, beginPoint.getY() + 15);
-        gc.strokeLine(beginPoint.getX() + 30, beginPoint.getY() + 15, beginPoint.getX() + 30, beginPoint.getY());
+        gc.strokeLine(beginPoint.getX(), beginPoint.getY() + 20, beginPoint.getX() + kindNameAreaSize, beginPoint.getY() + 20);
+        gc.strokeLine(beginPoint.getX() + kindNameAreaSize, beginPoint.getY() + 20, beginPoint.getX() + kindNameAreaSize + 5, beginPoint.getY() + 15);
+        gc.strokeLine(beginPoint.getX() + kindNameAreaSize + 5, beginPoint.getY() + 15, beginPoint.getX() + kindNameAreaSize + 5, beginPoint.getY());
         // 左上に複合フラグメントの種類を描画する
-        gc.fillText(kind.name(), beginPoint.getX() + 2, beginPoint.getY() + 15);
+        if (textNextToKind.isEmpty()) {
+            gc.fillText(kind.name(), beginPoint.getX() + 2, beginPoint.getY() + 15);
+        } else {
+            gc.fillText(kind.name() + "(" + textNextToKind + ")", beginPoint.getX() + 2, beginPoint.getY() + 15);
+        }
         // ガード条件を表示する
-        if(!interactionOperandList.get(0).getGuard().isBlank()){
+        if(interactionOperandList.size() > 0 && !interactionOperandList.get(0).getGuard().isBlank()){
             gc.fillText(String.format("[ %s ]", interactionOperandList.get(0).getGuard()), beginPoint.getX() + 50, beginPoint.getY() + 15);
         }
 

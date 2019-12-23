@@ -272,6 +272,24 @@ public class MainController {
         }
     }
 
+    public void showCreateCombinedFragmentDialog(String classId, String operationId) {
+        // 作成する複合フラグメントの情報を入力する画面表示
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createCombinedFragmentDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            CreateCombinedFragmentDialogController createCombinedFragmentDialogController = fxmlLoader.getController();
+            createCombinedFragmentDialogController.initialize(this, classId, operationId);
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("複合フラグメントの作成");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+
+        }
+    }
+
     public void deleteInteractionFragment(String classId, String operationId, InteractionFragment target) {
         OperationGraphic og = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(operationId);
         og.getInteraction().deleteInteractionFragment(target);
