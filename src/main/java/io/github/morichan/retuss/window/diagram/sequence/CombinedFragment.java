@@ -14,6 +14,7 @@ public class CombinedFragment extends InteractionFragment {
     private Point2D beginPoint = Point2D.ZERO;
     private double height = 40;
     private double width = 0;
+    private String codeText = "";
 
     public CombinedFragment(InteractionOperandKind kind) {
         this.kind = kind;
@@ -34,8 +35,6 @@ public class CombinedFragment extends InteractionFragment {
     public ArrayList<InteractionOperand> getInteractionOperandList() {
         return this.interactionOperandList;
     }
-
-
 
     public void setInteractionOperandList(ArrayList<InteractionOperand> interactionOperandList) {
         this.interactionOperandList = interactionOperandList;
@@ -71,6 +70,9 @@ public class CombinedFragment extends InteractionFragment {
         this.width = width;
     }
 
+    public String getCodeText() { return this.codeText; }
+
+    public void setCodeText(String codeText) { this.codeText = codeText; }
 
     public void draw(GraphicsContext gc) {
         int kindNameAreaSize = (kind.name().length() + textNextToKind.length()) * 7;
@@ -91,6 +93,5 @@ public class CombinedFragment extends InteractionFragment {
         if(interactionOperandList.size() > 0 && !interactionOperandList.get(0).getGuard().isBlank()){
             gc.fillText(String.format("[ %s ]", interactionOperandList.get(0).getGuard()), beginPoint.getX() + 50, beginPoint.getY() + 15);
         }
-
     }
 }

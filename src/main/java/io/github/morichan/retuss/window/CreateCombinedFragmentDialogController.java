@@ -95,12 +95,12 @@ public class CreateCombinedFragmentDialogController {
 
         InteractionOperandKind interactionOperandKind = InteractionOperandKind.loop;
         ArrayList<InteractionOperand> interactionOperandList = new ArrayList<InteractionOperand>();
-        if (!numLoopNoneCheckBox.isSelected()) {
-            String numLoop = numLoopSpinner.getValue().toString();
-            targetOg.getInteraction().addCombinedFragment(interactionOperandKind, interactionOperandList, numLoop);
-        } else {
+        if (numLoopNoneCheckBox.isSelected()) {
             interactionOperandList.add(new InteractionOperand(guardTextFieldLoop.getText()));
             targetOg.getInteraction().addCombinedFragment(interactionOperandKind, interactionOperandList);
+        } else {
+            String numLoop = numLoopSpinner.getValue().toString();
+            targetOg.getInteraction().addCombinedFragment(interactionOperandKind, interactionOperandList, numLoop);
         }
 
         return true;

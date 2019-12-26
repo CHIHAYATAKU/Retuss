@@ -112,6 +112,7 @@ public class Interaction {
         CombinedFragment newCF = new CombinedFragment(interactionOperandKind);
         newCF.setInteractionOperandList(interactionOperandList);
         newCF.setTextNextToKind(textNextToKind);
+        newCF.setCodeText("int i=0;i<" + textNextToKind + ";i++");
         message.getInteractionFragmentList().add(newCF);
     }
 

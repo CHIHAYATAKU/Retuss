@@ -189,7 +189,15 @@ public class UMLTranslator {
         } else if (statement instanceof For) {
             For forClass = (For) statement;
             kind = InteractionOperandKind.loop;
-            InteractionOperand interactionOperand = new InteractionOperand(forClass.getExpression());
+            combinedFragment = new CombinedFragment(kind);
+
+            InteractionOperand interactionOperand = new InteractionOperand("");
+            combinedFragment.setCodeText(forClass.getForInit() + ";" + forClass.getExpression() + ";" + forClass.getForUpdate());
+            if (!forClass.getNumLoop().isEmpty()) {
+                combinedFragment.setTextNextToKind(forClass.getNumLoop());
+            } else {
+                interactionOperand = new InteractionOperand(forClass.getExpression());
+            }
 
             for (BlockStatement blockStatement : forClass.getStatements()) {
                 InteractionFragment interactionFragment = new InteractionFragment();
@@ -200,7 +208,6 @@ public class UMLTranslator {
                 }
                 interactionOperand.addInteractionFragment(interactionFragment);
             }
-            combinedFragment = new CombinedFragment(kind);
             combinedFragment.addInteractionOperand(interactionOperand);
         }
 

@@ -270,14 +270,8 @@ public class JavaTranslator {
                 }
                 return ifClass;
             } else if (cf.getInteractionOperandKind() == InteractionOperandKind.loop) {
-                if (!cf.getTextNextToKind().isEmpty()) {
-                    // for文
-                    For forClass = new For();
-                    forClass.setForInit("i=0");
-                    forClass.setExpression("i<" + cf.getTextNextToKind());
-                    forClass.setForUpdate("i++");
-                    return forClass;
-                } else if(cf.getInteractionOperandList().size() > 0 && !cf.getInteractionOperandList().get(0).getGuard().isEmpty()) {
+                if (cf.getCodeText().isEmpty()) {
+                    // while文
                     While whileClass = new While();
                     whileClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());
                     for (InteractionFragment interactionFragmentInAlt : cf.getInteractionOperandList().get(0).getInteractionFragmentList()) {
@@ -285,7 +279,13 @@ public class JavaTranslator {
                     }
                     return whileClass;
                 } else {
-                    return new While();
+                    // for文
+                    For forClass = new For();
+                    String[] forExpression = cf.getCodeText().split(";");
+                    forClass.setForInit(forExpression[0]);
+                    forClass.setExpression(forExpression[1]);
+                    forClass.setForUpdate(forExpression[2]);
+                    return forClass;
                 }
             }
         } else {

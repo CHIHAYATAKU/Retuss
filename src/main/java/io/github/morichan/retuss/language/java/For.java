@@ -10,6 +10,7 @@ public class For implements BlockStatement {
     private String forInit;
     private String expression;
     private String forUpdate;
+    private String numLoop = "";
 
     private List<BlockStatement> statements = new ArrayList<>();
 
@@ -36,6 +37,10 @@ public class For implements BlockStatement {
     public void setForUpdate(String forUpdate) {
         this.forUpdate = forUpdate;
     }
+
+    public String getNumLoop() { return this.numLoop; }
+
+    public void setNumLoop(String numLoop) { this.numLoop = numLoop; }
 
     public List<BlockStatement> getStatements() {
         return this.statements;

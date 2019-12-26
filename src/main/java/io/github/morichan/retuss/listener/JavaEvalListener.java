@@ -371,26 +371,79 @@ public class JavaEvalListener extends JavaParserBaseListener {
         if (ctx.getChild(0).getText().equals("if")) {
             ifClass = new If();
             ifClass.setCondition(ctx.getChild(1).getText());
-        }else if(ctx.getChild(0).getText().equals("while")){
+        } else if (ctx.getChild(0).getText().equals("while")) {
             whileClass = new While();
             whileClass.setCondition(ctx.getChild(1).getText());
-        }else if(ctx.getChild(0).getText().equals("for")){
-            if(ctx.getChild(2).getChild(1).getText().equals(";") && ctx.getChild(2).getChild(3).getText().equals(";")) {
-                // for(i=0;i<10;i++)のような基本形の場合
+        } else if (ctx.getChild(0).getText().equals("for")) {
+            // for文の基本形のみ対応 ex) for(int i=0; i<10; i++)
+
+            String initVarName, initOperator, initValue;
+            String expressionVarName, expressionOperator, expressionValue;
+            String updateVarName, updateVarOperator;
+
+            if (ctx.getChild(2).getChild(0).getChild(0).getChildCount() == 2) {
+                // 初期化式に型名が含まれる場合 ex) for(int i=0; i<10; i++)
+                initVarName = ctx.getChild(2).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getText();
+                initOperator = ctx.getChild(2).getChild(0).getChild(0).getChild(1).getChild(0).getChild(1).getText();
+                initValue = ctx.getChild(2).getChild(0).getChild(0).getChild(1).getChild(0).getChild(2).getText();
+            } else if (ctx.getChild(2).getChild(0).getChild(0).getChildCount() == 1) {
+                // 初期化式に型名が含まれない場合 ex) for(i=0; i<10; i++)
+                initVarName = ctx.getChild(2).getChild(0).getChild(0).getChild(0).getChild(0).getText();
+                initOperator = ctx.getChild(2).getChild(0).getChild(0).getChild(0).getChild(1).getText();
+                initValue = ctx.getChild(2).getChild(0).getChild(0).getChild(0).getChild(2).getText();
+            } else {
+                return;
+            }
+
+            if (ctx.getChild(2).getChild(2).getChildCount() == 3) {
+                // 継続条件式 ex) i<10;
+                expressionVarName = ctx.getChild(2).getChild(2).getChild(0).getText();
+                expressionOperator = ctx.getChild(2).getChild(2).getChild(1).getText();
+                expressionValue = ctx.getChild(2).getChild(2).getChild(2).getText();
+            } else {
+                return;
+            }
+
+            if (ctx.getChild(2).getChild(4).getChild(0).getChildCount() == 2) {
+                // 更新式 ex) i++
+                updateVarName = ctx.getChild(2).getChild(4).getChild(0).getChild(0).getText();
+                updateVarOperator = ctx.getChild(2).getChild(4).getChild(0).getChild(1).getText();
+            } else {
+                return;
+            }
+
+            if (initVarName.equals(expressionVarName) && initVarName.equals(updateVarName) && initOperator.equals("=")) {
+                int initValueInt, expressionValueInt;
+                int numLoop = 0;
+
                 forClass = new For();
                 forClass.setForInit(ctx.getChild(2).getChild(0).getText());
                 forClass.setExpression(ctx.getChild(2).getChild(2).getText());
                 forClass.setForUpdate(ctx.getChild(2).getChild(4).getText());
+
+                // initValue, expressionValueが整数であるかのチェック
+                try {
+                    initValueInt = Integer.parseInt(initValue);
+                    expressionValueInt = Integer.parseInt(expressionValue);
+                } catch (Exception e) {
+                    return;
+                }
+
+                if (expressionOperator.equals("<") && updateVarOperator.equals("++")) {
+                    numLoop = expressionValueInt - initValueInt;
+                } else if (expressionOperator.equals("<=") && updateVarOperator.equals("++")) {
+                    numLoop = expressionValueInt - initValueInt + 1;
+                } else if (expressionOperator.equals(">") && updateVarOperator.equals("--")) {
+                    numLoop = initValueInt - expressionValueInt;
+                } else if (expressionOperator.equals(">=") && updateVarOperator.equals("--")) {
+                    numLoop = initValueInt - expressionValueInt + 1;
+                }
+
+                if (numLoop > 0) {
+                    forClass.setNumLoop(String.valueOf(numLoop));
+                }
             }
         }
-
-        test = ctx.getChildCount();
-//        System.out.println("****************************");
-//        System.out.println(ctx.getChild(2).getText());
-//        System.out.println(forClass.getForInit());
-//        System.out.println(forClass.getExpression());
-//        System.out.println(forClass.getForUpdate());
-//        System.out.println("****************************");
     }
 
     @Override
@@ -433,20 +486,6 @@ public class JavaEvalListener extends JavaParserBaseListener {
         }
         return local;
     }
-
-//    private void addLocalVariableDeclaration(Type type, JavaParser.VariableDeclaratorsContext ctx) {
-//
-//        for (int i = 0; i < ctx.getChildCount(); i++) {
-//            if (ctx.getChild(i).getChildCount() == 1) {
-//                LocalVariableDeclaration local = new LocalVariableDeclaration(type, ctx.getChild(i).getText());
-//                methodBody.addStatement(local);
-//            } else {
-//                LocalVariableDeclaration local = new LocalVariableDeclaration(type,
-//                        ctx.getChild(i).getChild(0).getText(), ctx.getChild(i).getChild(2).getText());
-//                methodBody.addStatement(local);
-//            }
-//        }
-//    }
 
     private Assignment createAssignment(JavaParser.ExpressionContext assignmentCtx) {
         return new Assignment(assignmentCtx.getChild(0).getText(), assignmentCtx.getChild(2).getText());
