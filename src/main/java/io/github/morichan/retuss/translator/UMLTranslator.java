@@ -155,20 +155,15 @@ public class UMLTranslator {
 
         if(statement instanceof If) {
             If ifClass = (If) statement;
-            kind = InteractionOperandKind.opt;
-            InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition());
 
-            for (BlockStatement blockStatement : ifClass.getStatements()) {
-                InteractionFragment interactionFragment = new InteractionFragment();
-                if (blockStatement instanceof Assignment) {
-                    interactionFragment.setMessage(convertAssignment(message, lifeline, blockStatement, interactionOperand));
-                } else {
-                    interactionFragment.setMessage(convert(message, lifeline, blockStatement));
-                }
-                interactionOperand.addInteractionFragment(interactionFragment);
+            if (ifClass.getElseStatements().size() > 0) {
+                kind = InteractionOperandKind.alt;
+            } else {
+                kind = InteractionOperandKind.opt;
             }
+
             combinedFragment = new CombinedFragment(kind);
-            combinedFragment.addInteractionOperand(interactionOperand);
+            combinedFragment.setInteractionOperandList(convertIftoInteractionOperand(ifClass, message, lifeline));
 
         } else if (statement instanceof While) {
             While whileClass = (While) statement;
@@ -213,6 +208,43 @@ public class UMLTranslator {
 
         return combinedFragment;
 
+    }
+
+    private ArrayList<InteractionOperand> convertIftoInteractionOperand(If ifClass, MessageOccurrenceSpecification message,
+                                                                        Lifeline lifeline) {
+        ArrayList<InteractionOperand> interactionOperandList = new ArrayList<InteractionOperand>();
+        InteractionOperand interactionOperand = new InteractionOperand(ifClass.getCondition());
+
+        for (BlockStatement blockStatement : ifClass.getStatements()) {
+            InteractionFragment interactionFragment = new InteractionFragment();
+            if (blockStatement instanceof Assignment) {
+                interactionFragment.setMessage(convertAssignment(message, lifeline, blockStatement, interactionOperand));
+            } else {
+                interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+            }
+            interactionOperand.addInteractionFragment(interactionFragment);
+        }
+        interactionOperandList.add(interactionOperand);
+
+        if (ifClass.getElseStatements().size() > 0) {
+            if (ifClass.getElseStatements().get(0) instanceof If) {
+                interactionOperandList.addAll(convertIftoInteractionOperand((If) ifClass.getElseStatements().get(0), message, lifeline));
+            } else {
+                InteractionOperand elseInteractionOperand = new InteractionOperand("else");
+                for (BlockStatement blockStatement : ifClass.getElseStatements()) {
+                    InteractionFragment interactionFragment = new InteractionFragment();
+                    if (blockStatement instanceof Assignment) {
+                        interactionFragment.setMessage(convertAssignment(message, lifeline, blockStatement, interactionOperand));
+                    } else {
+                        interactionFragment.setMessage(convert(message, lifeline, blockStatement));
+                    }
+                    elseInteractionOperand.addInteractionFragment(interactionFragment);
+                }
+                interactionOperandList.add(elseInteractionOperand);
+            }
+        }
+
+        return interactionOperandList;
     }
 
     private String createMessageText(Operation operation) {
