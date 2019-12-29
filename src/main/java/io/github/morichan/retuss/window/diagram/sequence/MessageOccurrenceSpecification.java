@@ -169,39 +169,35 @@ public class MessageOccurrenceSpecification {
 
         int count = 0;
         List<MessageOccurrenceSpecification> messages = getMessages();
-//        for (MessageOccurrenceSpecification message : messages) {
-//            scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline,
-//                    scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
-//            height += message.calculateHeight();
-//            beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
-//            count++;
-//        }
 
         // interactionFragmentでループを回すように変更
         MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
         for(InteractionFragment interactionFragment: interactionFragmentList){
             if(interactionFragment instanceof CombinedFragment){
                 CombinedFragment cf = (CombinedFragment) interactionFragment;
+                double maxEndPointX = 0.0;
                 // 直前のメッセージのendPointのYを利用する
-                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 35, message.getEndPoint().getY() + 5);
+                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 35, beforeGoalPoint.getY() + 20);
+                beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), beforeGoalPoint.getY() + 20);
                 for (InteractionOperand io : cf.getInteractionOperandList()) {
-                    double maxEndPointX = 0.0;
+                    io.setBeginPointY(beforeGoalPoint.getY() + 10);
+                    beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY());
                     for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
                         message = interactionFragment2.getMessage();
                         scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline, scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
                         height += message.calculateHeight();
                         beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
                         count++;
-                        if(maxEndPointX < message.getEndPoint().getX()){
+                        if(maxEndPointX < message.getEndPoint().getX()) {
                             maxEndPointX = message.getEndPoint().getX();
                         }
                     }
-                    // 複合フラグメント内の最後のメッセージのendPointを利用する
-                    cf.setHeight(message.getEndPoint().getY() - cf.getBeginPoint().getY() + 10);
-                    cf.setWidth(maxEndPointX + 150);
-
+                    io.setHeight(message.getEndPoint().getY() - io.getBeginPointY() + 15);
+                    beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY() + io.getHeight());
                 }
-            }else{
+                cf.setWidth(maxEndPointX + 150);
+
+            } else {
                 message = interactionFragment.getMessage();
                 scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline, scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
                 height += message.calculateHeight();

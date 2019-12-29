@@ -75,6 +75,7 @@ public class CombinedFragment extends InteractionFragment {
     public void setCodeText(String codeText) { this.codeText = codeText; }
 
     public void draw(GraphicsContext gc) {
+        calcHeight();
         int kindNameAreaSize = (kind.name().length() + textNextToKind.length()) * 7;
         gc.setStroke(Color.BLACK);
         // 全体の枠を描画
@@ -89,9 +90,28 @@ public class CombinedFragment extends InteractionFragment {
         } else {
             gc.fillText(kind.name() + "(" + textNextToKind + ")", beginPoint.getX() + 2, beginPoint.getY() + 15);
         }
-        // ガード条件を表示する
-        if(interactionOperandList.size() > 0 && !interactionOperandList.get(0).getGuard().isBlank()){
-            gc.fillText(String.format("[ %s ]", interactionOperandList.get(0).getGuard()), beginPoint.getX() + 50, beginPoint.getY() + 15);
+
+        // 区切りのダッシュ線とガード条件を描画する
+        InteractionOperand io = interactionOperandList.get(0);
+        if (!io.getGuard().isBlank()) {
+            gc.fillText(String.format("[ %s ]", io.getGuard()), beginPoint.getX() + 50, io.getBeginPointY() + 10);
         }
+        for (int i=1; i<interactionOperandList.size(); i++) {
+            io = interactionOperandList.get(i);
+            gc.setLineDashes(10.0, 10.0);
+            gc.strokeLine(beginPoint.getX(), io.getBeginPointY(), beginPoint.getX() + width, io.getBeginPointY());
+            gc.setLineDashes(null);
+            if (!io.getGuard().isBlank()) {
+                gc.fillText(String.format("[ %s ]", io.getGuard()), beginPoint.getX() + 50, io.getBeginPointY() + 15);
+            }
+        }
+    }
+
+    private void calcHeight() {
+        double height = 0.0;
+        for (InteractionOperand io : interactionOperandList) {
+            height += io.getHeight();
+        }
+        this.height = height;
     }
 }
