@@ -8,6 +8,7 @@ public class If implements BlockStatement {
     private Type type;
     private String condition;
     private List<BlockStatement> statements = new ArrayList<>();
+    private List<BlockStatement> elseStatements = new ArrayList<>();
 
     public String getCondition() {
         return condition;
@@ -25,6 +26,12 @@ public class If implements BlockStatement {
         if (statement != null)
             statements.add(statement);
     }
+
+    public List<BlockStatement> getElseStatements() {
+        return elseStatements;
+    }
+
+
 
     @Override
     public String getName() {
