@@ -406,11 +406,20 @@ public class JavaEvalListener extends JavaParserBaseListener {
         // if文を見つけた場合、Ifクラスに条件文を格納する
         // IfクラスをJava > Class > Method > MethodBodyに格納する
         if (ctx.getChild(0).getText().equals("if")) {
-            ifClass.add(new If());
-            ifClass.get(ifClass.size() - 1).setCondition(ctx.getChild(1).getChild(1).getText());
+            If tmpIfClass = new If();
+            if (ctx.getChild(1).getChildCount() == 3 && ctx.getChild(1).getChild(0).getText().equals("(") && ctx.getChild(1).getChild(1) instanceof JavaParser.ExpressionContext && ctx.getChild(1).getChild(2).getText().equals(")")) {
+                tmpIfClass.setCondition(ctx.getChild(1).getChild(1).getText());
+            } else {
+                tmpIfClass.setCondition("");
+            }
+            ifClass.add(tmpIfClass);
         } else if (ctx.getChild(0).getText().equals("while")) {
             whileClass = new While();
-            whileClass.setCondition(ctx.getChild(1).getChild(1).getText());
+            if (ctx.getChild(1).getChildCount() == 3 && ctx.getChild(1).getChild(0).getText().equals("(") && ctx.getChild(1).getChild(1) instanceof JavaParser.ExpressionContext && ctx.getChild(1).getChild(2).getText().equals(")")){
+                whileClass.setCondition(ctx.getChild(1).getChild(1).getText());
+            } else {
+                whileClass.setCondition("");
+            }
         } else if (ctx.getChild(0).getText().equals("for")) {
             // for文の基本形のみ対応 ex) for(int i=0; i<10; i++)
 
@@ -488,7 +497,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
         if (ctx.getChild(0).getText().equals("if")) {
             // if文から抜ける時、methodBodyにifClassを追加する
             if (ifClass.size() == 1) {
-                methodBody.addStatement(ifClass.get(ifClass.size() - 1));
+                methodBody.addStatement(ifClass.get(0));
             } else {
                 ifClass.get(ifClass.size() - 2).getElseStatements().add(ifClass.get(ifClass.size() - 1));
             }
