@@ -407,10 +407,10 @@ public class JavaEvalListener extends JavaParserBaseListener {
         // IfクラスをJava > Class > Method > MethodBodyに格納する
         if (ctx.getChild(0).getText().equals("if")) {
             ifClass.add(new If());
-            ifClass.get(ifClass.size() - 1).setCondition(ctx.getChild(1).getText());
+            ifClass.get(ifClass.size() - 1).setCondition(ctx.getChild(1).getChild(1).getText());
         } else if (ctx.getChild(0).getText().equals("while")) {
             whileClass = new While();
-            whileClass.setCondition(ctx.getChild(1).getText());
+            whileClass.setCondition(ctx.getChild(1).getChild(1).getText());
         } else if (ctx.getChild(0).getText().equals("for")) {
             // for文の基本形のみ対応 ex) for(int i=0; i<10; i++)
 
