@@ -31,7 +31,14 @@ public class If implements BlockStatement {
         return elseStatements;
     }
 
+    public void setElseStatement(BlockStatement elseStatement) {
+        this.elseStatements.add(elseStatement);
+    }
 
+    public void addElseStatement(BlockStatement elseStatement) {
+        if (elseStatement != null)
+            this.elseStatements.add(elseStatement);
+    }
 
     @Override
     public String getName() {
@@ -51,7 +58,21 @@ public class If implements BlockStatement {
             sb.append("            ");
             sb.append(blockStatement.getStatement() + "\n");
         }
-        sb.append("        }\n");
+        sb.append("        } ");
+
+        if (this.elseStatements.size() > 0) {
+            sb.append("else ");
+            if (this.elseStatements.get(0) instanceof If) {
+                sb.append(this.elseStatements.get(0).getStatement());
+            } else {
+                sb.append("{\n");
+                for (BlockStatement blockStatement : this.elseStatements) {
+                    sb.append("            ");
+                    sb.append(blockStatement.getStatement() + "\n");
+                }
+                sb.append("        }\n");
+            }
+        }
         return sb.toString();
     }
 }

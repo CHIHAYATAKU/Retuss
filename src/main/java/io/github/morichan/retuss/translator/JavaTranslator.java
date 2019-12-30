@@ -11,6 +11,7 @@ import io.github.morichan.retuss.language.uml.Package;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.sequence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -261,14 +262,33 @@ public class JavaTranslator {
     private BlockStatement convertInteractionFragmentToBlockStatement(InteractionFragment interactionFragment) {
         if (interactionFragment instanceof CombinedFragment) {
             CombinedFragment cf = (CombinedFragment) interactionFragment;
-            if (cf.getInteractionOperandKind() == InteractionOperandKind.opt) {
-                If ifClass = new If();
-                // if文のみ対応、else if, elseには未対応
-                ifClass.setCondition(cf.getInteractionOperandList().get(0).getGuard());
-                for (InteractionFragment interactionFragmentInAlt : cf.getInteractionOperandList().get(0).getInteractionFragmentList()) {
-                    ifClass.addStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInAlt));
+            if (cf.getInteractionOperandKind() == InteractionOperandKind.opt || cf.getInteractionOperandKind() == InteractionOperandKind.alt) {
+                ArrayList<If> ifClassList = new ArrayList<If>();
+
+                for (InteractionOperand io : cf.getInteractionOperandList()) {
+                    If ifClass = new If();
+
+                    if (io.getGuard().equals("else")) {
+                        // elseだったら、前のifClassのelseStatementに追加
+                        ifClass = ifClassList.get(ifClassList.size() - 1);
+                        for (InteractionFragment interactionFragmentInIo : io.getInteractionFragmentList()) {
+                            ifClass.addElseStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInIo));
+                        }
+                    } else {
+                        ifClass.setCondition(io.getGuard());
+                        for (InteractionFragment interactionFragmentInIo : io.getInteractionFragmentList()) {
+                            ifClass.addStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInIo));
+                        }
+                        ifClassList.add(ifClass);
+                    }
+
                 }
-                return ifClass;
+
+                for (int i = ifClassList.size() - 1; i > 0; i--) {
+                    ifClassList.get(i-1).addElseStatement(ifClassList.get(i));
+                }
+
+                return ifClassList.get(0);
             } else if (cf.getInteractionOperandKind() == InteractionOperandKind.loop) {
                 if (cf.getCodeText().isEmpty()) {
                     // while文
