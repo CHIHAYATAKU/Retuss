@@ -280,7 +280,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
                     }
                 }
             }
-        }  else if (ctx.getParent().getParent().getParent().getChild(3).getText().equals("else") && ctx.getParent().getParent().equals(ctx.getParent().getParent().getParent().getChild(4))) {
+        }  else if (ctx.getParent().getParent().getParent().getChildCount() >= 5 && ctx.getParent().getParent().getParent().getChild(3).getText().equals("else") && ctx.getParent().getParent().equals(ctx.getParent().getParent().getParent().getChild(4))) {
             // else文の中
             if (ctx.getChild(0) instanceof JavaParser.LocalVariableDeclarationContext) {
                 // ローカル変数宣言
