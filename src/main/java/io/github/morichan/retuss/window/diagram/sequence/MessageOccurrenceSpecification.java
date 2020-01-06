@@ -254,24 +254,66 @@ public class MessageOccurrenceSpecification {
 
         int count = 0;
         Point2D beforeGoalPoint = new Point2D(beginPoint.getX(), beginPoint.getY());
-        List<MessageOccurrenceSpecification> messages = getMessages();
 
-        for (MessageOccurrenceSpecification message : messages) {
-            lastLifeline = message.calculatePoint(beforeGoalPoint, lifeline, lastLifeline, sameLifelineCount,
-                    instanceMap.get(count));
-            height += message.calculateHeight();
-            beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
-            count++;
+        for (InteractionFragment interactionFragment : interactionFragmentList) {
+            if (interactionFragment instanceof CombinedFragment) {
+                CombinedFragment cf = (CombinedFragment) interactionFragment;
+                double maxEndPointX = 0.0;
+                // 直前のメッセージのendPointのYを利用する
+                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 35, beforeGoalPoint.getY() + 20);
+                beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), beforeGoalPoint.getY() + 20);
+                for (int i = 0; i < cf.getInteractionOperandList().size(); i++) {
+                    InteractionOperand io = cf.getInteractionOperandList().get(i);
+                    if (i == 0) {
+                        io.setBeginPointY(cf.getBeginPoint().getY());
+                    } else {
+                        InteractionOperand beforeIo = cf.getInteractionOperandList().get(i - 1);
+                        io.setBeginPointY(beforeIo.getBeginPointY() + beforeIo.getHeight() + 5);
+                    }
+                    beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY());
+                    double endPointYIo = io.getBeginPointY();
+
+                    for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
+                        MessageOccurrenceSpecification message = interactionFragment2.getMessage();
+                        lastLifeline = message.calculatePoint(beforeGoalPoint, lifeline, lastLifeline, sameLifelineCount, instanceMap.get(count));
+//                        height += message.calculateHeight();
+                        endPointYIo = message.getEndPoint().getY() + 20;
+                        beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
+                        count++;
+                        if(maxEndPointX < message.getEndPoint().getX()) {
+                            maxEndPointX = message.getEndPoint().getX();
+                        }
+                    }
+                    io.setHeight(endPointYIo - io.getBeginPointY() + 5);
+                    beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY() + io.getHeight());
+                }
+                cf.setWidth(maxEndPointX + 150);
+            } else {
+                MessageOccurrenceSpecification message = interactionFragment.getMessage();
+                lastLifeline = message.calculatePoint(beforeGoalPoint, lifeline, lastLifeline, sameLifelineCount, instanceMap.get(count));
+                height += message.calculateHeight();
+                beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
+                count++;
+            }
         }
+//        List<MessageOccurrenceSpecification> messages = getMessages();
+//
+//        for (MessageOccurrenceSpecification message : messages) {
+//            lastLifeline = message.calculatePoint(beforeGoalPoint, lifeline, lastLifeline, sameLifelineCount,
+//                    instanceMap.get(count));
+//            height += message.calculateHeight();
+//            beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
+//            count++;
+//        }
 
-        if (messages.size() >= 2)
-            height += (messages.size() - 1) * 20;
+        if (interactionFragmentList.size() >= 2)
+            height += (interactionFragmentList.size() - 1) * 20;
 
         if (sameLifelineCount != 0) {
             endPoint = new Point2D(lifeline.getHeadCenterPoint().getX() + sameLifelineCount * 5,
                     beginPoint.getY() + height - 15);
         } else {
-            endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beginPoint.getY() + height);
+            endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beforeGoalPoint.getY() + 20);
         }
 
         return lastLifeline;
