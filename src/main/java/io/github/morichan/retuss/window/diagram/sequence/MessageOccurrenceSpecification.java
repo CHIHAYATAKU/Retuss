@@ -179,20 +179,29 @@ public class MessageOccurrenceSpecification {
                 // 直前のメッセージのendPointのYを利用する
                 cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 35, beforeGoalPoint.getY() + 20);
                 beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), beforeGoalPoint.getY() + 20);
-                for (InteractionOperand io : cf.getInteractionOperandList()) {
-                    io.setBeginPointY(beforeGoalPoint.getY() + 10);
+                for (int i = 0; i < cf.getInteractionOperandList().size(); i++) {
+                    InteractionOperand io = cf.getInteractionOperandList().get(i);
+                    if (i == 0) {
+                        io.setBeginPointY(cf.getBeginPoint().getY());
+                    } else {
+                        InteractionOperand beforeIo = cf.getInteractionOperandList().get(i - 1);
+                        io.setBeginPointY(beforeIo.getBeginPointY() + beforeIo.getHeight() + 5);
+                    }
                     beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY());
+                    double endPointYIo = io.getBeginPointY();
+
                     for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
                         message = interactionFragment2.getMessage();
                         scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline, scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
-                        height += message.calculateHeight();
+//                        height += message.calculateHeight();
+                        endPointYIo = message.getEndPoint().getY() + 20;
                         beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
                         count++;
                         if(maxEndPointX < message.getEndPoint().getX()) {
                             maxEndPointX = message.getEndPoint().getX();
                         }
                     }
-                    io.setHeight(message.getEndPoint().getY() - io.getBeginPointY() + 15);
+                    io.setHeight(endPointYIo - io.getBeginPointY() + 5);
                     beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY() + io.getHeight());
                 }
                 cf.setWidth(maxEndPointX + 150);
@@ -209,7 +218,9 @@ public class MessageOccurrenceSpecification {
         if (messages.size() >= 2)
             height += (messages.size() - 1) * 40;
 
-        endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beginPoint.getY() + height);
+//        endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beginPoint.getY() + height);
+        endPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beforeGoalPoint.getY() + 20);
+
 
         /*
          * if (count == 0) { beginPoint = new
@@ -268,14 +279,23 @@ public class MessageOccurrenceSpecification {
 
     private double calculateHeight() {
         double height = 40;
-        List<MessageOccurrenceSpecification> messages = getMessages();
 
-        for (MessageOccurrenceSpecification message : messages) {
-            height += message.calculateHeight();
+        for (InteractionFragment interactionFragment : interactionFragmentList) {
+            if (interactionFragment instanceof CombinedFragment) {
+                height += ((CombinedFragment) interactionFragment).getHeight();
+            } else {
+                height += interactionFragment.getMessage().calculateHeight();
+            }
         }
 
-        if (messages.size() >= 2)
-            height += (messages.size() - 1) * 20;
+//        List<MessageOccurrenceSpecification> messages = getMessages();
+//
+//        for (MessageOccurrenceSpecification message : messages) {
+//            height += message.calculateHeight();
+//        }
+//
+//        if (messages.size() >= 2)
+//            height += (messages.size() - 1) * 20;
 
         return height;
     }

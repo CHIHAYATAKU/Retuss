@@ -6,8 +6,12 @@ import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import io.github.morichan.retuss.window.diagram.sequence.InteractionOperand;
 import io.github.morichan.retuss.window.diagram.sequence.InteractionOperandKind;
 import io.github.morichan.retuss.window.diagram.sequence.Lifeline;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -22,6 +26,15 @@ public class CreateCombinedFragmentDialogController {
 
     @FXML
     private TextField guardTextFieldOpt;
+
+    @FXML
+    private VBox guardVBoxAlt;
+
+    @FXML
+    private Button addGuardButton;
+
+    @FXML
+    private Button deleteGuardButton;
 
     @FXML
     private Spinner numLoopSpinner;
@@ -47,6 +60,25 @@ public class CreateCombinedFragmentDialogController {
         this.targetClass = sequenceDiagramDrawer.getUmlPackage().searchClass(classId);
         // messageを追加するOperationGraphic
         this.targetOg = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(operationId);
+
+    }
+
+    @FXML
+    private void addGuardTextField() {
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(new Label("ガード条件" + (guardVBoxAlt.getChildren().size() + 1)), new TextField());
+        guardVBoxAlt.getChildren().add(hBox);
+        if (guardVBoxAlt.getChildren().size() > 2) {
+            deleteGuardButton.setDisable(false);
+        }
+    }
+
+    @FXML
+    private void deleteGuardTextField() {
+        guardVBoxAlt.getChildren().remove(guardVBoxAlt.getChildren().size() - 1);
+        if (guardVBoxAlt.getChildren().size() <= 2) {
+            deleteGuardButton.setDisable(true);
+        }
     }
 
     @FXML
@@ -62,7 +94,7 @@ public class CreateCombinedFragmentDialogController {
         if (selectedTab.getText().equals("opt")) {
             isCreated = createCFOpt();
         } else if (selectedTab.getText().equals("alt")) {
-
+            isCreated = createCFAlt();
         } else if (selectedTab.getText().equals("loop")) {
             isCreated = createCFLoop();
         }
@@ -83,6 +115,22 @@ public class CreateCombinedFragmentDialogController {
         InteractionOperandKind interactionOperandKind = InteractionOperandKind.opt;
         ArrayList<InteractionOperand> interactionOperandList = new ArrayList<InteractionOperand>();
         interactionOperandList.add(new InteractionOperand(guardTextFieldOpt.getText()));
+        targetOg.getInteraction().addCombinedFragment(interactionOperandKind, interactionOperandList);
+
+        return true;
+    }
+
+    private Boolean createCFAlt() {
+        InteractionOperandKind interactionOperandKind = InteractionOperandKind.alt;
+        ArrayList<InteractionOperand> interactionOperandList = new ArrayList<InteractionOperand>();
+        for (int i = 0; i < guardVBoxAlt.getChildren().size(); i++) {
+            HBox hBox = (HBox) guardVBoxAlt.getChildren().get(i);
+            TextField guardTextField = (TextField) hBox.getChildren().get(1);
+            if (guardTextField.getText().isEmpty()) {
+                return false;
+            }
+            interactionOperandList.add(new InteractionOperand(guardTextField.getText()));
+        }
         targetOg.getInteraction().addCombinedFragment(interactionOperandKind, interactionOperandList);
 
         return true;
