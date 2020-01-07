@@ -70,9 +70,7 @@ public class CombinedFragment extends InteractionFragment {
             this.height = height;
     }
 
-    public void setWidth(double width){
-        this.width = width;
-    }
+    public void setWidth(double width){ this.width = width; }
 
     public String getCodeText() { return this.codeText; }
 
@@ -98,7 +96,7 @@ public class CombinedFragment extends InteractionFragment {
         // 区切りのダッシュ線とガード条件を描画する
         InteractionOperand io = interactionOperandList.get(0);
         if (!io.getGuard().isBlank()) {
-            gc.fillText(String.format("[ %s ]", io.getGuard()), beginPoint.getX() + 50, io.getBeginPointY() + 15);
+            gc.fillText(String.format("[ %s ]", io.getGuard()), beginPoint.getX() + 60, io.getBeginPointY() + 15);
         }
         for (int i=1; i<interactionOperandList.size(); i++) {
             io = interactionOperandList.get(i);

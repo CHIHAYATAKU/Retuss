@@ -176,8 +176,9 @@ public class MessageOccurrenceSpecification {
             if(interactionFragment instanceof CombinedFragment){
                 CombinedFragment cf = (CombinedFragment) interactionFragment;
                 double maxEndPointX = 0.0;
+                int maxLenGuardText = 0;
                 // 直前のメッセージのendPointのYを利用する
-                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 35, beforeGoalPoint.getY() + 20);
+                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 50, beforeGoalPoint.getY() + 20);
                 beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), beforeGoalPoint.getY() + 20);
                 for (int i = 0; i < cf.getInteractionOperandList().size(); i++) {
                     InteractionOperand io = cf.getInteractionOperandList().get(i);
@@ -193,7 +194,6 @@ public class MessageOccurrenceSpecification {
                     for (InteractionFragment interactionFragment2 : io.getInteractionFragmentList()) {
                         message = interactionFragment2.getMessage();
                         scheduledLifelineForLastDrawing = message.calculatePoint(beforeGoalPoint, lifeline, scheduledLifelineForLastDrawing, 0, instanceMap.get(count));
-//                        height += message.calculateHeight();
                         endPointYIo = message.getEndPoint().getY() + 20;
                         beforeGoalPoint = new Point2D(message.getEndPoint().getX(), message.getEndPoint().getY());
                         count++;
@@ -203,8 +203,13 @@ public class MessageOccurrenceSpecification {
                     }
                     io.setHeight(endPointYIo - io.getBeginPointY() + 5);
                     beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY() + io.getHeight());
+
+                    if (io.getGuard().length() > maxLenGuardText) {
+                        maxLenGuardText = io.getGuard().length();
+                    }
                 }
-                cf.setWidth(maxEndPointX + 150);
+
+                cf.setWidth(calcWidthCF(cf.getBeginPoint(), lifeline, maxEndPointX, maxLenGuardText));
 
             } else {
                 message = interactionFragment.getMessage();
@@ -239,7 +244,7 @@ public class MessageOccurrenceSpecification {
             sameLifelineCount++;
             lifeline = fromLifeline;
             beginPoint = new Point2D(lifeline.getHeadCenterPoint().getX() + sameLifelineCount * 5,
-                    beforeBeginPoint.getY() + 50);
+                    beforeBeginPoint.getY() + 40);
         } else {
             sameLifelineCount = 0;
             if (!lifeline.isCalculated()) {
@@ -249,7 +254,7 @@ public class MessageOccurrenceSpecification {
                 lifeline.setCalculated(true);
             }
             lastLifeline = lifeline.getBottomRightCorner();
-            beginPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beforeBeginPoint.getY() + 20);
+            beginPoint = new Point2D(lifeline.getHeadCenterPoint().getX(), beforeBeginPoint.getY() + 40);
         }
 
         int count = 0;
@@ -259,8 +264,9 @@ public class MessageOccurrenceSpecification {
             if (interactionFragment instanceof CombinedFragment) {
                 CombinedFragment cf = (CombinedFragment) interactionFragment;
                 double maxEndPointX = 0.0;
+                int maxLenGuardText = 0;
                 // 直前のメッセージのendPointのYを利用する
-                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 35, beforeGoalPoint.getY() + 20);
+                cf.setBeginPoint(lifeline.getHeadCenterPoint().getX() - 50, beforeGoalPoint.getY() + 20);
                 beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), beforeGoalPoint.getY() + 20);
                 for (int i = 0; i < cf.getInteractionOperandList().size(); i++) {
                     InteractionOperand io = cf.getInteractionOperandList().get(i);
@@ -286,8 +292,14 @@ public class MessageOccurrenceSpecification {
                     }
                     io.setHeight(endPointYIo - io.getBeginPointY() + 5);
                     beforeGoalPoint = new Point2D(beforeGoalPoint.getX(), io.getBeginPointY() + io.getHeight());
+
+                    if (io.getGuard().length() > maxLenGuardText) {
+                        maxLenGuardText = io.getGuard().length();
+                    }
                 }
-                cf.setWidth(maxEndPointX + 150);
+
+                cf.setWidth(calcWidthCF(cf.getBeginPoint(), lifeline, maxEndPointX, maxLenGuardText));
+
             } else {
                 MessageOccurrenceSpecification message = interactionFragment.getMessage();
                 lastLifeline = message.calculatePoint(beforeGoalPoint, lifeline, lastLifeline, sameLifelineCount, instanceMap.get(count));
@@ -340,6 +352,22 @@ public class MessageOccurrenceSpecification {
 //            height += (messages.size() - 1) * 20;
 
         return height;
+    }
+
+    private double calcWidthCF(Point2D beginPoinCF, Lifeline lifeline, double maxEndPointX, int maxLenGuardText) {
+        double widthCF = 0.0;
+        if (maxEndPointX == 0.0) {
+            if (maxLenGuardText == 0) {
+                widthCF = (lifeline.getBottomRightCorner().getX() - lifeline.getTopLeftCorner().getX()) * 2;
+            } else {
+                // CFの左端〜ライフラインの中点の幅 + 余白 + ガード条件分の幅
+                widthCF = lifeline.getHeadCenterPoint().getX() - beginPoinCF.getX() + 10 + (10 * (maxLenGuardText + 2));
+            }
+        } else {
+            widthCF = maxEndPointX - beginPoinCF.getX() + 100;
+        }
+
+        return widthCF;
     }
 
     private void formExpression() {

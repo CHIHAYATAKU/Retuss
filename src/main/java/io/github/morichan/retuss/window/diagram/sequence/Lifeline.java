@@ -46,6 +46,8 @@ public class Lifeline {
         this.umlClass = umlClass;
     }
 
+    public Point2D getTopLeftCorner() { return this.topLeftCorner; }
+
     /**
      * <p> ライフラインの頭部にあたるIDを記した矩形の中央座標を取得します </p>
      *
@@ -83,7 +85,14 @@ public class Lifeline {
     }
 
     private void calculateHeadCenterPoint(double headWidth) {
-        headCenterPoint = new Point2D(headWidth / 2 + 10.0 + leftLifelineBottomRightCorner.getX(), headCenterPoint.getY());
+        double spaceLifeline = 0.0;
+        if (leftLifelineBottomRightCorner.getX() == 0.0) {
+            spaceLifeline = 50.0;
+        } else {
+            spaceLifeline = 100.0;
+        }
+        headCenterPoint = new Point2D(headWidth / 2 + spaceLifeline + leftLifelineBottomRightCorner.getX(), headCenterPoint.getY());
+
     }
 
     public void setClassName(String className) {
