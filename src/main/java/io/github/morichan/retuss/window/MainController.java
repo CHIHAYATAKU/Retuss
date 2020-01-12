@@ -263,7 +263,7 @@ public class MainController {
             createMessageDialogController.initialize(this, classId, operationId);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
-            stage.setTitle("メッセージの作成");
+            stage.setTitle("メッセージの追加");
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
             stage.showAndWait();
@@ -281,7 +281,7 @@ public class MainController {
             createCombinedFragmentDialogController.initialize(this, classId, operationId);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
-            stage.setTitle("複合フラグメントの作成");
+            stage.setTitle("複合フラグメントの追加");
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
             stage.showAndWait();

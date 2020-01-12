@@ -14,31 +14,34 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="432.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.window.CreateCombinedFragmentDialogController">
+<Pane minHeight="-Infinity" minWidth="-Infinity" prefWidth="500.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.window.CreateCombinedFragmentDialogController">
    <children>
-      <VBox prefHeight="200.0" prefWidth="100.0">
+      <VBox>
          <children>
-            <TabPane fx:id="kindTabPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
+            <TabPane fx:id="kindTabPane" minHeight="-Infinity" minWidth="-Infinity" prefWidth="500.0" tabClosingPolicy="UNAVAILABLE">
                <tabs>
                   <Tab text="opt">
                      <content>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
+                        <VBox spacing="10.0">
                            <children>
-                              <HBox prefHeight="100.0" prefWidth="200.0">
+                              <HBox prefWidth="200.0" spacing="10.0">
                                  <children>
-                                    <Label text="ガード条件" />
+                                    <Label maxWidth="-Infinity" minWidth="-Infinity" prefWidth="100.0" text="ガード条件" />
                                     <TextField fx:id="guardTextFieldOpt" />
                                  </children>
                               </HBox>
                            </children>
+                           <padding>
+                              <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                           </padding>
                         </VBox>
                      </content>
                   </Tab>
                   <Tab text="alt">
                      <content>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
+                        <VBox spacing="10.0">
                            <children>
-                              <HBox prefWidth="200.0">
+                              <HBox spacing="10.0">
                                  <children>
                                     <Label text="ガード条件を" />
                                   <Button fx:id="addGuardButton" mnemonicParsing="false" onAction="#addGuardTextField" text="追加" />
@@ -48,48 +51,57 @@
                                     <Insets bottom="20.0" />
                                  </VBox.margin>
                               </HBox>
-                              <ScrollPane prefHeight="325.0" prefWidth="600.0">
+                              <ScrollPane minHeight="-Infinity" prefHeight="200.0">
                                  <content>
-                                    <VBox fx:id="guardVBoxAlt" prefHeight="200.0" prefWidth="584.0">
+                                    <VBox fx:id="guardVBoxAlt" spacing="10.0">
                                        <children>
-                                          <HBox prefWidth="200.0">
+                                          <HBox prefWidth="200.0" spacing="10.0">
                                              <children>
-                                                <Label text="ガード条件1" />
-                                                <TextField fx:id="guardTextFieldAlt1" />
+                                                <Label minWidth="-Infinity" prefWidth="100.0" text="ガード条件1" />
+                                                <TextField fx:id="guardTextFieldAlt1" minWidth="-Infinity" prefWidth="200.0" />
                                              </children>
                                           </HBox>
-                                          <HBox prefHeight="100.0" prefWidth="200.0">
+                                          <HBox spacing="10.0">
                                              <children>
-                                                <Label text="ガード条件2" />
-                                                <TextField fx:id="guardTextFieldAlt2" />
+                                                <Label minWidth="-Infinity" prefWidth="100.0" text="ガード条件2" />
+                                                <TextField fx:id="guardTextFieldAlt2" minWidth="-Infinity" prefWidth="200.0" />
                                              </children>
                                           </HBox>
                                        </children>
+                                       <padding>
+                                          <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                       </padding>
                                     </VBox>
                                  </content>
                               </ScrollPane>
                            </children>
+                           <padding>
+                              <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                           </padding>
                         </VBox>
                      </content></Tab>
                   <Tab text="loop">
                      <content>
-                        <VBox prefHeight="200.0" prefWidth="100.0">
+                        <VBox spacing="10.0">
                            <children>
                               <Label text="反復回数またはガード条件を入力してください。" />
-                              <HBox prefHeight="100.0" prefWidth="200.0">
+                              <HBox prefWidth="200.0" spacing="10.0">
                                  <children>
-                                    <Label text="反復回数" />
+                                    <Label minWidth="-Infinity" prefWidth="100.0" text="反復回数" />
                                     <Spinner fx:id="numLoopSpinner" initialValue="1" max="999" min="1" />
                                     <CheckBox fx:id="numLoopNoneCheckBox" mnemonicParsing="false" text="指定なし" />
                                  </children>
                               </HBox>
-                              <HBox prefHeight="100.0" prefWidth="200.0">
+                              <HBox prefWidth="200.0" spacing="10.0">
                                  <children>
-                                    <Label text="ガード条件" />
+                                    <Label minWidth="-Infinity" prefWidth="100.0" text="ガード条件" />
                                     <TextField fx:id="guardTextFieldLoop" />
                                  </children>
                               </HBox>
                            </children>
+                           <padding>
+                              <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                           </padding>
                         </VBox>
                      </content>
                   </Tab>
@@ -97,8 +109,11 @@
             </TabPane>
             <ButtonBar prefHeight="40.0" prefWidth="200.0">
                <buttons>
-                  <Button fx:id="createButton" mnemonicParsing="false" onAction="#createCombinedFragment" text=" 作成" />
+                  <Button fx:id="createButton" mnemonicParsing="false" onAction="#createCombinedFragment" text="複合フラグメントを追加" />
                </buttons>
+               <VBox.margin>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+               </VBox.margin>
             </ButtonBar>
          </children>
       </VBox>

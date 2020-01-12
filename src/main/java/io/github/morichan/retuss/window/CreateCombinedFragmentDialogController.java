@@ -66,7 +66,12 @@ public class CreateCombinedFragmentDialogController {
     @FXML
     private void addGuardTextField() {
         HBox hBox = new HBox();
-        hBox.getChildren().addAll(new Label("ガード条件" + (guardVBoxAlt.getChildren().size() + 1)), new TextField());
+        hBox.setSpacing(10);
+        Label label = new Label("ガード条件" + (guardVBoxAlt.getChildren().size() + 1));
+        label.setPrefWidth(100);
+        TextField textField = new TextField();
+        textField.setPrefWidth(200);
+        hBox.getChildren().addAll(label, textField);
         guardVBoxAlt.getChildren().add(hBox);
         if (guardVBoxAlt.getChildren().size() > 2) {
             deleteGuardButton.setDisable(false);
