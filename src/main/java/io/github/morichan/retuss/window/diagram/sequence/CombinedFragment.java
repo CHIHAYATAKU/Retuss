@@ -104,7 +104,7 @@ public class CombinedFragment extends InteractionFragment {
             gc.strokeLine(beginPoint.getX(), io.getBeginPointY(), beginPoint.getX() + width, io.getBeginPointY());
             gc.setLineDashes(null);
             if (!io.getGuard().isBlank()) {
-                gc.fillText(String.format("[ %s ]", io.getGuard()), beginPoint.getX() + 50, io.getBeginPointY() + 15);
+                gc.fillText(String.format("[ %s ]", io.getGuard()), beginPoint.getX() + 60, io.getBeginPointY() + 15);
             }
         }
     }

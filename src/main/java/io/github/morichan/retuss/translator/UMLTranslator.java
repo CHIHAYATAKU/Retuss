@@ -226,8 +226,8 @@ public class UMLTranslator {
         }
         interactionOperandList.add(interactionOperand);
 
-        if (ifClass.getElseStatements().size() > 0) {
-            if (ifClass.getElseStatements().get(0) instanceof If) {
+        if (ifClass.getName().equals("if-else")) {
+            if (ifClass.getElseStatements().size() > 0 && ifClass.getElseStatements().get(0) instanceof If) {
                 interactionOperandList.addAll(convertIftoInteractionOperand((If) ifClass.getElseStatements().get(0), message, lifeline));
             } else {
                 InteractionOperand elseInteractionOperand = new InteractionOperand("else");

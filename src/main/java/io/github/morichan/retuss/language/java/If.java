@@ -10,6 +10,12 @@ public class If implements BlockStatement {
     private List<BlockStatement> statements = new ArrayList<>();
     private List<BlockStatement> elseStatements = new ArrayList<>();
 
+    public void setName(String name) {
+        if (name.equals("if") || name.equals("if-else")) {
+            this.name = name;
+        }
+    }
+
     public String getCondition() {
         return condition;
     }
@@ -60,16 +66,21 @@ public class If implements BlockStatement {
         }
         sb.append("        } ");
 
-        if (this.elseStatements.size() > 0) {
+        if (this.name.equals("if-else")) {
             sb.append("else ");
-            if (this.elseStatements.get(0) instanceof If) {
-                sb.append(this.elseStatements.get(0).getStatement());
+            if (this.elseStatements.size() > 0) {
+                if (this.elseStatements.get(0) instanceof If) {
+                    sb.append(this.elseStatements.get(0).getStatement());
+                } else {
+                    sb.append("{\n");
+                    for (BlockStatement blockStatement : this.elseStatements) {
+                        sb.append("            ");
+                        sb.append(blockStatement.getStatement() + "\n");
+                    }
+                    sb.append("        }\n");
+                }
             } else {
                 sb.append("{\n");
-                for (BlockStatement blockStatement : this.elseStatements) {
-                    sb.append("            ");
-                    sb.append(blockStatement.getStatement() + "\n");
-                }
                 sb.append("        }\n");
             }
         }
