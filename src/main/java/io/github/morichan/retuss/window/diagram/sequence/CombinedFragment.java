@@ -114,6 +114,6 @@ public class CombinedFragment extends InteractionFragment {
         for (InteractionOperand io : interactionOperandList) {
             height += io.getHeight();
         }
-        this.height = height;
+        setHeight(height);
     }
 }

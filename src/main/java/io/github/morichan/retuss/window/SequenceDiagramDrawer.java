@@ -289,11 +289,11 @@ public class SequenceDiagramDrawer {
 
             InteractionFragment targetInteractionFragment = interaction.searchNearbyInteractionFragment(mouse.getX(), mouse.getY());
 
-            MenuItem createMessageMenu = new MenuItem("メッセージの作成");
+            MenuItem createMessageMenu = new MenuItem("メッセージの追加");
             createMessageMenu.setOnAction(e -> mainController.showCreateMessageDialog(classId, operationId));
             popup.getItems().add(createMessageMenu);
 
-            MenuItem createCombinedFragmentMenu = new MenuItem("複合フラグメントの作成");
+            MenuItem createCombinedFragmentMenu = new MenuItem("複合フラグメントの追加");
             createCombinedFragmentMenu.setOnAction(e -> mainController.showCreateCombinedFragmentDialog(classId, operationId));
             popup.getItems().add(createCombinedFragmentMenu);
 
@@ -308,7 +308,7 @@ public class SequenceDiagramDrawer {
                 popup.getItems().add(deleteMessageMenu);
             }
 
-            MenuItem deleteMenu = new MenuItem(interaction.getMessage().getName() + "メッセージをモデルから削除");
+            MenuItem deleteMenu = new MenuItem("シーケンス図を非表示にする");
             deleteMenu.setOnAction(e -> deleteSequence(classId, operationId));
             popup.getItems().add(deleteMenu);
 

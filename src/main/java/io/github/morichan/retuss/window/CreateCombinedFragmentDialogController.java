@@ -153,6 +153,7 @@ public class CreateCombinedFragmentDialogController {
             targetOg.getInteraction().addCombinedFragment(interactionOperandKind, interactionOperandList);
         } else {
             String numLoop = numLoopSpinner.getValue().toString();
+            interactionOperandList.add(new InteractionOperand(""));
             targetOg.getInteraction().addCombinedFragment(interactionOperandKind, interactionOperandList, numLoop);
         }
 
