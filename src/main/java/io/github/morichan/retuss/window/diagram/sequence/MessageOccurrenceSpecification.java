@@ -391,21 +391,26 @@ public class MessageOccurrenceSpecification {
             setMessageSignature(name + " = " + value + " : " + umlClass.getName());
         } else if (type == MessageType.Method) {
             // 呼び出すメソッドを探索し、引数の型と戻り値の型を求める
+            String returnType = "";
             for (OperationGraphic og : lifeline.getUmlClass().getOperationGraphics()) {
                 Operation operation = og.getOperation();
                 if (operation.getName().getNameText().equals(this.name)) {
+                    Operation calledOperation = operation;
                     try {
                         if (operation.getParameters().size() == this.arguments.size()) {
-                            Operation calledOperation = operation;
                             for (int i = 0; i < arguments.size(); i++) {
                                 if (arguments.get(i).getType().toString().equals("TmpType")) {
                                     arguments.get(i).setType(new Type(calledOperation.getParameters().get(i).getType().toString()));
                                 }
                             }
+                            returnType = calledOperation.getReturnType().toString();
                         }
                         break;
                     } catch (IllegalStateException e) {
-
+                        // Operation.getParameters()が0の場合例外が返ってくる
+                        if (this.arguments.size() == 0) {
+                            returnType = calledOperation.getReturnType().toString();
+                        }
                     }
                 }
             }
@@ -425,6 +430,10 @@ public class MessageOccurrenceSpecification {
                 sb.delete(sb.length() - 2, sb.length());
             }
             sb.append(")");
+
+            if (!returnType.isEmpty()) {
+                sb.append(" : " + returnType);
+            }
 
             setMessageSignature(sb.toString());
 
