@@ -492,14 +492,11 @@ public class UMLTranslator {
             message.setName(statement.getName());
             message.setLifeline(lifeline);
             if (method.getArguments().size() > 0){
-                // 引数をmessage.valueに設定する ex)"1,2,4"
-                StringBuilder valueStrBuilder = new StringBuilder();
+                // 引数をmessage.argumentに設定する ex)"1,2,4"
+                // method.getTypeはTmpType
                 for (Argument argument : method.getArguments()){
-                    valueStrBuilder.append(argument.getName());
-                    valueStrBuilder.append(",");
+                    message.addArgument(argument.getType().toString(), argument.getName());
                 }
-                valueStrBuilder.deleteCharAt(valueStrBuilder.length() - 1);
-                message.setValue(valueStrBuilder.toString());
             }
         }
 

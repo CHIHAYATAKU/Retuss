@@ -1,5 +1,8 @@
 package io.github.morichan.retuss.window.diagram.sequence;
 
+import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.retuss.language.java.Argument;
+import io.github.morichan.retuss.language.java.Type;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
 import javafx.geometry.Point2D;
@@ -30,6 +33,7 @@ public class MessageOccurrenceSpecification {
     private Lifeline lifeline;
     private List<InteractionFragment> interactionFragmentList = new ArrayList<>();
     private String messageSignature;
+    private ArrayList<Argument> arguments = new ArrayList<Argument>();
 
     public Point2D getBeginPoint() {
         return beginPoint;
@@ -153,6 +157,12 @@ public class MessageOccurrenceSpecification {
 
     public String getMessageSignature() {
         return this.messageSignature;
+    }
+
+    public ArrayList<Argument> getArguments() { return this.arguments; }
+
+    public void addArgument(String type, String name) {
+        this.arguments.add(new Argument(new Type(type), name));
     }
 
     public boolean hasSameLifeline(Lifeline lifeline) {
@@ -380,11 +390,44 @@ public class MessageOccurrenceSpecification {
         } else if (type == MessageType.Assignment) {
             setMessageSignature(name + " = " + value + " : " + umlClass.getName());
         } else if (type == MessageType.Method) {
-            if (value == null || value.isEmpty()) {
-                setMessageSignature(name + "(" + ")");
-            } else {
-                setMessageSignature(name + "(" + value + ")");
+            // 呼び出すメソッドを探索し、引数の型と戻り値の型を求める
+            for (OperationGraphic og : lifeline.getUmlClass().getOperationGraphics()) {
+                Operation operation = og.getOperation();
+                if (operation.getName().getNameText().equals(this.name)) {
+                    try {
+                        if (operation.getParameters().size() == this.arguments.size()) {
+                            Operation calledOperation = operation;
+                            for (int i = 0; i < arguments.size(); i++) {
+                                if (arguments.get(i).getType().toString().equals("TmpType")) {
+                                    arguments.get(i).setType(new Type(calledOperation.getParameters().get(i).getType().toString()));
+                                }
+                            }
+                        }
+                        break;
+                    } catch (IllegalStateException e) {
+
+                    }
+                }
             }
+
+            // メッセージシグニチャを生成
+            StringBuilder sb = new StringBuilder();
+            sb.append(name + "(");
+            for (Argument argument : arguments) {
+                sb.append(argument.getName());
+                if (!argument.getType().toString().equals("TmpType")) {
+                    sb.append(" : " + argument.getType().toString());
+                }
+                sb.append(", ");
+            }
+            // 最後の", "を削除
+            if (!(sb.charAt(sb.length() - 1) == '(')) {
+                sb.delete(sb.length() - 2, sb.length());
+            }
+            sb.append(")");
+
+            setMessageSignature(sb.toString());
+
         } else {
             setMessageSignature(name);
         }
