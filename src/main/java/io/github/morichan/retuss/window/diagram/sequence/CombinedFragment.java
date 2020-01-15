@@ -9,12 +9,12 @@ public class CombinedFragment extends InteractionFragment {
     private InteractionOperandKind kind;
     private String textNextToKind = "";
     private ArrayList<InteractionOperand> interactionOperandList = new ArrayList<InteractionOperand>();
-    private int minInt = 0;
-    private int maxInt = 0;
     private Point2D beginPoint = Point2D.ZERO;
-    private double height = 40;
+    private static final double MIN_HEIGHT = 40.0;
+    private double height = MIN_HEIGHT;
     private double width = 0;
     private String codeText = "";
+
 
     public CombinedFragment(InteractionOperandKind kind) {
         this.kind = kind;
@@ -44,14 +44,6 @@ public class CombinedFragment extends InteractionFragment {
         this.interactionOperandList.add(interactionOperand);
     }
 
-    public void setMinInt(int minInt){
-        this.minInt = minInt;
-    }
-
-    public void setMaxInt(int maxInt){
-        this.maxInt = maxInt;
-    }
-
     public Point2D getBeginPoint(){
         return this.beginPoint;
     }
@@ -66,7 +58,7 @@ public class CombinedFragment extends InteractionFragment {
 
     public void setHeight(double height){
         // 複合フラグメント内にメッセージがなくてもheightの初期値分の高さは確保する
-        if(this.height < height)
+        if(height > MIN_HEIGHT)
             this.height = height;
     }
 
@@ -75,6 +67,13 @@ public class CombinedFragment extends InteractionFragment {
     public String getCodeText() { return this.codeText; }
 
     public void setCodeText(String codeText) { this.codeText = codeText; }
+
+    public void deleteInteractionOperand(InteractionOperand io) {
+        interactionOperandList.remove(io);
+        if (getInteractionOperandKind() == InteractionOperandKind.alt && interactionOperandList.size() == 1) {
+            this.kind = InteractionOperandKind.opt;
+        }
+    }
 
     public void draw(GraphicsContext gc) {
         calcHeight();

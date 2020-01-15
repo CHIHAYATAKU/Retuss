@@ -6,7 +6,8 @@ public class InteractionOperand {
     private String guard;
     private ArrayList<InteractionFragment> interactionFragmentList = new ArrayList<InteractionFragment>();
     private double beginPointY;
-    private double height = 30.0;
+    private static final double  MIN_HEIGHT = 30.0;
+    private double height = MIN_HEIGHT;
 
     public InteractionOperand() {
         this.guard = "";
@@ -37,7 +38,7 @@ public class InteractionOperand {
     }
 
     public void setHeight(double height) {
-        if (height > this.height) {
+        if (height > MIN_HEIGHT) {
             this.height = height;
         }
     }

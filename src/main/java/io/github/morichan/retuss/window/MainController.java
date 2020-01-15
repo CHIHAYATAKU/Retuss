@@ -19,6 +19,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -65,7 +66,6 @@ public class MainController {
     private TabPane tabPaneInSequenceTab;
     @FXML
     private Button normalButtonInSD;
-    @FXML
     private Button messageButtonInSD;
 
     private List<Button> buttonsInCD = new ArrayList<>();
@@ -245,8 +245,24 @@ public class MainController {
      * <p> シーケンス図タブのメッセージボタン選択時のシグナルハンドラ</>
      */
     @FXML
-    private void selectMessageInSD() {
-        buttonsInSD = util.bindAllButtonsFalseWithout(buttonsInSD, messageButtonInSD);
+    private void showDeleteDialog() {
+        // 作成するメッセージの情報を入力する画面表示
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/deleteDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            DeleteDialogController deleteDialogController = fxmlLoader.getController();
+            String classId = tabPaneInSequenceTab.getSelectionModel().getSelectedItem().getId();
+            String operationId = ((TabPane) ((AnchorPane) tabPaneInSequenceTab.getSelectionModel().getSelectedItem().getContent()).getChildren().get(0)).getSelectionModel().getSelectedItem().getId();
+            deleteDialogController.initialize(this, classId, operationId);
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("要素の削除");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+
+        }
     }
 
     /**

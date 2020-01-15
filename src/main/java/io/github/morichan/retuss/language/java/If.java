@@ -6,7 +6,7 @@ import java.util.List;
 public class If implements BlockStatement {
     private String name = "if";
     private Type type;
-    private String condition;
+    private String condition = "";
     private List<BlockStatement> statements = new ArrayList<>();
     private List<BlockStatement> elseStatements = new ArrayList<>();
 
