@@ -66,7 +66,12 @@ public class MainController {
     private TabPane tabPaneInSequenceTab;
     @FXML
     private Button normalButtonInSD;
+    @FXML
     private Button messageButtonInSD;
+    @FXML
+    private Button cfButtonInSD;
+    @FXML
+    private Button deleteButtonInSD;
 
     private List<Button> buttonsInCD = new ArrayList<>();
     private List<Button> buttonsInSD = new ArrayList<>();
@@ -242,6 +247,53 @@ public class MainController {
     }
 
     /**
+     * <p> シーケンス図タブのキャンバスを右クリックメニューにある「メッセージの追加」をクリック時のシグナルハンドラ </p>
+     * <p> シーケンス図タブのキャンバスはSequenceDiagramDrawerクラスで動的に生成するため、シグナルハンドラも動的に割り当てている </p>
+     * <p> メッセージ作成ダイアログを表示する </p>
+     */
+    @FXML
+    public void showCreateMessageDialog() {
+        // 作成するメッセージの情報を入力する画面表示
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createMessageDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            CreateMessageDialogController createMessageDialogController = fxmlLoader.getController();
+            String classId = tabPaneInSequenceTab.getSelectionModel().getSelectedItem().getId();
+            String operationId = ((TabPane) ((AnchorPane) tabPaneInSequenceTab.getSelectionModel().getSelectedItem().getContent()).getChildren().get(0)).getSelectionModel().getSelectedItem().getId();
+            createMessageDialogController.initialize(this, classId, operationId);
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("メッセージの追加");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+
+        }
+    }
+
+    @FXML
+    public void showCreateCombinedFragmentDialog() {
+        // 作成する複合フラグメントの情報を入力する画面表示
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createCombinedFragmentDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            CreateCombinedFragmentDialogController createCombinedFragmentDialogController = fxmlLoader.getController();
+            String classId = tabPaneInSequenceTab.getSelectionModel().getSelectedItem().getId();
+            String operationId = ((TabPane) ((AnchorPane) tabPaneInSequenceTab.getSelectionModel().getSelectedItem().getContent()).getChildren().get(0)).getSelectionModel().getSelectedItem().getId();
+            createCombinedFragmentDialogController.initialize(this, classId, operationId);
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("複合フラグメントの追加");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+
+        }
+    }
+
+    /**
      * <p> シーケンス図タブのメッセージボタン選択時のシグナルハンドラ</>
      */
     @FXML
@@ -257,47 +309,6 @@ public class MainController {
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("要素の削除");
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setScene(scene);
-            stage.showAndWait();
-        } catch (Exception e) {
-
-        }
-    }
-
-    /**
-     * <p> シーケンス図タブのキャンバスを右クリックメニューにある「メッセージの追加」をクリック時のシグナルハンドラ </p>
-     * <p> シーケンス図タブのキャンバスはSequenceDiagramDrawerクラスで動的に生成するため、シグナルハンドラも動的に割り当てている </p>
-     * <p> メッセージ作成ダイアログを表示する </p>
-     */
-    public void showCreateMessageDialog(String classId, String operationId) {
-        // 作成するメッセージの情報を入力する画面表示
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createMessageDialog.fxml"));
-            Parent parent = fxmlLoader.load();
-            CreateMessageDialogController createMessageDialogController = fxmlLoader.getController();
-            createMessageDialogController.initialize(this, classId, operationId);
-            Scene scene = new Scene(parent);
-            Stage stage = new Stage();
-            stage.setTitle("メッセージの追加");
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setScene(scene);
-            stage.showAndWait();
-        } catch (Exception e) {
-
-        }
-    }
-
-    public void showCreateCombinedFragmentDialog(String classId, String operationId) {
-        // 作成する複合フラグメントの情報を入力する画面表示
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createCombinedFragmentDialog.fxml"));
-            Parent parent = fxmlLoader.load();
-            CreateCombinedFragmentDialogController createCombinedFragmentDialogController = fxmlLoader.getController();
-            createCombinedFragmentDialogController.initialize(this, classId, operationId);
-            Scene scene = new Scene(parent);
-            Stage stage = new Stage();
-            stage.setTitle("複合フラグメントの追加");
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
             stage.showAndWait();

@@ -92,6 +92,8 @@
                                                       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                                                         <items>
                                                             <Button fx:id="normalButtonInSD" mnemonicParsing="false" onAction="#normalMessageInSD" text="Normal" />
+                                                            <Button fx:id="messageButtonInSD" mnemonicParsing="false" onAction="#showCreateMessageDialog" text="Message" />
+                                                            <Button fx:id="cfButtonInSD" mnemonicParsing="false" onAction="#showCreateCombinedFragmentDialog" text="Combined Fragment" />
                                                             <Button fx:id="deleteButtonInSD" mnemonicParsing="false" onAction="#showDeleteDialog" text="Delete" />
                                                         </items>
                                                       </ToolBar>
