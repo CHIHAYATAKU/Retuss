@@ -137,6 +137,9 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 // 既定値での配列宣言文
                 field.setArrayLength(new ArrayLength(Integer.parseInt(ctx.getChild(1).getChild(0).getChild(2)
                         .getChild(0).getChild(1).getChild(1).getChild(1).getText())));
+            } else if (ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(0).getText().equals("new")) {
+                // 既定値の式
+                field.setValue(ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(0).getText() + " " + ctx.getChild(1).getChild(0).getChild(2).getChild(0).getChild(1).getText());
             } else {
                 // 既定値の式
                 field.setValue(ctx.getChild(1).getChild(0).getChild(2).getChild(0).getText());
