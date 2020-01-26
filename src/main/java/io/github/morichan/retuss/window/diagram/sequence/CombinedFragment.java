@@ -77,7 +77,7 @@ public class CombinedFragment extends InteractionFragment {
 
     public void draw(GraphicsContext gc) {
         calcHeight();
-        int kindNameAreaSize = (kind.name().length() + textNextToKind.length()) * 7;
+        int kindNameAreaSize = (kind.name().length() + textNextToKind.length()) * 8;
         gc.setStroke(Color.BLACK);
         // 全体の枠を描画
         gc.strokeRect(beginPoint.getX(), beginPoint.getY(), width, height);

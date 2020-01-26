@@ -374,7 +374,7 @@ public class MessageOccurrenceSpecification {
                 widthCF = lifeline.getHeadCenterPoint().getX() - beginPoinCF.getX() + 10 + (10 * (maxLenGuardText + 2));
             }
         } else {
-            widthCF = maxEndPointX - beginPoinCF.getX() + 100;
+            widthCF = maxEndPointX - beginPoinCF.getX() + 120;
         }
 
         return widthCF;
