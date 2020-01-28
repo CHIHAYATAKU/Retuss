@@ -343,13 +343,7 @@ public class JavaTranslator {
                     method.setName(m.group(1));
                 }
 
-                if (!(message.getValue() == null || message.getValue().isEmpty())) {
-                    String[] parameterNameList = message.getValue().split(",");
-                    for (String parameterName : parameterNameList) {
-                        // メソッド呼び出しの場合、messageが引数の型名を保存していない
-                        method.addArgument(new Argument(new Type("Tmp"), parameterName));
-                    }
-                }
+                method.setArguments(message.getArguments());
                 return method;
             }
         }

@@ -84,9 +84,12 @@ public class SequenceDiagramDrawer {
         MessageOccurrenceSpecification newMessage = new MessageOccurrenceSpecification();
         newMessage.setMessageType(MessageType.Method);
         newMessage.setName(methodName);
-        newMessage.setValue(parameter);
+//        newMessage.setValue(parameter);
         newMessage.setType(umlClass);
         newMessage.setLifeline(lifeline);
+        for (String parameterName : parameter.split(",")) {
+            newMessage.addArgument("TmpType", parameterName);
+        }
 
         InteractionFragment newInteractionFragment = new InteractionFragment();
         newInteractionFragment.setMessage(newMessage);
