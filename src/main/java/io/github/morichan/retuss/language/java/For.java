@@ -23,37 +23,28 @@ public class For implements BlockStatement {
         return this.forInit;
     }
 
-    public void setForInit(String forInit) {
-        this.forInit = forInit;
-    }
-
     public String getExpression() {
         return this.expression;
-    }
-
-    public void setExpression(String expression) {
-        this.expression = expression;
     }
 
     public String getForUpdate() {
         return this.forUpdate;
     }
 
-    public void setForUpdate(String forUpdate) {
-        this.forUpdate = forUpdate;
-    }
-
     public String getNumLoop() { return this.numLoop; }
 
-    public void setNumLoop(String numLoop) { this.numLoop = numLoop; }
+    public void setNumLoop(String numLoop) {
+        if (numLoop == null || numLoop.isEmpty()) throw new IllegalArgumentException();
+        this.numLoop = numLoop;
+    }
 
     public List<BlockStatement> getStatements() {
         return this.statements;
     }
 
     public void addStatement(BlockStatement statement) {
-        if (statement != null)
-            this.statements.add(statement);
+        if (statement == null) throw new IllegalArgumentException();
+        this.statements.add(statement);
     }
 
     @Override
@@ -69,7 +60,7 @@ public class For implements BlockStatement {
     @Override
     public String getStatement() {
         StringBuilder sb = new StringBuilder();
-        sb.append("for (" + this.forInit + "; " + this.expression+ "; " + this.forUpdate + " ) {\n");
+        sb.append("for (" + this.forInit + "; " + this.expression+ "; " + this.forUpdate + ") {\n");
         for (BlockStatement blockStatement : this.statements) {
             sb.append("            ");
             sb.append(blockStatement.getStatement() + "\n");
