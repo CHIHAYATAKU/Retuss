@@ -314,11 +314,8 @@ public class JavaTranslator {
                     return whileClass;
                 } else {
                     // for文
-                    For forClass = new For();
                     String[] forExpression = cf.getCodeText().split(";");
-                    forClass.setForInit(forExpression[0]);
-                    forClass.setExpression(forExpression[1]);
-                    forClass.setForUpdate(forExpression[2]);
+                    For forClass = new For(forExpression[0], forExpression[1], forExpression[2]);
                     return forClass;
                 }
             }

@@ -11,8 +11,13 @@ public class For implements BlockStatement {
     private String expression;
     private String forUpdate;
     private String numLoop = "";
-
     private List<BlockStatement> statements = new ArrayList<>();
+
+    public For(String forInit, String expression, String forUpdate) {
+        this.forInit = forInit;
+        this.expression = expression;
+        this.forUpdate = forUpdate;
+    }
 
     public String getForInit() {
         return this.forInit;

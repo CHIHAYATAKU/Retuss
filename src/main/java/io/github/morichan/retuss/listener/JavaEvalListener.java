@@ -469,10 +469,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
                 int initValueInt, expressionValueInt;
                 int numLoop = 0;
 
-                forClass = new For();
-                forClass.setForInit(ctx.getChild(2).getChild(0).getText());
-                forClass.setExpression(ctx.getChild(2).getChild(2).getText());
-                forClass.setForUpdate(ctx.getChild(2).getChild(4).getText());
+                forClass = new For(ctx.getChild(2).getChild(0).getText(), ctx.getChild(2).getChild(2).getText(), ctx.getChild(2).getChild(4).getText());
 
                 // initValue, expressionValueが整数であるかのチェック
                 try {
