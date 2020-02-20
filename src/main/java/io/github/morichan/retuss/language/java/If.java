@@ -29,21 +29,17 @@ public class If implements BlockStatement {
     }
 
     public void addStatement(BlockStatement statement) {
-        if (statement != null)
-            statements.add(statement);
+        if (statement == null) throw new IllegalArgumentException();
+        statements.add(statement);
     }
 
     public List<BlockStatement> getElseStatements() {
         return elseStatements;
     }
 
-    public void setElseStatement(BlockStatement elseStatement) {
-        this.elseStatements.add(elseStatement);
-    }
-
     public void addElseStatement(BlockStatement elseStatement) {
-        if (elseStatement != null)
-            this.elseStatements.add(elseStatement);
+        if (elseStatement == null) throw new IllegalArgumentException();
+        this.elseStatements.add(elseStatement);
     }
 
     @Override
