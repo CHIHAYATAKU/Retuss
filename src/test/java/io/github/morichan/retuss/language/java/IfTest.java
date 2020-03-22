@@ -22,7 +22,11 @@ public class IfTest {
             assertThat(ifClass.getStatement()).isEqualTo(expected);
         }
 
-        // else-ifの場合のテスト
+        @Test
+        void ifとelseを返す() {
+            ifClass.setCondition("a<10");
+//            ifClass.addElseStatement();
+        }
     }
 
     @Nested

@@ -417,7 +417,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
             }
 
             if (ctx.getChildCount() >= 4 && ctx.getChild(3).getText().equals("else")) {
-                tmpIfClass.setName("if-else");
+                tmpIfClass.setHasElse(Boolean.TRUE);
             }
             ifClass.add(tmpIfClass);
         } else if (ctx.getChild(0).getText().equals("while")) {

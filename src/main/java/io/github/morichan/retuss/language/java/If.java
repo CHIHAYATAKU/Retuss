@@ -9,12 +9,7 @@ public class If implements BlockStatement {
     private String condition = "";
     private List<BlockStatement> statements = new ArrayList<>();
     private List<BlockStatement> elseStatements = new ArrayList<>();
-
-    public void setName(String name) {
-        if (name.equals("if") || name.equals("if-else")) {
-            this.name = name;
-        }
-    }
+    private Boolean hasElse = Boolean.FALSE;
 
     public String getCondition() {
         return condition;
@@ -40,6 +35,15 @@ public class If implements BlockStatement {
     public void addElseStatement(BlockStatement elseStatement) {
         if (elseStatement == null) throw new IllegalArgumentException();
         this.elseStatements.add(elseStatement);
+        setHasElse(Boolean.TRUE);
+    }
+
+    public void setHasElse(Boolean hasElse) {
+        this.hasElse = hasElse;
+    }
+
+    public Boolean getHasElse() {
+        return hasElse;
     }
 
     @Override
@@ -62,7 +66,7 @@ public class If implements BlockStatement {
         }
         sb.append("        } ");
 
-        if (this.name.equals("if-else")) {
+        if (this.hasElse) {
             sb.append("else ");
             if (this.elseStatements.size() > 0) {
                 if (this.elseStatements.get(0) instanceof If) {

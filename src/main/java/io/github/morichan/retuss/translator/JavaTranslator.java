@@ -272,13 +272,13 @@ public class JavaTranslator {
                         // elseだったら、前のifClassのelseStatementに追加
                         if (ifClassList.size() > 0) {
                             ifClass = ifClassList.get(ifClassList.size() - 1);
-                            ifClass.setName("if-else");
+                            ifClass.setHasElse(Boolean.TRUE);
                             for (InteractionFragment interactionFragmentInIo : io.getInteractionFragmentList()) {
                                 ifClass.addElseStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInIo));
                             }
                         } else {
                             // 複合フラグメントにelseだけだった場合は、新しいifClassを追加
-                            ifClass.setName("if-else");
+                            ifClass.setHasElse(Boolean.TRUE);
                             for (InteractionFragment interactionFragmentInIo : io.getInteractionFragmentList()) {
                                 ifClass.addElseStatement(convertInteractionFragmentToBlockStatement(interactionFragmentInIo));
                             }
@@ -287,7 +287,7 @@ public class JavaTranslator {
 
                     } else {
                         if (ifClassList.size() > 0) {
-                            ifClassList.get(ifClassList.size() - 1).setName("if-else");
+                            ifClassList.get(ifClassList.size() - 1).setHasElse(Boolean.TRUE);
                         }
                         ifClass.setCondition(io.getGuard());
                         for (InteractionFragment interactionFragmentInIo : io.getInteractionFragmentList()) {
