@@ -409,7 +409,7 @@ public class JavaEvalListener extends JavaParserBaseListener {
         // if文を見つけた場合、Ifクラスに条件文を格納する
         // IfクラスをJava > Class > Method > MethodBodyに格納する
         if (ctx.getChild(0).getText().equals("if")) {
-            If tmpIfClass = new If();
+            If tmpIfClass = new If("");
             if (ctx.getChild(1).getChildCount() == 3 && ctx.getChild(1).getChild(0).getText().equals("(") && ctx.getChild(1).getChild(1) instanceof JavaParser.ExpressionContext && ctx.getChild(1).getChild(2).getText().equals(")")) {
                 tmpIfClass.setCondition(ctx.getChild(1).getChild(1).getText());
             } else {

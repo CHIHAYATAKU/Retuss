@@ -11,6 +11,10 @@ public class If implements BlockStatement {
     private List<BlockStatement> elseStatements = new ArrayList<>();
     private Boolean hasElse = Boolean.FALSE;
 
+    public If(String condition) {
+        setCondition(condition);
+    }
+
     public String getCondition() {
         return condition;
     }

@@ -266,7 +266,7 @@ public class JavaTranslator {
                 ArrayList<If> ifClassList = new ArrayList<If>();
 
                 for (InteractionOperand io : cf.getInteractionOperandList()) {
-                    If ifClass = new If();
+                    If ifClass = new If("");
 
                     if (io.getGuard().equals("else")) {
                         // elseだったら、前のifClassのelseStatementに追加
