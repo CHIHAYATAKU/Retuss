@@ -1,7 +1,7 @@
 |Main|Develop|
 |:--:|:--:|
 |[![Build Status](https://travis-ci.org/Morichan/Retuss.svg?branch=master)](https://travis-ci.org/Morichan/Retuss)|[![Build Status](https://travis-ci.org/Morichan/Retuss.svg?branch=develop)](https://travis-ci.org/Morichan/Retuss)|
-|[![codecov](https://codecov.io/gh/Morichan/Retuss/branch/master/graph/badge.svg)](https://codecov.io/gh/Morichan/Retuss)|[![codecov](https://codecov.io/gh/Morichan/Retuss/branch/develop/graph/badge.svg)](https://codecov.io/gh/Morichan/Retuss)|[![codecov](https://codecov.io/gh/arimakaoru/Retuss/branch/dev_arimakaoru/graph/badge.svg)](https://codecov.io/gh/arimakaoru/Retuss)|
+|[![codecov](https://codecov.io/gh/Morichan/Retuss/branch/master/graph/badge.svg)](https://codecov.io/gh/Morichan/Retuss)|[![codecov](https://codecov.io/gh/Morichan/Retuss/branch/develop/graph/badge.svg)](https://codecov.io/gh/Morichan/Retuss)|
 |![GitHub last commit (master)](https://img.shields.io/github/last-commit/Morichan/Retuss/master.svg)|![GitHub last commit (develop)](https://img.shields.io/github/last-commit/Morichan/Retuss/develop.svg)|
 
 [![license](https://img.shields.io/github/license/Morichan/Retuss.svg)](LICENSE)
