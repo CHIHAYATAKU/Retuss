@@ -1,3 +1,4 @@
+# Ubuntu 14.04 (Trusty)で実行する。新しいバージョンだとXvfbの実行コマンドが換わる
 dist: trusty
 
 language: java
