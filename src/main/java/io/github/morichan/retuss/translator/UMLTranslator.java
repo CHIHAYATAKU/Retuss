@@ -56,6 +56,9 @@ public class UMLTranslator {
      * @return クラス図のパッケージ
      */
     public Package translate(Java java) {
+        // 変換時間の計測
+//        long time1 = System.nanoTime();
+
         classPackage = new Package();
 
         for (io.github.morichan.retuss.language.java.Class javaClass : java.getClasses()) {
@@ -64,6 +67,9 @@ public class UMLTranslator {
 
         searchGeneralizationClass(java.getClasses());
         searchMethod(classPackage);
+
+//        long time2 = System.nanoTime();
+//        System.out.printf("trans:%d\n", time2 - time1);
 
         return classPackage;
     }

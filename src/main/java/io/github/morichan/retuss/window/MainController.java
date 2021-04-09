@@ -557,7 +557,11 @@ public class MainController {
         sequenceDiagramDrawer.setSequenceDiagramTabPane(tabPaneInSequenceTab);
         sequenceDiagramDrawer.setUmlPackage(umlPackage);
         sequenceDiagramDrawer.createSequenceTabContent(sequenceDiagramTab);
+        // 描画時間計測
+//        long time1 = System.nanoTime();
         sequenceDiagramDrawer.draw();
+//        long time2 = System.nanoTime();
+//        System.out.printf("draw:%d\n", time2 - time1);
     }
 
     private String importFile(Language language) throws IOException {
