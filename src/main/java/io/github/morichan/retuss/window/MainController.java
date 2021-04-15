@@ -317,13 +317,6 @@ public class MainController {
         }
     }
 
-    public void deleteInteractionFragment(String classId, String operationId, InteractionFragment target) {
-        OperationGraphic og = sequenceDiagramDrawer.getUmlPackage().searchOperatingGraphics(operationId);
-        og.getInteraction().deleteInteractionFragment(target);
-        sequenceDiagramDrawer.draw();
-        getCodeController().createCodeTabs(sequenceDiagramDrawer.getUmlPackage());
-    }
-
     //
     // シグナルハンドラここまで
     //
@@ -481,6 +474,10 @@ public class MainController {
     public CodeController getCodeController() { return this.codeController; }
 
     public SequenceDiagramDrawer getSequenceDiagramDrawer() { return this.sequenceDiagramDrawer; }
+
+    public boolean isSelectedSDTab() {
+        return this.sequenceDiagramTab.isSelected();
+    }
 
     public void writeUmlForCode(Package umlPackage) {
         if (classDiagramTab.isSelected()) {
