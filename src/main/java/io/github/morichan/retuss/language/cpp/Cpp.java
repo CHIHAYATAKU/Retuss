@@ -11,6 +11,18 @@ public class Cpp {
     private List<Class> classes = new ArrayList<>();
 
     /**
+     * <p> 同名のクラスを上書きします。同名のクラスがない場合は、何もしない。 </p>
+     */
+    public void updateClass(Class cppClass) {
+        for (int i=0; i<classes.size(); i++) {
+            if (cppClass.getName().equals(classes.get(i).getName())) {
+                classes.set(i, cppClass);
+                break;
+            }
+        }
+    }
+
+    /**
      * <p> クラスのリストにクラスを追加します </p>
      *
      * <p>

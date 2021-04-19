@@ -11,6 +11,18 @@ public class Java {
     private List<Class> classes = new ArrayList<>();
 
     /**
+     * <p> 同名のクラスを上書きします。同名のクラスがない場合は、何もしない。 </p>
+     */
+    public void updateClass(Class javaClass) {
+        for (int i=0; i<classes.size(); i++) {
+            if (javaClass.getName().equals(classes.get(i).getName())) {
+                classes.set(i, javaClass);
+                break;
+            }
+        }
+    }
+
+    /**
      * <p> クラスのリストにクラスを追加します </p>
      *
      * <p>
