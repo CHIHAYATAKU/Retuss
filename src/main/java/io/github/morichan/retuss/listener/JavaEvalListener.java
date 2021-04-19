@@ -9,9 +9,6 @@ import io.github.morichan.retuss.parser.java.JavaParserBaseListener;
 import java.util.ArrayList;
 import java.util.List;
 
-// 後で消す
-import java.io.PrintStream;
-
 /**
  * Javaソースコードのパーサを利用したコンテキストの抽出クラス
  * <p>

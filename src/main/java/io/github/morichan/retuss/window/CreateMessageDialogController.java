@@ -100,7 +100,7 @@ public class CreateMessageDialogController {
         Stage stage = (Stage) createButton.getScene().getWindow();
         stage.close();
         sequenceDiagramDrawer.draw();
-        mainController.getCodeController().createCodeTabs(sequenceDiagramDrawer.getUmlPackage());
+        mainController.getCodeController().createCodeTabs();
     }
 
 

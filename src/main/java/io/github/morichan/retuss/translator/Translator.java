@@ -8,55 +8,43 @@ import io.github.morichan.retuss.language.uml.Package;
  * <p> 翻訳者クラス </p>
  */
 public class Translator {
-
-    private Package classDiagramPackage = new Package();
-
-    private Java java = new Java();
-    private Cpp cpp = new Cpp();
-
-    public Package getPackage() {
-        return classDiagramPackage;
-    }
-
-    public Java getJava() {
-        return java;
-    }
-    public Cpp getCpp() {
-        return cpp;
-    }
-
     /**
-     * <p> クラス図を基に各言語へ翻訳します </p>
+     * <p> UMLからJavaへの変換 </p>
      *
-     * @param classDiagramPackage クラス図のパッケージ
+     * @param uml クラス図のパッケージ
      */
-    public void translate(Package classDiagramPackage) {
+    public Java translateToJava(Package uml) {
         JavaTranslator javaTranslator = new JavaTranslator();
-        CppTranslator cppTranslator = new CppTranslator();
-
-        java = javaTranslator.translate(classDiagramPackage);
-        cpp = cppTranslator.translate(classDiagramPackage);
+        return javaTranslator.translate(uml);
     }
 
     /**
-     * <p> Javaを基にクラス図へ翻訳します </p>
+     * <p> UMLからC++への変換 </p>
+     *
+     * @param uml クラス図のパッケージ
+     */
+    public Cpp translateToCpp(Package uml) {
+        CppTranslator cppTranslator = new CppTranslator();
+        return cppTranslator.translate(uml);
+    }
+
+    /**
+     * <p> JavaからUMLへの変換 </p>
      *
      * @param java Javaソースコード
      */
-    public void translate(Java java) {
+    public Package translateToUML(Java java) {
         UMLTranslator umlTranslator = new UMLTranslator();
-
-        classDiagramPackage = umlTranslator.translate(java);
+        return umlTranslator.translate(java);
     }
 
     /**
-     * <p> Cppを基にクラス図へ翻訳します </p>
+     * <p> C++からUMLへの変換 </p>
      *
-     * @param cpp cppソースコード
+     * @param cpp C++ソースコード
      */
-    public void translate(Cpp cpp) {
+    public Package translateToUML(Cpp cpp) {
         UMLTranslator umlTranslator = new UMLTranslator();
-
-        classDiagramPackage = umlTranslator.translate(cpp);
+        return umlTranslator.translate(cpp);
     }
 }

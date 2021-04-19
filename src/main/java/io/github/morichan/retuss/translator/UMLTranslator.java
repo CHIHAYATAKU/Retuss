@@ -133,7 +133,7 @@ public class UMLTranslator {
 
             if (method.getMethodBody() != null) {
                 for (BlockStatement statement : method.getMethodBody().getStatements()) {
-                    // if文があったらCombinedFragmentを作成する
+                    // if、while、forがあったらCombinedFragmentを作成する
                     if (statement instanceof If || statement instanceof While || statement instanceof For) {
                         CombinedFragment combinedFragment = createCombinedFragment(statement, message, lifeline);
                         message.addInteractionFragment(combinedFragment);

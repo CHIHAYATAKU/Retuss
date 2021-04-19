@@ -104,7 +104,7 @@ public class DeleteDialogController {
         Stage stage = (Stage) deleteButton.getScene().getWindow();
         stage.close();
         sequenceDiagramDrawer.draw();
-        mainController.getCodeController().createCodeTabs(sequenceDiagramDrawer.getUmlPackage());
+        mainController.getCodeController().createCodeTabs();
     }
 
 

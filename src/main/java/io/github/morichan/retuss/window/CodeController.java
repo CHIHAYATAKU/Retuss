@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.window;
 
+import io.github.morichan.retuss.language.Model;
 import io.github.morichan.retuss.language.cpp.Cpp;
 import io.github.morichan.retuss.language.java.Java;
 import io.github.morichan.retuss.language.uml.Package;
@@ -24,16 +25,11 @@ import org.fxmisc.richtext.LineNumberFactory;
 public class CodeController {
     @FXML
     private TabPane codeTabPane;
-
     private MainController mainController;
-
-    private Java java = new Java();
-    private Cpp cpp = new Cpp();
-    private Package umlPackage = new Package();
+    private Model model;
     private Translator translator = new Translator();
     private JavaLanguage javaLanguage = new JavaLanguage();
     private CppLanguage cppLanguage = new CppLanguage();
-
     private int createdClassCount = 0;
 
     @FXML
@@ -48,45 +44,34 @@ public class CodeController {
         createdClassCount++;
     }
 
+    public void setModel(Model model) {
+        this.model = model;
+    }
+
     public void setMainController(MainController mainController) {
         this.mainController = mainController;
     }
 
-    public void createCodeTabs(Package umlPackage) {
-        translator.translate(umlPackage);
-        java = translator.getJava();
-        cpp = translator.getCpp();
-        setCodeTabs(java);
-        setCodeTabs(cpp);
-        this.umlPackage = umlPackage;
-    }
-
-    public Package getUmlPackage() {
-        return umlPackage;
+    public void createCodeTabs() {
+        model.setJava(translator.translateToJava(model.getUml()));
+        model.setCpp(translator.translateToCpp(model.getUml()));
+        setCodeTabs(model.getJava());
+        setCodeTabs(model.getCpp());
     }
 
     public void importCode(Language language, String code) {
-        translator.translate(umlPackage);
-
         if (language == Language.Java) {
-            java = translator.getJava();
             javaLanguage.parseForClassDiagram(code);
-            java.addClass(javaLanguage.getJava().getClasses().get(0));
-            translator.translate(java);
+            model.getJava().addClass(javaLanguage.getJava().getClasses().get(0));
+            translator.translateToUML(model.getJava());
         } else if (language == Language.Cpp) {
-            cpp = translator.getCpp();
             cppLanguage.parseForClassDiagram(code);
-            cpp.addClass(cppLanguage.getCpp().getClasses().get(0));
-            translator.translate(cpp);
+            model.getCpp().addClass(cppLanguage.getCpp().getClasses().get(0));
+            translator.translateToUML(model.getCpp());
         }
 
-        java = translator.getJava();
-        cpp = translator.getCpp();
-
-        setCodeTabs(java);
-        setCodeTabs(cpp);
-
-        this.umlPackage = translator.getPackage();
+        setCodeTabs(model.getJava());
+        setCodeTabs(model.getCpp());
     }
 
     private Tab createLanguageTab(Language language) {
@@ -103,7 +88,7 @@ public class CodeController {
 
         languageTab.setOnSelectionChanged(event -> {
             try {
-                createCodeTabs(mainController.getClassDiagramDrawerUmlPackage());
+                createCodeTabs();
             } catch (NullPointerException e) {
                 System.out.println("This is null problem because ClassDiagramDrawer's umlPackage is null, so event was not set.");
             }
@@ -158,8 +143,8 @@ public class CodeController {
     }
 
     public void convertCodeToUml(Language language) {
-        java = new Java();
-        cpp = new Cpp();
+        Java java = new Java();
+        Cpp cpp = new Cpp();
 
         // ソースコード → Java,C++情報
 //        if(mainController.isSelectedSDTab()) {
@@ -211,14 +196,15 @@ public class CodeController {
 
         // Java,C++情報 → UML情報
         if (language == Language.Java) {
-            translator.translate(java);
+            model.setJava(java);
+            model.setUml(translator.translateToUML(java));
         } else {
-            translator.translate(cpp);
+            model.setCpp(cpp);
+            model.setUml(translator.translateToUML(cpp));
         }
 
-        umlPackage = translator.getPackage();
         // UML情報 → UMLダイアグラム
-        mainController.writeUmlForCode(umlPackage);
+        mainController.writeUmlForCode(model.getUml());
     }
 
     private void setCodeTabs(Java java) {

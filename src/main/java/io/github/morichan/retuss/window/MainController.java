@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.window;
 
+import io.github.morichan.retuss.language.Model;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.translator.Language;
 import io.github.morichan.retuss.window.diagram.ContentType;
@@ -78,15 +79,13 @@ public class MainController {
 
     private TextInputDialog mainWindowInputDialog;
     private File filePath = new File(System.getProperty("user.home")); // 初期ディレクトリをホームにする。
-
     private Stage mainStage;
     private Stage codeStage;
     private CodeController codeController;
-
     private UtilityJavaFXComponent util = new UtilityJavaFXComponent();
     private ClassDiagramDrawer classDiagramDrawer = new ClassDiagramDrawer();
-
     private SequenceDiagramDrawer sequenceDiagramDrawer = new SequenceDiagramDrawer();
+    private Model model;
 
     /**
      * <p> JavaFXにおけるデフォルトコンストラクタ </p>
@@ -138,18 +137,18 @@ public class MainController {
         normalButtonInSD.setDefaultButton(true);
         tabPaneInSequenceTab.getTabs().clear();
         sequenceDiagramDrawer.setSequenceDiagramTabPane(tabPaneInSequenceTab);
-        sequenceDiagramDrawer.setUmlPackage(codeController.getUmlPackage());
+        sequenceDiagramDrawer.setUmlPackage(model.getUml());
         sequenceDiagramDrawer.createSequenceTabContent(sequenceDiagramTab);
 
         try {
             sequenceDiagramDrawer.draw();
-            codeController.createCodeTabs(sequenceDiagramDrawer.getUmlPackage());
+            codeController.createCodeTabs();
         } catch (NullPointerException e) {
             // This is reason for codeController.getUmlPackage() is equal to one phase before now umlPackage
             tabPaneInSequenceTab.getTabs().clear();
             sequenceDiagramDrawer.setSequenceDiagramTabPane(tabPaneInSequenceTab);
             codeController.convertCodeToUml(Language.Java);
-            sequenceDiagramDrawer.setUmlPackage(codeController.getUmlPackage());
+            sequenceDiagramDrawer.setUmlPackage(model.getUml());
             sequenceDiagramDrawer.createSequenceTabContent(sequenceDiagramTab);
             sequenceDiagramDrawer.draw();
         }
@@ -461,6 +460,7 @@ public class MainController {
             codeStage.setScene(new Scene(codeLoader.load()));
             codeStage.show();
             codeController = codeLoader.getController();
+            codeController.setModel(model);
             codeController.setMainController(mainController);
         } catch (IOException e) {
             e.printStackTrace();
@@ -605,6 +605,7 @@ public class MainController {
         classDiagramDrawer.setNodeText(className);
         classDiagramDrawer.addDrawnNode(buttonsInCD);
         classDiagramDrawer.allReDrawCanvas();
+        model.getUml().addClass(new Class(className));
         convertUmlToCode();
         writeUmlForCode(classDiagramDrawer.getPackage());
         buttonsInCD = util.bindAllButtonsFalseWithout(buttonsInCD, normalButtonInCD);
@@ -616,9 +617,9 @@ public class MainController {
         classDiagramDrawer.addDrawnNode(buttonsInCD);
         classDiagramDrawer.allReDrawCanvas();
         codeController.importCode(language, code);
-        classDiagramDrawer.changeDrawnNodeText(classDiagramDrawer.getNodes().size() - 1, ContentType.Title, 0, codeController.getUmlPackage().getClasses().get(codeController.getUmlPackage().getClasses().size() - 1).getName());
-        convertUmlToCode(codeController.getUmlPackage());
-        writeUmlForCode(codeController.getUmlPackage());
+        classDiagramDrawer.changeDrawnNodeText(classDiagramDrawer.getNodes().size() - 1, ContentType.Title, 0, model.getUml().getClasses().get(model.getUml().getClasses().size() - 1).getName());
+        convertUmlToCode(model.getUml());
+        writeUmlForCode(model.getUml());
         buttonsInCD = util.bindAllButtonsFalseWithout(buttonsInCD, normalButtonInCD);
     }
 
@@ -640,7 +641,7 @@ public class MainController {
      */
     private void convertUmlToCode() {
         if (codeController == null) return;
-        codeController.createCodeTabs(classDiagramDrawer.getPackage());
+        codeController.createCodeTabs();
     }
 
     /**
@@ -648,7 +649,7 @@ public class MainController {
      */
     private void convertUmlToCode(Package umlPackage) {
         if (codeController == null) return;
-        codeController.createCodeTabs(umlPackage);
+        codeController.createCodeTabs();
     }
 
     /**
@@ -844,7 +845,7 @@ public class MainController {
 
         TreeItem<String> classTreeItem = new TreeItem<>("Class");
         classTreeItem.setExpanded(true);
-        for (Class umlClass : codeController.getUmlPackage().getClasses()) {
+        for (Class umlClass : model.getUml().getClasses()) {
             // TestにおけるTab選択時の誤動作防止
             TreeItem<String> className = new TreeItem<>(" " + umlClass.getName());
             className.setExpanded(true);
@@ -852,5 +853,9 @@ public class MainController {
         }
 
         classTree.setRoot(classTreeItem);
+    }
+
+    public void setModel(Model model) {
+        this.model = model;
     }
 }

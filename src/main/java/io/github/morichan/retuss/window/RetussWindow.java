@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.window;
 
+import io.github.morichan.retuss.language.Model;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -45,6 +46,8 @@ public class RetussWindow extends Application {
 
         // {@link MainController#showCodeStage(Stage, String, String)} と同様の処理
         MainController mainController = loader.getController();
+        Model model = new Model();  // RETUSSの内部データ(Java,Cpp,UML)の唯一の情報源
+        mainController.setModel(model);
         mainController.showCodeStage(mainController, mainStage, resourcesPath + codeFxmlFileName, codeTitle);
     }
 
