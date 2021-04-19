@@ -27,8 +27,6 @@ public class JavaEvalListener extends JavaParserBaseListener {
     private boolean isAbstractMethod = false;
     private boolean hasAbstractMethods = false;
     // 追加分
-    private int test;
-//    private If ifClass;
     private ArrayList<If> ifClass = new ArrayList<If>();
     private While whileClass;
     private For forClass;
@@ -523,11 +521,6 @@ public class JavaEvalListener extends JavaParserBaseListener {
 //        System.out.println(tmp.getStatements());
 //        System.out.println("------------------------------");
 
-    }
-
-    // あとで消す
-    public int getTest() {
-        return test;
     }
 
     private LocalVariableDeclaration createLocalVariableDeclaration(Type type, JavaParser.VariableDeclaratorsContext ctx){

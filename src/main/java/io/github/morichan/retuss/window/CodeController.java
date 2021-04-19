@@ -162,29 +162,29 @@ public class CodeController {
         cpp = new Cpp();
 
         // ソースコード → Java,C++情報
-        if(mainController.isSelectedSDTab()) {
-            // シーケンス図タブが選択されている場合、選択されているクラスのコードだけをJava情報に変換する
-            for (Tab classTab : ((TabPane) ((AnchorPane) codeTabPane.getTabs().get(0).getContent()).getChildren().get(0)).getTabs()) {
-                if (classTab.isSelected()){
-                    try {
-                        String code = ((CodeArea)((AnchorPane)classTab.getContent()).getChildren().get(0)).getText();
-                        if (language == Language.Java) {
-                            javaLanguage.parseForClassDiagram(code);
-                            java.addClass(javaLanguage.getJava().getClasses().get(0));
-                        } else {
-                            cppLanguage.parseForClassDiagram(code);
-                            cpp.addClass(cppLanguage.getCpp().getClasses().get(0));
-                        }
-                    }  catch (NullPointerException e) {
-                        System.out.println("This is Parse Error because JavaEvalListener object is null, but no problem.");
-                    } catch (IllegalArgumentException e) {
-                        System.out.println("This is Parse Error because JavaEvalListener object was set IllegalArgument, but no problem.");
-                    } catch (IndexOutOfBoundsException e) {
-                        System.out.println("This is Parse Error because JavaEvalListener object was not found Class name, but no problem.");
-                    }
-                }
-            }
-        } else {
+//        if(mainController.isSelectedSDTab()) {
+//            // シーケンス図タブが選択されている場合、選択されているクラスのコードだけをJava情報に変換する
+//            for (Tab classTab : ((TabPane) ((AnchorPane) codeTabPane.getTabs().get(0).getContent()).getChildren().get(0)).getTabs()) {
+//                if (classTab.isSelected()){
+//                    try {
+//                        String code = ((CodeArea)((AnchorPane)classTab.getContent()).getChildren().get(0)).getText();
+//                        if (language == Language.Java) {
+//                            javaLanguage.parseForClassDiagram(code);
+//                            java.addClass(javaLanguage.getJava().getClasses().get(0));
+//                        } else {
+//                            cppLanguage.parseForClassDiagram(code);
+//                            cpp.addClass(cppLanguage.getCpp().getClasses().get(0));
+//                        }
+//                    }  catch (NullPointerException e) {
+//                        System.out.println("This is Parse Error because JavaEvalListener object is null, but no problem.");
+//                    } catch (IllegalArgumentException e) {
+//                        System.out.println("This is Parse Error because JavaEvalListener object was set IllegalArgument, but no problem.");
+//                    } catch (IndexOutOfBoundsException e) {
+//                        System.out.println("This is Parse Error because JavaEvalListener object was not found Class name, but no problem.");
+//                    }
+//                }
+//            }
+//        } else {
             // クラス図タブが選択されている場合、すべてのコードをJava情報に変換する
             for (int i = 0; i < ((TabPane) ((AnchorPane) codeTabPane.getTabs().get(0).getContent()).getChildren().get(0)).getTabs().size(); i++) {
                 try {
@@ -207,7 +207,7 @@ public class CodeController {
                     System.out.println("This is Parse Error because JavaEvalListener object was not found Class name, but no problem.");
                 }
             }
-        }
+//        }
 
         // Java,C++情報 → UML情報
         if (language == Language.Java) {
