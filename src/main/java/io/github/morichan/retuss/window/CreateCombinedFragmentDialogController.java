@@ -108,7 +108,7 @@ public class CreateCombinedFragmentDialogController {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.close();
             sequenceDiagramDrawer.draw();
-            mainController.getCodeController().createCodeTabs();
+            mainController.getCodeController().updateCode();
         }
 
     }

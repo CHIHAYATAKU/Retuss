@@ -121,6 +121,9 @@ public class SequenceDiagramDrawer {
         }
     }
 
+    /**
+     * <p> 選択されている操作タブのシーケンス図を描画する </p>
+     */
     public void draw() {
         if (interactionSetFromClassNameAndOperation == null || interactionSetFromClassNameAndOperation.isEmpty())
             return;

@@ -52,11 +52,15 @@ public class CodeController {
         this.mainController = mainController;
     }
 
-    public void createCodeTabs() {
-        model.setJava(translator.translateToJava(model.getUml()));
-        model.setCpp(translator.translateToCpp(model.getUml()));
-        setCodeTabs(model.getJava());
-        setCodeTabs(model.getCpp());
+    /**
+     * <p> ソースコードを更新する </p>
+     */
+    public void updateCode() {
+        if(mainController.isSelectedSDTab()) {
+            updateCodeFromSD();
+        } else {
+            updateCodeFromCD();
+        }
     }
 
     public void importCode(Language language, String code) {
@@ -74,6 +78,41 @@ public class CodeController {
         setCodeTabs(model.getCpp());
     }
 
+    /**
+     * <p> 選択されている(変更があった)クラスのシーケンス図を、コードに反映する </p>
+     */
+    private void updateCodeFromCD() {
+        model.setJava(translator.translateToJava(model.getUml()));
+        model.setCpp(translator.translateToCpp(model.getUml()));
+        setCodeTabs(model.getJava());
+        setCodeTabs(model.getCpp());
+    }
+
+    /**
+     * <p> 選択されている(変更があった)クラスのシーケンス図を、コードに反映する </p>
+     */
+    private void updateCodeFromSD() {
+        // 選択されたクラスのみを格納UML情報
+        Package targetUml = new Package();
+
+        // 選択されているクラスの特定
+        for (Tab classTab : mainController.getTabPaneInSequenceTab().getTabs()) {
+            if(classTab.isSelected()){
+                // 選択されているUMLクラスのみ変換するため、modelから選択されているUMLクラスを抽出する
+                targetUml.addClass(model.getUml().searchClass(classTab.getText()));
+                break;
+            }
+        }
+
+        // 選択されているUMLクラス → Java情報の変換
+        Java targetJava = translator.translateToJava(targetUml);
+        // Jave情報の更新
+        model.getJava().updateClass(targetJava.getClasses().get(0));
+
+        // Java情報 → ソースコード文字列の生成
+        setCodeTabs(model.getJava());
+    }
+
     private Tab createLanguageTab(Language language) {
 
         TabPane codeTabPane = new TabPane();
@@ -88,7 +127,7 @@ public class CodeController {
 
         languageTab.setOnSelectionChanged(event -> {
             try {
-                createCodeTabs();
+                updateCode();
             } catch (NullPointerException e) {
                 System.out.println("This is null problem because ClassDiagramDrawer's umlPackage is null, so event was not set.");
             }
@@ -250,6 +289,7 @@ public class CodeController {
         }
 
         // UML情報 → UMLダイアグラムの描画
+        // 選択されているタブの操作のみ描画
         mainController.writeUmlForCode(model.getUml());
     }
 
