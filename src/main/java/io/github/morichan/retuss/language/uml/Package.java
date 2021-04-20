@@ -111,6 +111,9 @@ public class Package {
         setClasses(null);
     }
 
+    /**
+     * <p> クラスを探索する </p>
+     */
     public Class searchClass(String className) {
         for (Class umlClass : classes) {
             if (umlClass.getName().equals(className)) {
@@ -122,7 +125,7 @@ public class Package {
     }
 
     /**
-     * <p>  </p>
+     * <p> Operationgraphicsを探索する </p>
      */
     public OperationGraphic searchOperatingGraphics(String operationName) {
         for (Class umlClass : classes) {
@@ -134,5 +137,17 @@ public class Package {
         }
         // TODO nullオブジェクトにすると良いらしい
         return null;
+    }
+
+    /**
+     * <p> 同名のクラスを上書きします。同名のクラスがない場合は、何もしない。 </p>
+     */
+    public void updateClass(Class umlClass) {
+        for (int i=0; i<classes.size(); i++) {
+            if (umlClass.getName().equals(classes.get(i).getName())) {
+                classes.set(i, umlClass);
+                break;
+            }
+        }
     }
 }

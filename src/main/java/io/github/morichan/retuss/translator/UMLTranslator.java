@@ -99,6 +99,7 @@ public class UMLTranslator {
     private Class createUmlClass(io.github.morichan.retuss.language.java.Class javaClass) {
         Class umlClass = new Class(javaClass.getName());
 
+        // クラス図関係
         for (Field field : javaClass.getFields()) {
             Attribute attribute = new Attribute(new Name(field.getName()));
             attribute.setType(new Type(field.getType().toString()));
@@ -114,6 +115,7 @@ public class UMLTranslator {
             umlClass.addAttribute(attribute);
         }
 
+        // シーケンス図関係
         Lifeline lifeline = new Lifeline(umlClass);
         for (Method method : javaClass.getMethods()) {
             Operation operation = new Operation(new Name(method.getName()));
@@ -125,7 +127,6 @@ public class UMLTranslator {
                 operation.addParameter(parameter);
             }
             OperationGraphic operationGraphic = new OperationGraphic(operation);
-//            Lifeline lifeline = new Lifeline(umlClass);
             MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
             message.setLifeline(lifeline);
             message.setType(umlClass);
