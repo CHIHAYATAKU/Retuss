@@ -32,9 +32,7 @@ public class Model {
         return java;
     }
 
-    public Package getUml() {
-        return uml;
-    }
+    public Package getUml() { return uml; }
 
     public Cpp getCpp() {
         return cpp;

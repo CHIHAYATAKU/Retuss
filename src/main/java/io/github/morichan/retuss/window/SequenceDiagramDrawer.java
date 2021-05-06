@@ -34,13 +34,11 @@ import java.util.Map;
 public class SequenceDiagramDrawer {
     private String diagramFont = "Consolas";
     double space = 5.0;
-
     private MainController mainController;
     private TabPane tabPaneInSequenceTab;
     private Package umlPackage;
     private Map<String, Map<String, Interaction>> interactionSetFromClassNameAndOperation;
     private UtilityJavaFXComponent utilComponent = new UtilityJavaFXComponent();
-
 
     public void setMainController(MainController mainController) { this.mainController = mainController; }
     public MainController getMainController() { return this.mainController; }
@@ -149,6 +147,9 @@ public class SequenceDiagramDrawer {
 
                 Class umlClass = umlPackage.getClasses().get(classIndex);
                 OperationGraphic og = umlClass.getOperationGraphics().get(operationIndex);
+
+                // 操作呼び出しの参照を更新
+                mainController.getModel().getUml().updateInteractionLink(umlClass);
 
                 ScrollPane paneUnderCanvas = (ScrollPane) ((AnchorPane) operationTab.getContent()).getChildren().get(0);
                 Canvas canvas = (Canvas) paneUnderCanvas.getContent();

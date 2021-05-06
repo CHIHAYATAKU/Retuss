@@ -5,6 +5,7 @@ import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.direction.In;
 import io.github.morichan.fescue.feature.parameter.Parameter;
 import io.github.morichan.fescue.feature.visibility.Visibility;
+import io.github.morichan.retuss.language.Model;
 import io.github.morichan.retuss.language.java.*;
 import io.github.morichan.retuss.language.java.Class;
 import io.github.morichan.retuss.language.uml.Package;
@@ -21,8 +22,12 @@ import java.util.stream.Collectors;
  * <p> Java翻訳者クラス </p>
  */
 public class JavaTranslator {
-
+    private Model model;
     private Java java;
+
+    public JavaTranslator(Model model) {
+        this.model = model;
+    }
 
     /**
      * <p> クラス図のパッケージからJavaに翻訳します </p>

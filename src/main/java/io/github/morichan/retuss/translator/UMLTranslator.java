@@ -11,6 +11,7 @@ import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.value.DefaultValue;
 import io.github.morichan.fescue.feature.value.expression.OneIdentifier;
 import io.github.morichan.fescue.feature.visibility.Visibility;
+import io.github.morichan.retuss.language.Model;
 import io.github.morichan.retuss.language.java.*;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.language.uml.Package;
@@ -44,8 +45,12 @@ import java.util.regex.Pattern;
  * </p>
  */
 public class UMLTranslator {
-
+    private Model model;
     private Package classPackage;
+
+    public UMLTranslator(Model model) {
+        this.model = model;
+    }
 
     /**
      * <p>
@@ -131,6 +136,7 @@ public class UMLTranslator {
             message.setLifeline(lifeline);
             message.setType(umlClass);
             message.setName(createMessageText(operation));
+            message.setMessageType(MessageType.Method);
 
             if (method.getMethodBody() != null) {
                 for (BlockStatement statement : method.getMethodBody().getStatements()) {
@@ -146,7 +152,6 @@ public class UMLTranslator {
                 }
             }
 
-            // ここを変更
             operationGraphic.setInteraction(new Interaction(message));
             umlClass.addOperation(operationGraphic, method.isAbstract());
         }
@@ -283,6 +288,7 @@ public class UMLTranslator {
 
     private void searchMethod(Package umlPackage) {
         for (Class umlClass : umlPackage.getClasses()) {
+//        for (Class umlClass : model.getUml().getClasses()) {
             for (OperationGraphic og : umlClass.getOperationGraphics()) {
                 searchInteractionFragment(umlPackage, umlClass, og, og.getInteraction().getMessage().getInteractionFragmentList());
             }
@@ -293,18 +299,20 @@ public class UMLTranslator {
         toSearchNextInteractionFragment: for(int i = 0; i < interactionFragmentList.size(); i++) {
             InteractionFragment interactionFragment = interactionFragmentList.get(i);
             if (interactionFragment instanceof CombinedFragment) {
+                // 複合フラグメント
                 CombinedFragment cf = (CombinedFragment) interactionFragment;
                 for (InteractionOperand io : cf.getInteractionOperandList()) {
                     searchInteractionFragment(umlPackage, umlClass, og, io.getInteractionFragmentList());
                 }
             } else {
+                // メッセージ
                 MessageOccurrenceSpecification message = interactionFragment.getMessage();
                 if (message.getMessageType() != MessageType.Method)
                     continue;
 
                 if (umlClass.getName().equals(
                         searchClass(message.getType().getName(), message, message.getLifeline()).getName())) {
-                    // 自クラス内のメソッド
+                    // 自クラスのメソッド呼び出し
                     for (Class sourceUmlClass : umlPackage.getClasses()) {
                         if (!umlClass.getName().equals(sourceUmlClass.getName()))
                             continue;
@@ -324,8 +332,8 @@ public class UMLTranslator {
                     }
 
                 } else {
-                    // 他クラス内のメソッド
-                    for (Class sourceUmlClass : umlPackage.getClasses()) {
+                    // 他クラスのメソッド呼び出し
+                    for (Class sourceUmlClass : model.getUml().getClasses()) {
                         if (umlClass.getName().equals(sourceUmlClass.getName()))
                             continue;
                         for (OperationGraphic sourceOg : sourceUmlClass.getOperationGraphics()) {
@@ -340,9 +348,6 @@ public class UMLTranslator {
                                         break;
                                     }
                                 }
-
-                                // og.getInteraction().getMessage().putInstance(i, instance);
-                                // og.getInteraction().getMessage().addInteractionFragment(i, sourceMessage);
 
                                 InteractionFragment newInteractionFragment = new InteractionFragment();
                                 MessageOccurrenceSpecification callMethodMessage = interactionFragmentList.get(i).getMessage();
@@ -510,10 +515,18 @@ public class UMLTranslator {
         return message;
     }
 
+    /**
+     * instanceのクラスを特定する
+     * @param instance
+     * @param owner
+     * @param lifeline
+     * @return
+     */
     private Class searchClass(String instance, MessageOccurrenceSpecification owner, Lifeline lifeline) {
         Class sourceClass = searchPreviousDeclaredFieldType(instance, owner, lifeline);
 
-        for (Class umlClass : classPackage.getClasses()) {
+        // 変換対象のUML情報だけではなく、すべてのUML情報を探索する
+        for (Class umlClass : model.getUml().getClasses()) {
             if (umlClass.getName().equals(sourceClass.getName())) {
                 return umlClass;
             }

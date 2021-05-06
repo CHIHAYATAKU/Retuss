@@ -529,6 +529,11 @@ public class MessageOccurrenceSpecification {
 
             lastDrawPoint = new Point2D(last.getX(), last.getY());
 
+            // 別クラスのメソッド内部の処理を取得する
+            for(OperationGraphic og : umlClass.getOperationGraphics()) {
+
+            }
+
         } else {
             // ライフラインが描画済みかつ同じライフラインへのメッセージの場合
             // updateMessagePoint();
@@ -576,12 +581,5 @@ public class MessageOccurrenceSpecification {
                 interactionFragment.getMessage().draw(gc, arrowFirstX, fromLifeline);
             }
         }
-        // List<MessageOccurrenceSpecification> messages = getMessages();
-
-        // for (MessageOccurrenceSpecification message : messages) {
-        // message.draw(gc, arrowFirstX, fromLifeline);
-        // }
-
     }
-    
 }

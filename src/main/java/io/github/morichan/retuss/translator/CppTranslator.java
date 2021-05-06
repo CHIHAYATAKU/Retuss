@@ -4,6 +4,7 @@ import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.parameter.Parameter;
 import io.github.morichan.fescue.feature.visibility.Visibility;
+import io.github.morichan.retuss.language.Model;
 import io.github.morichan.retuss.language.cpp.*;
 import io.github.morichan.retuss.language.cpp.Class;
 import io.github.morichan.retuss.language.uml.Package;
@@ -16,8 +17,12 @@ import java.util.stream.Collectors;
  * <p> Cpp翻訳者クラス </p>
  */
 public class CppTranslator {
-
+    private Model model;
     private Cpp cpp;
+
+    public CppTranslator(Model model) {
+        this.model = model;
+    }
 
     /**
      * <p> クラス図のパッケージからCppに翻訳します </p>

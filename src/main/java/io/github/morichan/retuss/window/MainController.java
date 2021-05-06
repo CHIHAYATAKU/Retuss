@@ -862,4 +862,6 @@ public class MainController {
     public void setModel(Model model) {
         this.model = model;
     }
+
+    public Model getModel() { return model; }
 }

@@ -1,6 +1,12 @@
 package io.github.morichan.retuss.language.uml;
 
+import io.github.morichan.fescue.feature.Attribute;
+import io.github.morichan.retuss.window.diagram.AttributeGraphic;
 import io.github.morichan.retuss.window.diagram.OperationGraphic;
+import io.github.morichan.retuss.window.diagram.sequence.CombinedFragment;
+import io.github.morichan.retuss.window.diagram.sequence.InteractionFragment;
+import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
+import io.github.morichan.retuss.window.diagram.sequence.MessageType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,5 +155,35 @@ public class Package {
                 break;
             }
         }
+    }
+
+    /**
+     * <p> targetClassの操作呼び出しの参照を更新する </p>
+     */
+    public void updateInteractionLink(Class targetClass) {
+        for(OperationGraphic og : targetClass.getOperationGraphics()) {
+            MessageOccurrenceSpecification startMessage = og.getInteraction().getMessage();
+            for(InteractionFragment interactionFragment : startMessage.getInteractionFragmentList()) {
+                if(!(interactionFragment instanceof CombinedFragment) && interactionFragment.getMessage().getMessageType() == MessageType.Method && !interactionFragment.getMessage().getClass().getName().equals(targetClass.getName())) {
+                    // interactionFragmentが、別クラスのメソッド呼び出しを表すメッセージだった場合
+                    interactionFragment.getMessage().setInteractionFragmentList(searchMessage(interactionFragment.getMessage()).getInteractionFragmentList());
+                }
+            }
+        }
+    }
+
+    /**
+     * <p> </p>
+     */
+    private MessageOccurrenceSpecification searchMessage(MessageOccurrenceSpecification message) {
+        for (Class umlClass : classes) {
+            for (OperationGraphic og : umlClass.getOperationGraphics()) {
+                if (og.getInteraction().getMessage().getName().contains(message.getName() + "(")) {
+                    return og.getInteraction().getMessage();
+                }
+            }
+        }
+        // TODO nullオブジェクトにすると良いらしい
+        return null;
     }
 }

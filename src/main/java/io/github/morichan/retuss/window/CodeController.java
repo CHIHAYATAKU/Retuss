@@ -27,7 +27,7 @@ public class CodeController {
     private TabPane codeTabPane;
     private MainController mainController;
     private Model model;
-    private Translator translator = new Translator();
+    private Translator translator;
     private JavaLanguage javaLanguage = new JavaLanguage();
     private CppLanguage cppLanguage = new CppLanguage();
     private int createdClassCount = 0;
@@ -46,6 +46,7 @@ public class CodeController {
 
     public void setModel(Model model) {
         this.model = model;
+        this.translator = new Translator(model);
     }
 
     public void setMainController(MainController mainController) {
