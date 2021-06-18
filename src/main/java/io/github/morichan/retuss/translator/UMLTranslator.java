@@ -31,13 +31,10 @@ import io.github.morichan.retuss.window.diagram.sequence.CombinedFragment;
 import io.github.morichan.retuss.window.diagram.sequence.InteractionOperandKind;
 import io.github.morichan.retuss.window.diagram.sequence.InteractionOperand;
 
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -46,7 +43,7 @@ import java.util.regex.Pattern;
  */
 public class UMLTranslator {
     private Model model;
-    private Package classPackage;
+    private Package umlPackage;
 
     public UMLTranslator(Model model) {
         this.model = model;
@@ -54,29 +51,29 @@ public class UMLTranslator {
 
     /**
      * <p>
-     * Javaからクラス図のパッケージに翻訳します
+     * Java情報からUMLに変換する
      * </p>
      *
-     * @param java Javaソースコード
-     * @return クラス図のパッケージ
+     * @param java Java情報
+     * @return UML情報
      */
     public Package translate(Java java) {
         // 変換時間の計測
 //        long time1 = System.nanoTime();
 
-        classPackage = new Package();
+        umlPackage = new Package();
 
         for (io.github.morichan.retuss.language.java.Class javaClass : java.getClasses()) {
-            classPackage.addClass(createUmlClass(javaClass));
+            umlPackage.addClass(createUmlClass(javaClass));
         }
 
         searchGeneralizationClass(java.getClasses());
-        searchMethod(classPackage);
+        searchMethod(umlPackage);
 
 //        long time2 = System.nanoTime();
 //        System.out.printf("trans:%d\n", time2 - time1);
 
-        return classPackage;
+        return umlPackage;
     }
 
     /**
@@ -84,27 +81,35 @@ public class UMLTranslator {
      * Cppからクラス図のパッケージに翻訳します
      * </p>
      *
-     * @param cpp C++ソースコード
-     * @return クラス図のパッケージ
+     * @param cpp Cpp情報
+     * @return UML情報
      */
     public Package translate(Cpp cpp) {
         // List<Boolean> flagOperationImplementations =
         // classPackage.getClasses().get(0).getFlagOperationsImplementations();
-        classPackage = new Package();
+        umlPackage = new Package();
 
         for (io.github.morichan.retuss.language.cpp.Class cppClass : cpp.getClasses()) {
-            classPackage.addClass(createClass(cppClass));
+            umlPackage.addClass(createClass(cppClass));
         }
 
         searchGeneralizationClass_Cpp(cpp.getClasses());
 
-        return classPackage;
+        return umlPackage;
     }
 
+    /**
+     * <p>
+     * JavaクラスからUMLクラスを作成する
+     * </p>
+     *
+     * @param javaClass Javaクラス
+     * @return UMLクラス
+     */
     private Class createUmlClass(io.github.morichan.retuss.language.java.Class javaClass) {
         Class umlClass = new Class(javaClass.getName());
 
-        // クラス図関係
+        // フィールドを属性に変換
         for (Field field : javaClass.getFields()) {
             Attribute attribute = new Attribute(new Name(field.getName()));
             attribute.setType(new Type(field.getType().toString()));
@@ -120,7 +125,7 @@ public class UMLTranslator {
             umlClass.addAttribute(attribute);
         }
 
-        // シーケンス図関係
+        // メソッドを操作に変換
         Lifeline lifeline = new Lifeline(umlClass);
         for (Method method : javaClass.getMethods()) {
             Operation operation = new Operation(new Name(method.getName()));
@@ -138,10 +143,11 @@ public class UMLTranslator {
             message.setName(createMessageText(operation));
             message.setMessageType(MessageType.Method);
 
+            // メソッド内部の文を、シーケンス図のメッセージまたは複合フラグメントに変換
             if (method.getMethodBody() != null) {
                 for (BlockStatement statement : method.getMethodBody().getStatements()) {
-                    // if、while、forがあったらCombinedFragmentを作成する
                     if (statement instanceof If || statement instanceof While || statement instanceof For) {
+                        // if、while、forがあったらCombinedFragmentを作成する
                         CombinedFragment combinedFragment = createCombinedFragment(statement, message, lifeline);
                         message.addInteractionFragment(combinedFragment);
                     } else {
@@ -159,6 +165,16 @@ public class UMLTranslator {
         return umlClass;
     }
 
+    /**
+     * <p>
+     * 制御文から複合フラグメントを作成する
+     * </p>
+     *
+     * @param statement 制御文
+     * @param message メソッドの始まりのメッセージ
+     * @param lifeline  複合フラグメントが属するライフライン
+     * @return 複合フラグメント
+     */
     private CombinedFragment createCombinedFragment(BlockStatement statement, MessageOccurrenceSpecification message,
             Lifeline lifeline) {
 
@@ -193,6 +209,7 @@ public class UMLTranslator {
             }
             combinedFragment = new CombinedFragment(kind);
             combinedFragment.addInteractionOperand(interactionOperand);
+
         } else if (statement instanceof For) {
             For forClass = (For) statement;
             kind = InteractionOperandKind.loop;
@@ -219,9 +236,18 @@ public class UMLTranslator {
         }
 
         return combinedFragment;
-
     }
 
+    /**
+     * <p>
+     * if文をインタラクション・オペランドに変換する
+     * </p>
+     *
+     * @param ifClass if文
+     * @param message if文が属するメソッドの始まりのメッセージ
+     * @param lifeline  if文が属するライフライン
+     * @return インタラクション・オペランドのリスト
+     */
     private ArrayList<InteractionOperand> convertIftoInteractionOperand(If ifClass, MessageOccurrenceSpecification message,
                                                                         Lifeline lifeline) {
         ArrayList<InteractionOperand> interactionOperandList = new ArrayList<InteractionOperand>();
@@ -259,6 +285,14 @@ public class UMLTranslator {
         return interactionOperandList;
     }
 
+    /**
+     * <p>
+     * メッセージのシグネチャを作成する
+     * </p>
+     *
+     * @param operation 操作
+     * @return メッセージシグネチャ
+     */
     private String createMessageText(Operation operation) {
         StringBuilder sb = new StringBuilder();
 
@@ -286,15 +320,33 @@ public class UMLTranslator {
         return sb.toString();
     }
 
+    /**
+     * <p>
+     * メソッド呼び出しのInteractionfragmentに、メソッド内部の処理をリンクする
+     * </p>
+     *
+     * @param umlPackage UML情報
+     * @return
+     */
     private void searchMethod(Package umlPackage) {
         for (Class umlClass : umlPackage.getClasses()) {
-//        for (Class umlClass : model.getUml().getClasses()) {
             for (OperationGraphic og : umlClass.getOperationGraphics()) {
                 searchInteractionFragment(umlPackage, umlClass, og, og.getInteraction().getMessage().getInteractionFragmentList());
             }
         }
     }
 
+    /**
+     * <p>
+     * メソッド呼び出しのInteractionfragmentに、メソッド内部の処理をリンクする
+     * </p>
+     *
+     * @param umlPackage UML情報
+     * @param umlClass interactionFrangmentが属するクラス
+     * @param og interactionFragmentが軸するOG
+     * @param interactionFragmentList umlClassが持つinteractionFragmentの一覧
+     * @return
+     */
     private void searchInteractionFragment(Package umlPackage, Class umlClass, OperationGraphic og, List<InteractionFragment> interactionFragmentList){
         toSearchNextInteractionFragment: for(int i = 0; i < interactionFragmentList.size(); i++) {
             InteractionFragment interactionFragment = interactionFragmentList.get(i);
@@ -365,6 +417,14 @@ public class UMLTranslator {
         }
     }
 
+    /**
+     * <p>
+     * アクセス修飾子を、可視性に変換する
+     * </p>
+     *
+     * @param accessModifier アクセス修飾子
+     * @return 可視性
+     */
     private Visibility convert(AccessModifier accessModifier) {
         if (accessModifier == AccessModifier.Public) {
             return Visibility.Public;
@@ -392,12 +452,12 @@ public class UMLTranslator {
         for (int i = 0; i < javaClasses.size(); i++) {
             if (javaClasses.get(i).getExtendsClassName() != null) {
                 int finalI = i;
-                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = classPackage.getClasses().stream()
+                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = umlPackage.getClasses().stream()
                         .filter(cp -> cp.getName().equals(javaClasses.get(finalI).getExtendsClassName()))
                         .collect(Collectors.toList());
                 try {
                     io.github.morichan.retuss.language.uml.Class oneClass = oneExtendsClass.get(0);
-                    classPackage.getClasses().get(finalI).setGeneralizationClass(oneClass);
+                    umlPackage.getClasses().get(finalI).setGeneralizationClass(oneClass);
                 } catch (IndexOutOfBoundsException e) {
                     System.out.println("This is Set Error because same class wasn't had, so don't set.");
                 }
@@ -405,7 +465,8 @@ public class UMLTranslator {
         }
     }
 
-    // C++の変換
+
+    // ---------- C++の変換 ----------
 
     private Class createClass(io.github.morichan.retuss.language.cpp.Class cppClass) {
         Class classClass = new Class(cppClass.getName());
@@ -598,12 +659,12 @@ public class UMLTranslator {
         for (int i = 0; i < cppClasses.size(); i++) {
             if (cppClasses.get(i).getExtendsClassName() != null) {
                 int finalI = i;
-                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = classPackage.getClasses().stream()
+                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = umlPackage.getClasses().stream()
                         .filter(cp -> cp.getName().equals(cppClasses.get(finalI).getExtendsClassName()))
                         .collect(Collectors.toList());
                 try {
                     io.github.morichan.retuss.language.uml.Class oneClass = oneExtendsClass.get(0);
-                    classPackage.getClasses().get(finalI).setGeneralizationClass(oneClass);
+                    umlPackage.getClasses().get(finalI).setGeneralizationClass(oneClass);
                 } catch (IndexOutOfBoundsException e) {
                     System.out.println("This is Set Error because same class wasn't had, so don't set.");
                 }
