@@ -182,60 +182,20 @@ public class CodeController {
         return codeTab;
     }
 
+    /**
+     * <p>
+     * ソースコード文字列→ソースコード情報→UML情報→UML描画を行う
+     * </p>
+     *
+     * @param language 変換するソースコードの言語
+     * @return なし
+     */
     public void convertCodeToUml(Language language) {
-        if(mainController.isSelectedSDTab()) {
-            // シーケンス図に変換する場合
-            convertCodeToSD(language);
-        } else {
-            // クラス図に変換する場合
-            convertCodeToCD(language);
-        }
-    }
-
-    /**
-     * <p> ソースコードをクラス図に変換する </p>
-     * @param language
-     */
-    private void convertCodeToCD(Language language) {
-        Java tmpJava = new Java();
-        Cpp tmpCpp = new Cpp();
-
-        // クラス図タブが選択されている場合、すべてのコードをJava情報に変換する
-        // ソースコード文字列 → ソースコード情報(Java or Cpp)
-        for (int i = 0; i < ((TabPane) ((AnchorPane) codeTabPane.getTabs().get(0).getContent()).getChildren().get(0)).getTabs().size(); i++) {
-            try {
-                if (language == Language.Java) {
-                    javaLanguage.parseForClassDiagram(getCode(0, i));
-                    tmpJava.addClass(javaLanguage.getJava().getClasses().get(0));
-                } else {
-                    cppLanguage.parseForClassDiagram(getCode(1, i));
-                    // 複数クラスに対応中、今のところで来ていない
-//                    for (io.github.morichan.retuss.language.cpp.Class cppClass : cppLanguage.getCpp().getClasses()) {
-//                        cpp.addClass(cppClass);
-//                    }
-                    tmpCpp.addClass(cppLanguage.getCpp().getClasses().get(0));
-                }
-            } catch (NullPointerException e) {
-                System.out.println("This is Parse Error because JavaEvalListener object is null, but no problem.");
-            } catch (IllegalArgumentException e) {
-                System.out.println("This is Parse Error because JavaEvalListener object was set IllegalArgument, but no problem.");
-            } catch (IndexOutOfBoundsException e) {
-                System.out.println("This is Parse Error because JavaEvalListener object was not found Class name, but no problem.");
-            }
-        }
-
-        // クラス図の場合は、複数クラスの情報が必要なため、コード全体のモデルを上書きする
-        if (language == Language.Java) {
-            model.setJava(tmpJava);
-        } else {
-            model.setCpp(tmpCpp);
-        }
-
-        // Java,C++情報 → UML情報
-        if (language == Language.Java) {
-            model.setUml(translator.translateToUML(model.getJava()));
-        } else {
-            model.setUml(translator.translateToUML(model.getCpp()));
+        // ソースコード文字列→ソースコード情報→UML情報
+        if(language == Language.Java) {
+            convertJavaToUml();
+        } else if (language == Language.Cpp) {
+            convertCppToUml();
         }
 
         // UML情報 → UMLダイアグラムの描画
@@ -243,55 +203,69 @@ public class CodeController {
     }
 
     /**
-     * <p> ソースコードをシーケンス図に変換する </p>
-     * @param language
+     * <p>
+     * Javaソースコード文字列→Java情報→UML情報
+     * </p>
      */
-    private void convertCodeToSD(Language language) {
-        Java tmpJava = new Java();
-        Cpp tmpCpp = new Cpp();
+    private void convertJavaToUml() {
+        String code = "";
 
-        // シーケンス図タブが選択されている場合、選択されているクラスのコードだけをソースコード情報に変換する
-        // ソースコード文字列 → ソースコード情報(Java or Cpp)
-        for (Tab classTab : ((TabPane) ((AnchorPane) codeTabPane.getTabs().get(0).getContent()).getChildren().get(0)).getTabs()) {
-            if (classTab.isSelected()){
-                try {
-                    String code = ((CodeArea)((AnchorPane)classTab.getContent()).getChildren().get(0)).getText();
-                    if (language == Language.Java) {
-                        javaLanguage.parseForClassDiagram(code);
-                        tmpJava.addClass(javaLanguage.getJava().getClasses().get(0));
-                    } else {
-                        cppLanguage.parseForClassDiagram(code);
-                        tmpCpp.addClass(cppLanguage.getCpp().getClasses().get(0));
-                    }
-                }  catch (NullPointerException e) {
-                    System.out.println("This is Parse Error because JavaEvalListener object is null, but no problem.");
-                } catch (IllegalArgumentException e) {
-                    System.out.println("This is Parse Error because JavaEvalListener object was set IllegalArgument, but no problem.");
-                } catch (IndexOutOfBoundsException e) {
-                    System.out.println("This is Parse Error because JavaEvalListener object was not found Class name, but no problem.");
-                }
+        // 選択されているクラスタブのソースコードを取得
+        for(Tab classTab : ((TabPane) ((AnchorPane) codeTabPane.getTabs().get(0).getContent()).getChildren().get(0)).getTabs()) {
+            if(classTab.isSelected()) {
+                code = ((CodeArea)((AnchorPane)classTab.getContent()).getChildren().get(0)).getText();
             }
         }
 
-        // シーケンス図の場合は、対象クラスのモデルのみを上書きする
-        if (language == Language.Java) {
-            model.getJava().updateClass(tmpJava.getClasses().get(0));
-        } else {
-            model.getCpp().updateClass(tmpCpp.getClasses().get(0));
+        // ソースコード→Java情報に変換
+        try {
+            javaLanguage.parseForClassDiagram(code);
+        } catch (NullPointerException e) {
+            System.out.println("This is Parse Error because JavaEvalListener object is null, but no problem.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("This is Parse Error because JavaEvalListener object was set IllegalArgument, but no problem.");
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("This is Parse Error because JavaEvalListener object was not found Class name, but no problem.");
         }
 
-        // ソースコード情報 → UML情報
-        // シーケンス図の場合は、対象クラスのみをUML情報に変換・更新する
-        if (language == Language.Java) {
-            model.getUml().updateClass(translator.translateToUML(tmpJava).getClasses().get(0));
-        } else {
-            // CppとSDの変換は未対応
-            // model.getUml().updateClass(translator.translateToUML(tmpCpp).getClasses().get(0));
+        // 既存のJava情報を更新
+        model.getJava().updateClass(javaLanguage.getJava().getClasses().get(0));
+
+        // Java情報→UML情報の変換と、既存のUML情報を更新
+        model.getUml().updateClass(translator.translateToUML(javaLanguage.getJava()).getClasses().get(0));
+    }
+
+    /**
+     * <p>
+     * C++ソースコード文字列→Cpp情報→UML情報
+     * </p>
+     */
+    private void convertCppToUml() {
+        String code = "";
+
+        // 選択されているクラスタブのソースコードを取得
+        for(Tab classTab : ((TabPane) ((AnchorPane) codeTabPane.getTabs().get(1).getContent()).getChildren().get(0)).getTabs()) {
+            if(classTab.isSelected()) {
+                code = ((CodeArea)((AnchorPane)classTab.getContent()).getChildren().get(0)).getText();
+            }
         }
 
-        // UML情報 → UMLダイアグラムの描画
-        // 選択されているタブの操作のみ描画
-        mainController.writeUmlForCode(model.getUml());
+        // ソースコード→Cpp情報に変換
+        try {
+            cppLanguage.parseForClassDiagram(code);
+        } catch (NullPointerException e) {
+            System.out.println("This is Parse Error because JavaEvalListener object is null, but no problem.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("This is Parse Error because JavaEvalListener object was set IllegalArgument, but no problem.");
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("This is Parse Error because JavaEvalListener object was not found Class name, but no problem.");
+        }
+
+        // 既存のCpp情報を更新
+        model.getCpp().updateClass(cppLanguage.getCpp().getClasses().get(0));
+
+        // Cpp情報→UML情報の変換と、既存のUML情報を更新
+        model.getUml().updateClass(translator.translateToUML(cppLanguage.getCpp()).getClasses().get(0));
     }
 
     private void setCodeTabs(Java java) {
