@@ -68,7 +68,7 @@ public class CodeController {
         }
 
         // UML情報 → UMLダイアグラムの描画
-        mainController.writeUmlForCode(model.getUml());
+        mainController.writeUml(model.getUml());
     }
 
     /**

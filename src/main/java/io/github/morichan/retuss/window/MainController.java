@@ -1,13 +1,11 @@
 package io.github.morichan.retuss.window;
 
 import io.github.morichan.retuss.language.Model;
+import io.github.morichan.retuss.language.java.Java;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.translator.Language;
-import io.github.morichan.retuss.window.diagram.ContentType;
-import io.github.morichan.retuss.window.diagram.NodeDiagram;
-import io.github.morichan.retuss.window.diagram.OperationGraphic;
-import io.github.morichan.retuss.window.diagram.RelationshipAttributeGraphic;
-import io.github.morichan.retuss.window.diagram.sequence.InteractionFragment;
+import io.github.morichan.retuss.translator.Translator;
+import io.github.morichan.retuss.window.diagram.*;
 import io.github.morichan.retuss.window.utility.UtilityJavaFXComponent;
 import io.github.morichan.retuss.language.uml.Package;
 import javafx.fxml.FXML;
@@ -30,8 +28,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * <p> RETUSSメインウィンドウの動作管理クラス </p>
@@ -69,10 +65,6 @@ public class MainController {
     private Button normalButtonInSD;
     @FXML
     private Button messageButtonInSD;
-    @FXML
-    private Button cfButtonInSD;
-    @FXML
-    private Button deleteButtonInSD;
 
     private List<Button> buttonsInCD = new ArrayList<>();
     private List<Button> buttonsInSD = new ArrayList<>();
@@ -361,7 +353,7 @@ public class MainController {
                 classDiagramDrawer.addDrawnNode(buttonsInCD);
                 classDiagramDrawer.allReDrawCanvas();
                 convertUmlToCode();
-                writeUmlForCode(classDiagramDrawer.getPackage());
+                writeUml(classDiagramDrawer.getPackage());
             } else if (util.searchSelectedButtonIn(buttonsInCD) == compositionButtonInCD) {
                 classDiagramDrawer.resetNodeChosen(classDiagramDrawer.getCurrentNodeNumber());
                 classDiagramDrawer.allReDrawCanvas();
@@ -414,27 +406,6 @@ public class MainController {
     }
 
     /**
-     * <p> シーケンス図キャンバス上で（通常）左クリックした際に実行します </p>
-     *
-     * <p>
-     * 操作ボタンにより動作が異なるが、通常操作以外は描画のみを行います。
-     * また、通常操作時は何も動作しません。
-     * </p>
-
-
-     */
-    private void clickedCanvasByPrimaryButtonInSD() {
-        if (util.searchSelectedButtonIn(buttonsInSD) == messageButtonInSD) {
-            String className = showCreateClassNameInputDialog();
-//            classDiagramDrawer.setNodeText(className);
-//            classDiagramDrawer.addDrawnNode(buttonsInCD);
-//            classDiagramDrawer.allReDrawCanvas();
-//            convertUmlToCode();
-//            writeUmlForCode(classDiagramDrawer.getPackage());
-        }
-    }
-
-    /**
      * <p> コードウィンドウを表示します </p>
      *
      * <p>
@@ -467,10 +438,6 @@ public class MainController {
         }
     }
 
-    public Package getClassDiagramDrawerUmlPackage() {
-        return classDiagramDrawer.getPackage();
-    }
-
     public CodeController getCodeController() { return this.codeController; }
 
     public SequenceDiagramDrawer getSequenceDiagramDrawer() { return this.sequenceDiagramDrawer; }
@@ -483,15 +450,36 @@ public class MainController {
         return this.sequenceDiagramTab.isSelected();
     }
 
-    public void writeUmlForCode(Package umlPackage) {
+    public void writeUml(Package umlPackage) {
         if (classDiagramTab.isSelected()) {
-            writeClassDiagramForCode(umlPackage);
+            writeClassDiagram(umlPackage);
         } else { // if (sequenceDiagramTab.isSelected()) {
-            writeSequenceDiagramForCode(umlPackage);
+            writeSequenceDiagram(umlPackage);
         }
     }
 
-    private void writeClassDiagramForCode(Package umlPackage) {
+    /**
+     * <p> 選択しているUMLクラスをソースコード情報に変換し、ソースコードウィンドウを更新する </p>
+     */
+    public void convertUmlToCode() {
+        // 選択しているUMLクラスの特定
+        String selectedClassName = classDiagramDrawer.getNodes().get(classDiagramDrawer.getCurrentNodeNumber()).getNodeText();
+        Class selectedClass = model.getUml().searchClass(selectedClassName);
+
+        // 選択しているUMLクラス→ソースコード情報
+        Package tmpPackage = new Package();
+        tmpPackage.addClass(selectedClass);
+        Translator translator = new Translator(model);
+        Java tmpJava = translator.translateToJava(tmpPackage);
+
+        // 既存のソースコード情報を更新
+        model.getJava().updateClass(tmpJava.getClasses().get(0));
+
+        // ソースコード情報→ソースコードの文字列
+        codeController.updateCode();
+    }
+
+    private void writeClassDiagram(Package umlPackage) {
         if (umlPackage.getClasses().size() <= 0) return;
 
         // i番目のクラスが持つj番目の属性はk番目のクラスとコンポジション関係を持つ
@@ -553,7 +541,7 @@ public class MainController {
         createClassTreeViewContents();
     }
 
-    private void writeSequenceDiagramForCode(Package umlPackage) {
+    private void writeSequenceDiagram(Package umlPackage) {
         tabPaneInSequenceTab.getTabs().clear();
         sequenceDiagramDrawer.setSequenceDiagramTabPane(tabPaneInSequenceTab);
         sequenceDiagramDrawer.setUmlPackage(umlPackage);
@@ -611,7 +599,7 @@ public class MainController {
         classDiagramDrawer.allReDrawCanvas();
         model.getUml().addClass(new Class(className));
         convertUmlToCode();
-        writeUmlForCode(classDiagramDrawer.getPackage());
+        writeUml(classDiagramDrawer.getPackage());
         buttonsInCD = util.bindAllButtonsFalseWithout(buttonsInCD, normalButtonInCD);
     }
 
@@ -622,8 +610,8 @@ public class MainController {
         classDiagramDrawer.allReDrawCanvas();
         codeController.importCode(language, code);
         classDiagramDrawer.changeDrawnNodeText(classDiagramDrawer.getNodes().size() - 1, ContentType.Title, 0, model.getUml().getClasses().get(model.getUml().getClasses().size() - 1).getName());
-        convertUmlToCode(model.getUml());
-        writeUmlForCode(model.getUml());
+        convertUmlToCode();
+        writeUml(model.getUml());
         buttonsInCD = util.bindAllButtonsFalseWithout(buttonsInCD, normalButtonInCD);
     }
 
@@ -638,22 +626,6 @@ public class MainController {
      */
     Stage getCodeStage() {
         return codeStage;
-    }
-
-    /**
-     * <p> UMLをコードに変換してコードエリアに反映します </p>
-     */
-    private void convertUmlToCode() {
-        if (codeController == null) return;
-        codeController.updateCode();
-    }
-
-    /**
-     * <p> UMLをコードに変換してコードエリアに反映します </p>
-     */
-    private void convertUmlToCode(Package umlPackage) {
-        if (codeController == null) return;
-        codeController.updateCode();
     }
 
     /**
@@ -697,20 +669,21 @@ public class MainController {
             classDiagramDrawer.changeDrawnNodeText(classDiagramDrawer.getCurrentNodeNumber(), ContentType.Title, 0, className);
             classDiagramDrawer.allReDrawCanvas();
             convertUmlToCode();
-            writeUmlForCode(classDiagramDrawer.getPackage());
+            writeUml(classDiagramDrawer.getPackage());
         });
         // クラスの削除
         contextMenu.getItems().get(1).setOnAction(event -> {
             classDiagramDrawer.deleteDrawnNode(classDiagramDrawer.getCurrentNodeNumber());
             classDiagramDrawer.allReDrawCanvas();
             convertUmlToCode();
-            writeUmlForCode(classDiagramDrawer.getPackage());
+            writeUml(classDiagramDrawer.getPackage());
         });
         // クラスの属性の追加
         ((Menu) contextMenu.getItems().get(3)).getItems().get(0).setOnAction(event -> {
             String addAttribute = showAddClassAttributeInputDialog();
             classDiagramDrawer.addDrawnNodeText(classDiagramDrawer.getCurrentNodeNumber(), ContentType.Attribute, addAttribute);
             classDiagramDrawer.allReDrawCanvas();
+            model.getUml().updateClass(((ClassNodeDiagram) classDiagramDrawer.getNodes().get(classDiagramDrawer.getCurrentNodeNumber())).extractClass());
             convertUmlToCode();
         });
         // クラスの操作の追加
