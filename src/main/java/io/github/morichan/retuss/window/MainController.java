@@ -333,7 +333,7 @@ public class MainController {
                     String compositionName = showCreateCompositionNameInputDialog();
                     classDiagramDrawer.addDrawnEdge(buttonsInCD, compositionName, mouseX, mouseY);
                     classDiagramDrawer.allReDrawCanvas();
-                    convertUmlToCode();
+                    convertUmlToCodeAllClass();
                 }
             } else if (util.searchSelectedButtonIn(buttonsInCD) == generalizationButtonInCD) {
                 if (!classDiagramDrawer.hasWaitedCorrectDrawnDiagram(ContentType.Generalization, mouseX, mouseY)) {
@@ -342,7 +342,7 @@ public class MainController {
                 } else {
                     classDiagramDrawer.addDrawnEdge(buttonsInCD, "", mouseX, mouseY);
                     classDiagramDrawer.allReDrawCanvas();
-                    convertUmlToCode();
+                    convertUmlToCodeAllClass();
                 }
             }
         } else {
@@ -474,6 +474,16 @@ public class MainController {
 
         // 既存のソースコード情報を更新
         model.getJava().updateClass(tmpJava.getClasses().get(0));
+
+        // ソースコード情報→ソースコードの文字列
+        codeController.updateCode();
+    }
+
+    public void convertUmlToCodeAllClass() {
+        Translator translator = new Translator(model);
+        Java newJava = translator.translateToJava(model.getUml());
+
+        model.setJava(newJava);
 
         // ソースコード情報→ソースコードの文字列
         codeController.updateCode();
@@ -834,6 +844,7 @@ public class MainController {
 
     public void setModel(Model model) {
         this.model = model;
+        this.classDiagramDrawer.setModel(model);
     }
 
     public Model getModel() { return model; }

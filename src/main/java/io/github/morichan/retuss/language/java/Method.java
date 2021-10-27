@@ -204,10 +204,10 @@ public class Method implements BlockStatement {
     public String getStatement() {
         StringBuilder callMethodStr = new StringBuilder();
 
-        if (!type.toString().equals("TmpType")) {
-            callMethodStr.append(type.toString());
-            callMethodStr.append(".");
-        }
+//        if (!type.toString().equals("TmpType")) {
+//            callMethodStr.append(type.toString());
+//            callMethodStr.append(".");
+//        }
         callMethodStr.append(name + "(");
 
         if (arguments.size() > 0) {

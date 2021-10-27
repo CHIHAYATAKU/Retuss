@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.window;
 
+import io.github.morichan.retuss.language.Model;
 import io.github.morichan.retuss.language.uml.Package;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.window.diagram.*;
@@ -25,7 +26,7 @@ public class ClassDiagramDrawer {
     private List<NodeDiagram> nodes = new ArrayList<>();
     private EdgeDiagram relations = new EdgeDiagram();
     private Package umlPackage = new Package();
-
+    private Model model;
     private int currentNodeNumber = -1;
 
     /**
@@ -150,6 +151,7 @@ public class ClassDiagramDrawer {
         drawDiagramCanvasEdge();
         allReDrawNode();
         allReDrawEdge();
+        this.model.setUml(umlPackage);
     }
 
     /**
@@ -780,6 +782,14 @@ public class ClassDiagramDrawer {
         }
 
         return act;
+    }
+
+    public Model getModel() {
+        return model;
+    }
+
+    public void setModel(Model model) {
+        this.model = model;
     }
 
     /**

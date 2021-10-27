@@ -160,7 +160,7 @@ public class CodeController {
     }
 
     /**
-     * <p> 選択されている(変更があった)クラスのシーケンス図を、コードに反映する </p>
+     * <p> クラス図全体を、コードに反映する </p>
      */
     private void updateCodeFromCD() {
         model.setJava(translator.translateToJava(model.getUml()));

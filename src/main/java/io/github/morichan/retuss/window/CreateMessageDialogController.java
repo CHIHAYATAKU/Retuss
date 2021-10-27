@@ -57,8 +57,8 @@ public class CreateMessageDialogController {
         }
         methodCombo.setValue(targetOg.getOperation().toString());
 
-        // 追加対象クラスの属性のクラス名を追加
-        for (AttributeGraphic ag : targetClass.getAttributeGraphics()) {
+        // 追加対象クラスが関連を持つクラス名を追加
+        for (AttributeGraphic ag : targetClass.getRelationGraphics()) {
             classCombo.getItems().add(ag.getAttribute().getType().getName().getNameText());
         }
     }

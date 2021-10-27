@@ -99,6 +99,14 @@ public class SequenceDiagramDrawer {
     public void createSequenceTabContent(Tab sequenceDiagramTab) {
         interactionSetFromClassNameAndOperation = new HashMap<>();
 
+        // シーケンス図タブ内のコンテンツを全て削除
+        AnchorPane anchorPaneOnTabPane = (AnchorPane) sequenceDiagramTab.getContent();
+        BorderPane borderPaneOnAnchorPaneOnTabPane = (BorderPane) anchorPaneOnTabPane.getChildren().get(0);
+        AnchorPane anchorPaneOnVBox = (AnchorPane) borderPaneOnAnchorPaneOnTabPane.getCenter();
+        TabPane tabPane = (TabPane) anchorPaneOnVBox.getChildren().get(0);
+        tabPane.getTabs().clear();
+
+        // シーケンス図タブ内に新しいコンテツを追加
         for (Class umlClass : umlPackage.getClasses()) {
             Map<String, Interaction> interactionSetFromOperation = new HashMap<>();
             String className = umlClass.getName();
@@ -127,6 +135,8 @@ public class SequenceDiagramDrawer {
             return;
 
         int classIndex = 0;
+
+        tabPaneInSequenceTab = mainController.getTabPaneInSequenceTab();
 
         for (Tab classTab : tabPaneInSequenceTab.getTabs()) {
             if (!classTab.isSelected()) {

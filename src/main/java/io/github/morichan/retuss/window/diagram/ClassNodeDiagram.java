@@ -4,6 +4,10 @@ import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.retuss.language.uml.Class;
 import io.github.morichan.retuss.window.ClassDiagramDrawer;
+import io.github.morichan.retuss.window.diagram.sequence.Interaction;
+import io.github.morichan.retuss.window.diagram.sequence.Lifeline;
+import io.github.morichan.retuss.window.diagram.sequence.MessageOccurrenceSpecification;
+import io.github.morichan.retuss.window.diagram.sequence.MessageType;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
@@ -132,7 +136,15 @@ public class ClassNodeDiagram extends NodeDiagram {
         } else if (type == ContentType.Attribute) {
             attributes.add(new AttributeGraphic(text));
         } else if (type == ContentType.Operation) {
-            operations.add(new OperationGraphic(text));
+            MessageOccurrenceSpecification message = new MessageOccurrenceSpecification();
+            message.setLifeline(new Lifeline(umlClass));
+            message.setType(umlClass);
+            message.setName(text);
+            message.setMessageType(MessageType.Method);
+            Interaction interaction = new Interaction(message);
+            OperationGraphic operationGraphic = new OperationGraphic(text);
+            operationGraphic.setInteraction(interaction);
+            operations.add(operationGraphic);
         } else if (type == ContentType.Composition) {
             relations.add(new RelationshipAttributeGraphic(text));
         } else {

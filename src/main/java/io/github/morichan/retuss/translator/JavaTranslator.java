@@ -42,7 +42,11 @@ public class JavaTranslator {
             java.addClass(createJavaClass(cc));
         }
 
-        searchGeneralizationClass(classPackage.getClasses());
+        if (classPackage.getClasses().size() == 1) {
+            searchGeneralizationClass(classPackage.getClasses());
+        } else {
+            searchGeneralizationClassAllClass(classPackage.getClasses());
+        }
 
         return java;
     }
@@ -254,6 +258,19 @@ public class JavaTranslator {
                 int finalI = i;
                 List<io.github.morichan.retuss.language.java.Class> oneGeneralizationJavaClass =
                         java.getClasses().stream().filter(
+                                jc -> jc.getName().equals(classClasses.get(finalI).getGeneralizationClass().getName())
+                        ).collect(Collectors.toList());
+                java.getClasses().get(finalI).setExtendsClass(oneGeneralizationJavaClass.get(0));
+            }
+        }
+    }
+
+    private void searchGeneralizationClassAllClass(List<io.github.morichan.retuss.language.uml.Class> classClasses) {
+        for (int i = 0; i < classClasses.size(); i++) {
+            if (classClasses.get(i).getGeneralizationClass() != null) {
+                int finalI = i;
+                List<io.github.morichan.retuss.language.java.Class> oneGeneralizationJavaClass =
+                        model.getJava().getClasses().stream().filter(
                                 jc -> jc.getName().equals(classClasses.get(finalI).getGeneralizationClass().getName())
                         ).collect(Collectors.toList());
                 java.getClasses().get(finalI).setExtendsClass(oneGeneralizationJavaClass.get(0));
