@@ -452,7 +452,7 @@ public class UMLTranslator {
         for (int i = 0; i < javaClasses.size(); i++) {
             if (javaClasses.get(i).getExtendsClassName() != null) {
                 int finalI = i;
-                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = umlPackage.getClasses().stream()
+                List<io.github.morichan.retuss.language.uml.Class> oneExtendsClass = model.getUml().getClasses().stream()
                         .filter(cp -> cp.getName().equals(javaClasses.get(finalI).getExtendsClassName()))
                         .collect(Collectors.toList());
                 try {

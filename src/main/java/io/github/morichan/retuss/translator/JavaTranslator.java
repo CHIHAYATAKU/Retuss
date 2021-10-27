@@ -257,10 +257,12 @@ public class JavaTranslator {
             if (classClasses.get(i).getGeneralizationClass() != null) {
                 int finalI = i;
                 List<io.github.morichan.retuss.language.java.Class> oneGeneralizationJavaClass =
-                        java.getClasses().stream().filter(
+                        model.getJava().getClasses().stream().filter(
                                 jc -> jc.getName().equals(classClasses.get(finalI).getGeneralizationClass().getName())
                         ).collect(Collectors.toList());
-                java.getClasses().get(finalI).setExtendsClass(oneGeneralizationJavaClass.get(0));
+                if(oneGeneralizationJavaClass.size() > 0) {
+                    java.getClasses().get(finalI).setExtendsClass(oneGeneralizationJavaClass.get(0));
+                }
             }
         }
     }
@@ -270,10 +272,12 @@ public class JavaTranslator {
             if (classClasses.get(i).getGeneralizationClass() != null) {
                 int finalI = i;
                 List<io.github.morichan.retuss.language.java.Class> oneGeneralizationJavaClass =
-                        model.getJava().getClasses().stream().filter(
+                        java.getClasses().stream().filter(
                                 jc -> jc.getName().equals(classClasses.get(finalI).getGeneralizationClass().getName())
                         ).collect(Collectors.toList());
-                java.getClasses().get(finalI).setExtendsClass(oneGeneralizationJavaClass.get(0));
+                if(oneGeneralizationJavaClass.size() > 0) {
+                    java.getClasses().get(finalI).setExtendsClass(oneGeneralizationJavaClass.get(0));
+                }
             }
         }
     }
