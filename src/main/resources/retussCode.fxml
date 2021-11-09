@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.window.CodeController">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.controller.CodeController">
     <children>
         <BorderPane layoutY="38.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <center>
@@ -15,7 +15,7 @@
          <top>
             <ButtonBar prefHeight="18.0" prefWidth="600.0" BorderPane.alignment="CENTER">
               <buttons>
-                <Button maxWidth="109.0" minWidth="30.0" mnemonicParsing="false" onAction="#createClass" prefHeight="25.0" prefWidth="86.0" text="Create Class" />
+                <Button maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" onAction="#createClass" prefHeight="25.0" prefWidth="100.0" text="Create Class" />
               </buttons>
             </ButtonBar>
          </top>

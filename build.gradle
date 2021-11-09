@@ -23,7 +23,7 @@ apply plugin: 'spring-boot'
 
 
 // SpringBoot pluginを利用することで邪魔になったため除外
-mainClassName = 'io.github.morichan.retuss.window.RetussWindow'
+mainClassName = 'io.github.morichan.retuss.RetussWindow'
 
 sourceCompatibility = 11
 targetCompatibility = 11
