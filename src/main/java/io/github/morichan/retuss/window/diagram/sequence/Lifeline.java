@@ -161,7 +161,6 @@ public class Lifeline {
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setFont(lifelineNameText.getFont());
         gc.fillText(lifelineNameText.getText(), headCenterPoint.getX(), headCenterPoint.getY());
-        gc.strokeLine(topLeftCorner.getX() + 5.0, bottomRightCorner.getY() - 8.0, bottomRightCorner.getX() - 5.0, bottomRightCorner.getY() - 8.0);
 
         gc.setLineDashes(10.0, 10.0);
         gc.strokeLine(headCenterPoint.getX(), bottomRightCorner.getY(), headCenterPoint.getX(), bottomRightCorner.getY() + 500.0);
