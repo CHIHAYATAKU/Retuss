@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.controller;
 
+import io.github.morichan.retuss.model.Model;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
@@ -44,6 +45,7 @@ public class UmlController {
     private Button normalButtonInSD;
     @FXML
     private Button messageButtonInSD;
+    private Model model = Model.getInstance();
 
     /**
      * <p> JavaFXにおけるデフォルトコンストラクタ </p>
@@ -55,7 +57,7 @@ public class UmlController {
      */
     @FXML
     private void initialize() {
-
+        model.setUmlController(this);
     }
 
     @FXML

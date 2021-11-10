@@ -1,5 +1,7 @@
 package io.github.morichan.retuss;
 
+import io.github.morichan.retuss.controller.CodeController;
+import io.github.morichan.retuss.controller.UmlController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -24,8 +26,8 @@ public class RetussWindow extends Application {
         double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
 
         // UMLウィンドウの表示
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(resourcesPath + mainFxmlFileName));
-        Parent root = loader.load();
+        FXMLLoader umlLoader = new FXMLLoader(getClass().getResource(resourcesPath + mainFxmlFileName));
+        Parent root = umlLoader.load();
         mainStage.setTitle("UML Window");
         mainStage.setScene(new Scene(root));
         mainStage.setMaxWidth(screenWidth);
