@@ -1,14 +1,13 @@
 package io.github.morichan.retuss.model;
 
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import io.github.morichan.fescue.feature.value.expression.symbol.Mod;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
+import io.github.morichan.retuss.model.uml.Class;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <p> RETUSS内のデータ構造を保持するクラス </p>
@@ -18,6 +17,7 @@ public class Model {
     private static Model model = new Model();
     private UmlController umlController;
     private CodeController codeController;
+    // ファイルのデータ構造
     private List<CodeFile> codeFileList = new ArrayList<>();
 
 
@@ -45,20 +45,14 @@ public class Model {
         codeController.updateCodeTab(newCodeFile);
     }
 
-    /**
-     * <p>ソースコードを構文解析し、構文木をCodeFileにセットする。</p>
-     * @param changedCodeFile 変更対象ファイル
-     * @param code 変更後のソースコード
-     */
-    public void updateCodeFile(CodeFile changedCodeFile, String code) {
-        try {
-            CompilationUnit compilationUnit = StaticJavaParser.parse(code);
-            changedCodeFile.setCompilationUnit(compilationUnit);
-            System.out.println(changedCodeFile.getCode());
-        } catch (Exception e) {
-            // JavaParserは、Javaの構文に従っていないコードは構文解析できない
-            System.out.println("Cannot parse.");
-            return;
+    public Optional<Class> findClass(String className) {
+        for(CodeFile codeFile : codeFileList) {
+            for(Class umlClass : codeFile.getUmlClassList()) {
+                if(umlClass.getName().equals(className)) {
+                    return Optional.of(umlClass);
+                }
+            }
         }
+        return Optional.empty();
     }
 }

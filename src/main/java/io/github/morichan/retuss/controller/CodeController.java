@@ -2,7 +2,6 @@ package io.github.morichan.retuss.controller;
 
 import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.Model;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -10,6 +9,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.util.Pair;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -108,7 +108,7 @@ public class CodeController {
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
                 String code = codeArea.getText();
                 // コードファイルを更新する
-                model.updateCodeFile(targetCodeFile, code);
+                targetCodeFile.updateCode(code);
                 return;
             }
         }
