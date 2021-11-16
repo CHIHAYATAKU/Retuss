@@ -3,14 +3,12 @@ package io.github.morichan.retuss.model.uml;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Class {
     private String name = "";
     private Boolean isAbstruct = false;
-    // true=宣言されたクラス、false=宣言されていない仮のクラス
-    private Boolean isActive;
+    private Boolean isActive;   // 宣言されてたかどうか
     private Class superClass;
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
@@ -49,12 +47,20 @@ public class Class {
         isActive = active;
     }
 
-    public Class getSuperClass() {
-        return superClass;
+    public Optional<Class> getSuperClass() {
+        return Optional.ofNullable(superClass);
     }
 
     public void setSuperClass(Class superClass) {
         this.superClass = superClass;
+    }
+
+    public List<Attribute> getAttributeList() {
+        return Collections.unmodifiableList(attributeList);
+    }
+
+    public List<Operation> getOperationList() {
+        return Collections.unmodifiableList(operationList);
     }
 
     public void addAttribute(Attribute attribute) {

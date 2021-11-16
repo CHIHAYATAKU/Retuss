@@ -45,6 +45,29 @@ public class Model {
         codeController.updateCodeTab(newCodeFile);
     }
 
+    public List<Class> getUmlClassList() {
+        List<Class> umlClassList = new ArrayList<>();
+        for(CodeFile codeFile : codeFileList) {
+            umlClassList.addAll(codeFile.getUmlClassList());
+        }
+
+        return umlClassList;
+    }
+
+    /**
+     * <p>ソースコードを構文解析し、構文木をCodeFileにセットする。</p>
+     * @param changedCodeFile 変更対象ファイル
+     * @param code 変更後のソースコード
+     */
+    public void updateCodeFile(CodeFile changedCodeFile, String code) {
+        try {
+            changedCodeFile.updateCode(code);
+            umlController.updateDiagram();
+        } catch (Exception e) {
+            return;
+        }
+    }
+
     public Optional<Class> findClass(String className) {
         for(CodeFile codeFile : codeFileList) {
             for(Class umlClass : codeFile.getUmlClassList()) {

@@ -108,7 +108,7 @@ public class CodeController {
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
                 String code = codeArea.getText();
                 // コードファイルを更新する
-                targetCodeFile.updateCode(code);
+                model.updateCodeFile(targetCodeFile, code);
                 return;
             }
         }

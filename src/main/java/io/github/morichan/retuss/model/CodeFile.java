@@ -45,7 +45,7 @@ public class CodeFile {
         return compilationUnit.toString();
     }
 
-    public void updateCode(String code) {
+    void updateCode(String code) {
         try {
             CompilationUnit compilationUnit = StaticJavaParser.parse(code);
             this.compilationUnit = compilationUnit;
@@ -54,6 +54,7 @@ public class CodeFile {
             System.out.println(code);
         } catch (Exception e) {
             System.out.println("Cannot parse.");
+            throw e;
         }
     }
 }

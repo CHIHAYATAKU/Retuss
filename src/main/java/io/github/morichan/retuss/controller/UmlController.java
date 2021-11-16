@@ -1,22 +1,14 @@
 package io.github.morichan.retuss.controller;
 
+import io.github.morichan.retuss.drawer.ClassDiagramDrawer;
 import io.github.morichan.retuss.model.Model;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Point2D;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.*;
-import javafx.scene.input.MouseButton;
+import javafx.scene.control.Button;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.util.Arrays;
+import javafx.scene.web.WebView;
 
 public class UmlController {
     @FXML
@@ -34,9 +26,7 @@ public class UmlController {
     @FXML
     private Button generalizationButtonInCD;
     @FXML
-    private ScrollPane classDiagramScrollPane;
-    @FXML
-    private Canvas classDiagramCanvas;
+    private WebView classDiagramWebView;
     @FXML
     private Tab sequenceDiagramTab;
     @FXML
@@ -46,6 +36,7 @@ public class UmlController {
     @FXML
     private Button messageButtonInSD;
     private Model model = Model.getInstance();
+    private ClassDiagramDrawer classDiagramDrawer;
 
     /**
      * <p> JavaFXにおけるデフォルトコンストラクタ </p>
@@ -58,6 +49,7 @@ public class UmlController {
     @FXML
     private void initialize() {
         model.setUmlController(this);
+        classDiagramDrawer = new ClassDiagramDrawer(classDiagramWebView);
     }
 
     @FXML
@@ -177,5 +169,11 @@ public class UmlController {
     @FXML
     private void showDeleteDialog() {
 
+    }
+
+    public void updateDiagram() {
+        if(classDiagramTab.isSelected()) {
+            classDiagramDrawer.draw();
+        }
     }
 }

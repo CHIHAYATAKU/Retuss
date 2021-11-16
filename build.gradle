@@ -53,9 +53,8 @@ dependencies {
     compile 'org.fxmisc.richtext:richtextfx:0.10.0'
     // JavaParser
     implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.23.1'
-    // Eclipse Modeling Projects > Model Development Tool > UML2
-    implementation(fileTree(dir: 'libs', include: ['org.eclipse.uml2.uml-5.0.1.v20140910-1354.jar']))
-
+    // https://mvnrepository.com/artifact/net.sourceforge.plantuml/plantuml
+    implementation group: 'net.sourceforge.plantuml', name: 'plantuml', version: '8059'
 
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.0-M1'
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.0-M1'
@@ -117,8 +116,8 @@ jar {
 
 
 javafx {
-    version = "11.0.2"
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
+    version = "17"
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.web' ]
 }
 
 jlink {

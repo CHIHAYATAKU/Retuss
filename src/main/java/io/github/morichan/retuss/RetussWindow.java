@@ -1,13 +1,12 @@
 package io.github.morichan.retuss;
 
-import io.github.morichan.retuss.controller.CodeController;
-import io.github.morichan.retuss.controller.UmlController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 
 public class RetussWindow extends Application {
