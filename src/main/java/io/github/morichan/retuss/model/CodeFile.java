@@ -14,6 +14,10 @@ public class CodeFile {
     private List<Class> umlClassList = new ArrayList<>();
     private Translator translator = new Translator();
 
+    public CodeFile(String fileName) {
+        this.fileName = fileName;
+    }
+
     public UUID getID() {
         return ID;
     }
@@ -56,5 +60,11 @@ public class CodeFile {
             System.out.println("Cannot parse.");
             throw e;
         }
+    }
+
+    void addUmlClass(Class umlClass) {
+        this.umlClassList.clear();
+        this.umlClassList.add(umlClass);
+        this.compilationUnit = translator.translateUmlToCode(umlClassList, compilationUnit);
     }
 }

@@ -15,6 +15,7 @@ import io.github.morichan.retuss.model.uml.Class;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Translator {
 
@@ -76,9 +77,14 @@ public class Translator {
     /**
      * <p>UMLデータをソースコードのASTに変換する。</p>
      */
-    public CompilationUnit translateUmlToCode(ArrayList<Class> classList) {
-        CompilationUnit compilationUnit = new CompilationUnit();
-        return compilationUnit;
+    public CompilationUnit translateUmlToCode(List<Class> classList, CompilationUnit currentCU) {
+        CompilationUnit newCU = new CompilationUnit();
+
+        if(Objects.isNull(currentCU)) {
+            newCU.addClass(classList.get(0).getName());
+        }
+
+        return newCU;
     }
 
     private Visibility toVisibility(List<Modifier> modifierList) {
@@ -87,9 +93,9 @@ public class Translator {
             if(keyword == Modifier.Keyword.PUBLIC) {
                 return Visibility.Public;
             } else if(keyword == Modifier.Keyword.PROTECTED) {
-                return Visibility.Public;
+                return Visibility.Protected;
             } else if(keyword == Modifier.Keyword.PRIVATE) {
-                return Visibility.Public;
+                return Visibility.Private;
             }
         }
         // (独自仕様) Javaで上記のいずれも記述されていない場合は、UMLでPackageとして扱う

@@ -40,7 +40,7 @@ public class Model {
     }
 
     public void addCodeFile() {
-        CodeFile newCodeFile = new CodeFile();
+        CodeFile newCodeFile = new CodeFile("");
         codeFileList.add(newCodeFile);
         codeController.updateCodeTab(newCodeFile);
     }
@@ -51,7 +51,20 @@ public class Model {
             umlClassList.addAll(codeFile.getUmlClassList());
         }
 
-        return umlClassList;
+        return Collections.unmodifiableList(umlClassList);
+    }
+
+    /**
+     * 新規のUMLクラスを追加する
+     * [制約] 1ファイル1クラスとする
+     * @param umlClass
+     */
+    public void addUmlClass(Class umlClass) {
+        CodeFile codeFile = new CodeFile(String.format("%s.java", umlClass.getName()));
+        codeFile.addUmlClass(umlClass);
+        codeFileList.add(codeFile);
+        umlController.updateDiagram();
+        codeController.updateCodeTab(codeFile);
     }
 
     /**
@@ -78,4 +91,5 @@ public class Model {
         }
         return Optional.empty();
     }
+
 }

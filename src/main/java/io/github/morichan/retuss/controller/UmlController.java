@@ -3,38 +3,22 @@ package io.github.morichan.retuss.controller;
 import io.github.morichan.retuss.drawer.ClassDiagramDrawer;
 import io.github.morichan.retuss.model.Model;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TreeView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.web.WebView;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class UmlController {
-    @FXML
-    private TreeView<String> classTree;
-    @FXML
-    private Tab classDiagramTab;
-    @FXML
-    private Button normalButtonInCD;
-    @FXML
-    private Button classButtonInCD;
-    @FXML
-    private Button noteButtonInCD;
-    @FXML
-    private Button compositionButtonInCD;
-    @FXML
-    private Button generalizationButtonInCD;
-    @FXML
-    private WebView classDiagramWebView;
-    @FXML
-    private Tab sequenceDiagramTab;
-    @FXML
-    private TabPane tabPaneInSequenceTab;
-    @FXML
-    private Button normalButtonInSD;
-    @FXML
-    private Button messageButtonInSD;
+    @FXML private Tab classDiagramTab;
+    @FXML private Button newClassBtn;
+    @FXML private Button editClassBtn;
+    @FXML private Button deleteClassBtn;
+    @FXML private WebView classDiagramWebView;
+
     private Model model = Model.getInstance();
     private ClassDiagramDrawer classDiagramDrawer;
 
@@ -73,70 +57,12 @@ public class UmlController {
     }
 
     /**
-     * <p> Normalボタン選択時のシグナルハンドラ </p>
-     *
-     * <p> ClassDiagramTabにおけるToolBar内のNormalボタンで参照 </p>
-     */
-    @FXML
-    private void selectNormalInCD() {
-
-    }
-
-    /**
-     * <p> Classボタン選択時のシグナルハンドラ </p>
-     *
-     * <p> ClassDiagramTabにおけるToolBar内のClassボタンで参照 </p>
-     */
-    @FXML
-    private void selectClassInCD() {
-
-    }
-
-    /**
      * <p> Noteボタン選択時のシグナルハンドラ </p>
      *
      * <p> ClassDiagramTabにおけるToolBar内のNoteボタンで参照 </p>
      */
     @FXML
     private void selectNoteInCD() {
-
-    }
-
-    /**
-     * <p> Compositionボタン選択時のシグナルハンドラ </p>
-     *
-     * <p> ClassDiagramTabにおけるToolBar内のCompositionボタンで参照 </p>
-     */
-    @FXML
-    private void selectCompositionInCD() {
-    }
-
-    /**
-     * <p> Generalizationボタン選択時のシグナルハンドラ </p>
-     *
-     * <p> ClassDiagramTabにおけるToolBar内のGeneralizationボタンで参照 </p>
-     */
-    @FXML
-    private void selectGeneralizationInCD() {
-    }
-
-    /**
-     * <p> Canvasクリック時のシグナルハンドラ </p>
-     *
-     * <p> ClassDiagramTabにおけるScrollPane内のCanvas（ {@link #classDiagramCanvas} ）で参照 </p>
-     */
-    @FXML
-    private void clickedCanvasInCD(MouseEvent event) {
-
-    }
-
-    /**
-     * <p> Canvasドラッグ時のシグナルハンドラ </p>
-     *
-     * <p> ClassDiagramTabにおけるScrollPane内のCanvas（ {@link #classDiagramCanvas} ）で参照 </p>
-     */
-    @FXML
-    private void draggedCanvasInCD(MouseEvent event) {
 
     }
 
@@ -168,6 +94,31 @@ public class UmlController {
      */
     @FXML
     private void showDeleteDialog() {
+
+    }
+
+    @FXML private void showNewClassDialog() {
+        // 作成するメッセージの情報を入力する画面表示
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/newClassDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+//            CreateMessageDialogController createMessageDialogController = fxmlLoader.getController();
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("New Class Dialog");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @FXML private void showEditClassWindow() {
+
+    }
+
+    @FXML private void showDleteClassWindow() {
 
     }
 
