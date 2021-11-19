@@ -3,8 +3,12 @@ package io.github.morichan.retuss.model;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.fescue.feature.name.Name;
+import io.github.morichan.fescue.feature.type.Type;
+import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.Class;
@@ -162,9 +166,53 @@ public class Model {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
     }
 
+    public void addComposition(String haveClassName, String compositedClassName) {
+        Optional<CodeFile> haveCodefileOptional = findCodeFile(haveClassName + ".java");
+        Optional<CodeFile> compositedCodefileOptional = findCodeFile(compositedClassName + ".java");
+        Optional<Class> haveClassOptional = findClass(haveClassName);
+        Optional<Class> compositedClassOptional = findClass(compositedClassName);
 
+        if(haveCodefileOptional.isEmpty() || compositedCodefileOptional.isEmpty() || haveClassOptional.isEmpty() || compositedClassOptional.isEmpty()) {
+            return;
+        }
 
+        try {
+            Name name = new Name(compositedClassName.toLowerCase());
+            Attribute attribute = new Attribute(name);
+            attribute.setVisibility(Visibility.Private);
+            attribute.setType(new Type(compositedClassName));
+            addAttribute(haveClassName, attribute);
+            // addAttribute()でWindowの更新はされる
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void addGeneralization(String generalizedClassName, String superClassName) {
+        Optional<CodeFile> generalizedCodefileOptional = findCodeFile(generalizedClassName + ".java");
+        Optional<CodeFile> superCodefileOptional = findCodeFile(superClassName + ".java");
+        Optional<Class> generalizedClassOptional = findClass(generalizedClassName);
+        Optional<Class> superClassOptional = findClass(superClassName);
+
+        if(generalizedCodefileOptional.isEmpty() || superCodefileOptional.isEmpty() || generalizedClassOptional.isEmpty() || superClassOptional.isEmpty()) {
+            return;
+        }
+
+        try {
+            CodeFile generalizedCodeFile = generalizedCodefileOptional.get();
+            NodeList<ClassOrInterfaceType> extendedTypes = new NodeList<>();
+            ClassOrInterfaceType extendedType = new ClassOrInterfaceType();
+            extendedType.setName(superClassName);
+            extendedTypes.add(extendedType);
+            generalizedCodeFile.getCompilationUnit().getClassByName(generalizedClassName).get().setExtendedTypes(extendedTypes);
+            // UML更新
+            generalizedClassOptional.get().setSuperClass(superClassOptional.get());
+            umlController.updateDiagram();
+            codeController.updateCodeTab(generalizedCodefileOptional.get());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
 }

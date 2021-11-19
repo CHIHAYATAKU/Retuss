@@ -132,11 +132,21 @@ public class UmlController {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
     }
 
     @FXML private void showRelationshipDialog() {
-
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/relationshipDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("New Relationship Dialog");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 //    @FXML private void showDleteDialog() {
