@@ -3,9 +3,14 @@ package io.github.morichan.retuss.controller;
 import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.Model;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -15,19 +20,27 @@ import java.util.List;
 import java.util.UUID;
 
 public class CodeController {
-    @FXML
-    private TabPane codeTabPane;
+    @FXML private TabPane codeTabPane;
     private Model model = Model.getInstance();
     private List<Pair<CodeFile, Tab>> fileTabList = new ArrayList<>();
 
-    @FXML
-    private void initialize() {
+    @FXML private void initialize() {
         model.setCodeController(this);
     }
 
-    @FXML
-    private void createNewFile() {
-        model.addCodeFile();
+    @FXML private void showNewFileDialog() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/newFileDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("New File Dialog");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**

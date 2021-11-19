@@ -1,8 +1,10 @@
 package io.github.morichan.retuss.model;
 
+import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.translator.Translator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +19,7 @@ public class Model {
     private static Model model = new Model();
     private UmlController umlController;
     private CodeController codeController;
+    private Translator translator = new Translator();
     // ファイルのデータ構造
     private List<CodeFile> codeFileList = new ArrayList<>();
 
@@ -39,12 +42,6 @@ public class Model {
         return Collections.unmodifiableList(codeFileList);
     }
 
-    public void addCodeFile() {
-        CodeFile newCodeFile = new CodeFile("");
-        codeFileList.add(newCodeFile);
-        codeController.updateCodeTab(newCodeFile);
-    }
-
     public List<Class> getUmlClassList() {
         List<Class> umlClassList = new ArrayList<>();
         for(CodeFile codeFile : codeFileList) {
@@ -55,16 +52,47 @@ public class Model {
     }
 
     /**
+     * 新規コードファイルを追加する
+     * @param fileName
+     */
+
+    public void addNewCodeFile(String fileName) {
+        CodeFile newCodeFile = new CodeFile(fileName);
+        codeFileList.add(newCodeFile);
+        codeController.updateCodeTab(newCodeFile);
+        umlController.updateDiagram();
+    }
+
+    /**
      * 新規のUMLクラスを追加する
-     * [制約] 1ファイル1クラスとする
      * @param umlClass
      */
-    public void addUmlClass(Class umlClass) {
+    public void addNewUmlClass(Class umlClass) {
         CodeFile codeFile = new CodeFile(String.format("%s.java", umlClass.getName()));
         codeFile.addUmlClass(umlClass);
         codeFileList.add(codeFile);
         umlController.updateDiagram();
         codeController.updateCodeTab(codeFile);
+    }
+
+    public Optional<Class> findClass(String className) {
+        for(CodeFile codeFile : codeFileList) {
+            for(Class umlClass : codeFile.getUmlClassList()) {
+                if(umlClass.getName().equals(className)) {
+                    return Optional.of(umlClass);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<CodeFile> findCodeFile(String fileName) {
+        for(CodeFile codeFile : codeFileList) {
+            if(codeFile.getFileName().equals(fileName)) {
+                return Optional.of(codeFile);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -81,15 +109,18 @@ public class Model {
         }
     }
 
-    public Optional<Class> findClass(String className) {
-        for(CodeFile codeFile : codeFileList) {
-            for(Class umlClass : codeFile.getUmlClassList()) {
-                if(umlClass.getName().equals(className)) {
-                    return Optional.of(umlClass);
-                }
-            }
+    public void addAttribute(String className, Attribute attribute) {
+        Optional<Class> targetClass = findClass(className);
+        Optional<CodeFile> targetCodeFile = findCodeFile(className + ".java");
+        if(targetClass.isEmpty() || targetCodeFile.isEmpty()){
+            return;
         }
-        return Optional.empty();
+        targetClass.get().addAttribute(attribute);
+        targetCodeFile.get().getCompilationUnit().getClassByName(className).get().addMember(translator.translateAttribute(attribute));
+        umlController.updateDiagram();
+        codeController.updateCodeTab(targetCodeFile.get());
     }
+
+
 
 }

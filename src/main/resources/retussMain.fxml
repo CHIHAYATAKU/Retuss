@@ -43,10 +43,11 @@
                                                         <top>
                                                             <ToolBar prefHeight="20.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                                                                 <items>
-                                                                    <Button fx:id="newClassBtn" mnemonicParsing="false" onAction="#showNewClassDialog" text="New Class" />
-                                                                    <Button fx:id="editClassBtn" mnemonicParsing="false" onAction="#showEditClassWindow" text="Edit Class" />
-                                                                    <Button fx:id="deleteClassBtn" mnemonicParsing="false" onAction="#showDleteClassWindow" text="Delete Class" />
-                                                                    <Button fx:id="noteButtonInCD" disable="true" mnemonicParsing="false" onAction="#selectNoteInCD" text="Note" visible="false" />
+                                                                    <Button fx:id="classBtn" mnemonicParsing="false" onAction="#showClassDialog" text="Class" />
+                                                                    <Button fx:id="attributeBtn" mnemonicParsing="false" onAction="#showAttributeDialog" text="Attribute" />
+                                                                    <Button fx:id="operationBtn" mnemonicParsing="false" onAction="#showOperationDialog" text="Operation" />
+                                                <Button fx:id="relationshipBtn" mnemonicParsing="false" onAction="#showRelationshipDialog" text="Relationship" />
+                                                                    <Button fx:id="deleteBtn" mnemonicParsing="false" onAction="#showDeleteDialog" text="Delete" />
                                                                 </items>
                                                             </ToolBar>
                                                         </top>

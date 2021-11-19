@@ -14,9 +14,11 @@ import javafx.stage.Stage;
 
 public class UmlController {
     @FXML private Tab classDiagramTab;
-    @FXML private Button newClassBtn;
-    @FXML private Button editClassBtn;
-    @FXML private Button deleteClassBtn;
+    @FXML private Button classBtn;
+    @FXML private Button attributeBtn;
+    @FXML private Button operationBtn;
+    @FXML private Button relationshipBtn;
+    @FXML private Button deleteBtn;
     @FXML private WebView classDiagramWebView;
 
     private Model model = Model.getInstance();
@@ -57,16 +59,6 @@ public class UmlController {
     }
 
     /**
-     * <p> Noteボタン選択時のシグナルハンドラ </p>
-     *
-     * <p> ClassDiagramTabにおけるToolBar内のNoteボタンで参照 </p>
-     */
-    @FXML
-    private void selectNoteInCD() {
-
-    }
-
-    /**
      * <p> シーケンス図タブのノーマルボタン選択時のシグナルハンドラ</>
      */
     @FXML
@@ -97,12 +89,10 @@ public class UmlController {
 
     }
 
-    @FXML private void showNewClassDialog() {
-        // 作成するメッセージの情報を入力する画面表示
+    @FXML private void showClassDialog() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/newClassDialog.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/classDialog.fxml"));
             Parent parent = fxmlLoader.load();
-//            CreateMessageDialogController createMessageDialogController = fxmlLoader.getController();
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("New Class Dialog");
@@ -114,13 +104,32 @@ public class UmlController {
         }
     }
 
-    @FXML private void showEditClassWindow() {
+    @FXML private void showAttributeDialog() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/attributeDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("New Attribute Dialog");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    @FXML private void showOperationDialog() {
 
     }
 
-    @FXML private void showDleteClassWindow() {
+    @FXML private void showRelationshipDialog() {
 
     }
+
+//    @FXML private void showDleteDialog() {
+//
+//    }
 
     public void updateDiagram() {
         if(classDiagramTab.isSelected()) {

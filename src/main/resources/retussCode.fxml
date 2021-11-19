@@ -15,7 +15,7 @@
          <top>
             <ButtonBar prefHeight="18.0" prefWidth="600.0" BorderPane.alignment="CENTER">
               <buttons>
-                <Button maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" onAction="#createNewFile" prefHeight="25.0" prefWidth="100.0" text="New File" />
+                <Button maxWidth="100.0" minWidth="100.0" mnemonicParsing="false" onAction="#showNewFileDialog" prefHeight="25.0" prefWidth="100.0" text="New File" />
               </buttons>
             </ButtonBar>
          </top>

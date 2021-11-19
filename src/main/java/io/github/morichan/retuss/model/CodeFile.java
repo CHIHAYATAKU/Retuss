@@ -15,7 +15,11 @@ public class CodeFile {
     private Translator translator = new Translator();
 
     public CodeFile(String fileName) {
+        final String extension = ".java";
         this.fileName = fileName;
+        this.compilationUnit = new CompilationUnit();
+        this.compilationUnit.addClass(fileName.substring(0, this.fileName.length() - extension.length()));
+        this.umlClassList = translator.translateCodeToUml(this.compilationUnit);
     }
 
     public UUID getID() {
@@ -26,16 +30,8 @@ public class CodeFile {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public CompilationUnit getCompilationUnit() {
         return compilationUnit;
-    }
-
-    public void setCompilationUnit(CompilationUnit compilationUnit) {
-        this.compilationUnit = compilationUnit;
     }
 
     public List<Class> getUmlClassList() {
@@ -65,6 +61,6 @@ public class CodeFile {
     void addUmlClass(Class umlClass) {
         this.umlClassList.clear();
         this.umlClassList.add(umlClass);
-        this.compilationUnit = translator.translateUmlToCode(umlClassList, compilationUnit);
+        this.compilationUnit = translator.translateUmlToCode(umlClassList);
     }
 }
