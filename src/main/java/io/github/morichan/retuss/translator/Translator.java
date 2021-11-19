@@ -105,6 +105,27 @@ public class Translator {
         return new FieldDeclaration(modifiers, type, name);
     }
 
+    public MethodDeclaration translateOperation(Operation operation) {
+        NodeList<Modifier> modifiers = new NodeList<>();
+        toModifierKeyword(operation.getVisibility()).ifPresent(modifierKeyword -> modifiers.add(new Modifier(modifierKeyword)));
+
+        String name = operation.getName().getNameText();
+
+        com.github.javaparser.ast.type.Type type = toJavaType(operation.getReturnType());
+
+        NodeList<Parameter> parameters = new NodeList<>();
+        try {
+            for(io.github.morichan.fescue.feature.parameter.Parameter umlParameter : operation.getParameters()) {
+                Parameter javaParameter = new Parameter(toJavaType(umlParameter.getType()), umlParameter.getName().getNameText());
+                parameters.add(javaParameter);
+            }
+        } catch (IllegalStateException e) {
+
+        }
+
+        return new MethodDeclaration(modifiers, name, type, parameters);
+    }
+
     private Visibility toVisibility(List<Modifier> modifierList) {
         for(Modifier modifier : modifierList) {
             Modifier.Keyword keyword = modifier.getKeyword();

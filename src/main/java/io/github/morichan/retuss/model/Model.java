@@ -1,6 +1,10 @@
 package io.github.morichan.retuss.model;
 
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import io.github.morichan.fescue.feature.Attribute;
+import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.Class;
@@ -115,10 +119,50 @@ public class Model {
         if(targetClass.isEmpty() || targetCodeFile.isEmpty()){
             return;
         }
-        targetClass.get().addAttribute(attribute);
-        targetCodeFile.get().getCompilationUnit().getClassByName(className).get().addMember(translator.translateAttribute(attribute));
-        umlController.updateDiagram();
-        codeController.updateCodeTab(targetCodeFile.get());
+
+        try {
+            FieldDeclaration fieldDeclaration = translator.translateAttribute(attribute);
+            NodeList<BodyDeclaration<?>> members = targetCodeFile.get().getCompilationUnit().getClassByName(className).get().getMembers();
+            if(members.size() == 0) {
+                // メンバーがない場合は、最初の位置に追加
+                members.addFirst(fieldDeclaration);
+            } else {
+                for(int i=0; i<members.size(); i++) {
+                    if(members.get(i).isMethodDeclaration()) {
+                        // メソッド宣言の前に新しいフィールド宣言を追加する
+                        members.addBefore(fieldDeclaration, members.get(i));
+                        break;
+                    } else if(i == members.size() - 1) {
+                        // メソッド宣言がない場合は、最後の位置に追加
+                        members.addLast(fieldDeclaration);
+                        break;
+                    }
+                }
+            }
+            targetClass.get().addAttribute(attribute);
+            umlController.updateDiagram();
+            codeController.updateCodeTab(targetCodeFile.get());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void addOperation(String className, Operation operation) {
+        Optional<Class> targetClass = findClass(className);
+        Optional<CodeFile> targetCodeFile = findCodeFile(className + ".java");
+        if(targetClass.isEmpty() || targetCodeFile.isEmpty()){
+            return;
+        }
+
+        try {
+            targetCodeFile.get().getCompilationUnit().getClassByName(className).get().addMember(translator.translateOperation(operation));
+            targetClass.get().addOperation(operation);
+            umlController.updateDiagram();
+            codeController.updateCodeTab(targetCodeFile.get());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
     }
 
 
