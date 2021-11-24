@@ -2,6 +2,7 @@ package io.github.morichan.retuss.model;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.translator.Translator;
 
@@ -59,8 +60,15 @@ public class CodeFile {
     }
 
     void addUmlClass(Class umlClass) {
+        // 1ファイル1クラスが前提
         this.umlClassList.clear();
         this.umlClassList.add(umlClass);
         this.compilationUnit = translator.translateUmlToCode(umlClassList);
+    }
+
+    void removeClass(Class umlClass) {
+        this.umlClassList.remove(umlClass);
+        Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = this.compilationUnit.getClassByName(umlClass.getName());
+        this.compilationUnit.remove(classOrInterfaceDeclarationOptional.get());
     }
 }

@@ -84,10 +84,10 @@ public class UmlController {
     /**
      * <p> シーケンス図タブのメッセージボタン選択時のシグナルハンドラ</>
      */
-    @FXML
-    private void showDeleteDialog() {
-
-    }
+//    @FXML
+//    private void showDeleteDialog() {
+//
+//    }
 
     @FXML private void showClassDialog() {
         try {
@@ -149,9 +149,20 @@ public class UmlController {
         }
     }
 
-//    @FXML private void showDleteDialog() {
-//
-//    }
+    @FXML private void showDeleteDialog() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/deleteDialogCD.fxml"));
+            Parent parent = fxmlLoader.load();
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("Delete Dialog");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
     public void updateDiagram() {
         if(classDiagramTab.isSelected()) {

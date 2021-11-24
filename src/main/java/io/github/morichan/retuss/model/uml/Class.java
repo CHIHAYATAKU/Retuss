@@ -70,4 +70,12 @@ public class Class {
     public void addOperation(Operation operation) {
         operationList.add(operation);
     }
+
+    public void removeAttribute(Attribute attribute) {
+        attributeList.remove(attribute);
+    }
+
+    public void removeOperation(Operation operation) {
+        operationList.remove(operation);
+    }
 }

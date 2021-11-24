@@ -1,8 +1,7 @@
 package io.github.morichan.retuss.model;
 
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.BodyDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
@@ -14,10 +13,7 @@ import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.translator.Translator;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * <p> RETUSS内のデータ構造を保持するクラス </p>
@@ -83,6 +79,11 @@ public class Model {
         codeController.updateCodeTab(codeFile);
     }
 
+    /**
+     * UMLのクラスを探索する
+     * @param className
+     * @return
+     */
     public Optional<Class> findClass(String className) {
         for(CodeFile codeFile : codeFileList) {
             for(Class umlClass : codeFile.getUmlClassList()) {
@@ -94,6 +95,11 @@ public class Model {
         return Optional.empty();
     }
 
+    /**
+     * コードファイルを探索する
+     * @param fileName
+     * @return
+     */
     public Optional<CodeFile> findCodeFile(String fileName) {
         for(CodeFile codeFile : codeFileList) {
             if(codeFile.getFileName().equals(fileName)) {
@@ -117,6 +123,11 @@ public class Model {
         }
     }
 
+    /**
+     * 属性を追加し、コードにフィールドとして反映する
+     * @param className
+     * @param attribute
+     */
     public void addAttribute(String className, Attribute attribute) {
         Optional<Class> targetClass = findClass(className);
         Optional<CodeFile> targetCodeFile = findCodeFile(className + ".java");
@@ -151,6 +162,11 @@ public class Model {
         }
     }
 
+    /**
+     * 操作を追加し、コードにもメソッド宣言として反映する
+     * @param className
+     * @param operation
+     */
     public void addOperation(String className, Operation operation) {
         Optional<Class> targetClass = findClass(className);
         Optional<CodeFile> targetCodeFile = findCodeFile(className + ".java");
@@ -168,6 +184,12 @@ public class Model {
         }
     }
 
+    /**
+     * コンポジション関係を追加し、コードに属性として反映する
+     * ただし、追加した属性は初期化しない
+     * @param haveClassName
+     * @param compositedClassName
+     */
     public void addComposition(String haveClassName, String compositedClassName) {
         Optional<CodeFile> haveCodefileOptional = findCodeFile(haveClassName + ".java");
         Optional<CodeFile> compositedCodefileOptional = findCodeFile(compositedClassName + ".java");
@@ -190,6 +212,12 @@ public class Model {
         }
     }
 
+    /**
+     * 汎化関係を追加し、コードにextendsとして反映する
+     * 既に汎化関係を持っている場合は、上書きする
+     * @param generalizedClassName
+     * @param superClassName
+     */
     public void addGeneralization(String generalizedClassName, String superClassName) {
         Optional<CodeFile> generalizedCodefileOptional = findCodeFile(generalizedClassName + ".java");
         Optional<CodeFile> superCodefileOptional = findCodeFile(superClassName + ".java");
@@ -214,5 +242,99 @@ public class Model {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    /**
+     *
+     * @param className
+     */
+    public void delete(String className) {
+        Optional<Class> classOptional = findClass(className);
+        Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
+        if(classOptional.isEmpty() || codeFileOptional.isEmpty()) {
+            return;
+        }
+
+        codeFileOptional.get().removeClass(classOptional.get());
+        umlController.updateDiagram();
+        codeController.updateCodeTab(codeFileOptional.get());
+    }
+
+    /**
+     *
+     * @param className
+     */
+    public void delete(String className, Attribute attribute) {
+        Optional<Class> classOptional = findClass(className);
+        Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
+        if(classOptional.isEmpty() || codeFileOptional.isEmpty()) {
+            return;
+        }
+
+        classOptional.get().removeAttribute(attribute);
+        Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
+        Optional<FieldDeclaration> fieldOptional = classOrInterfaceDeclarationOptional.get().getFieldByName(attribute.getName().getNameText());
+        classOrInterfaceDeclarationOptional.get().remove(fieldOptional.get());
+
+        umlController.updateDiagram();
+        codeController.updateCodeTab(codeFileOptional.get());
+    }
+
+    public void delete(String className, Operation operation) {
+        Optional<Class> classOptional = findClass(className);
+        Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
+        if(classOptional.isEmpty() || codeFileOptional.isEmpty()) {
+            return;
+        }
+
+        // メソッド名と引数の型が一致するメソッド宣言を探索
+        Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
+        List<MethodDeclaration> methodList = classOrInterfaceDeclarationOptional.get().getMethodsByName(operation.getName().getNameText());
+        if(methodList.size() <= 0) {
+            return;
+        }
+
+        int operationParameterSize = 0;
+        try {
+            operationParameterSize = operation.getParameters().size();
+        } catch (Exception e) {
+
+        }
+
+        MethodDeclaration targetMethod = null;
+        for(MethodDeclaration methodDeclaration : methodList) {
+            if(methodDeclaration.getParameters().size() != operationParameterSize) {
+                // 引数の数が異なる場合
+                continue;
+            }
+
+            if(operationParameterSize == 0) {
+                // 引数の数が同じ、かつ、引数の数が0の場合
+                targetMethod = methodDeclaration;
+                break;
+            }
+
+            // 引数の数が同じ、かつ、引数の数が複数ある場合
+            int cntSameParameters = 0;
+            for (int i = 0; i < methodDeclaration.getParameters().size(); i++) {
+                if (!methodDeclaration.getParameters().get(i).getTypeAsString().equals(operation.getParameters().get(i).getType().toString())) {
+                    break;
+                }
+                cntSameParameters++;
+            }
+            if (cntSameParameters == methodDeclaration.getParameters().size()) {
+                targetMethod = methodDeclaration;
+                break;
+            }
+        }
+        // 削除対象メソッドが見つからない場合
+        if(Objects.isNull(targetMethod)) {
+            return;
+        }
+
+        classOrInterfaceDeclarationOptional.get().remove(targetMethod);
+        classOptional.get().removeOperation(operation);
+        umlController.updateDiagram();
+        codeController.updateCodeTab(codeFileOptional.get());
     }
 }
