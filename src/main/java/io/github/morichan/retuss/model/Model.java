@@ -309,12 +309,12 @@ public class Model {
             }
 
             if(operationParameterSize == 0) {
-                // 引数の数が同じ、かつ、引数の数が0の場合
+                // 引数の数が同じ、かつ、引数が0の場合
                 targetMethod = methodDeclaration;
                 break;
             }
 
-            // 引数の数が同じ、かつ、引数の数が複数ある場合
+            // 引数の数が同じ、かつ、引数が複数ある場合
             int cntSameParameters = 0;
             for (int i = 0; i < methodDeclaration.getParameters().size(); i++) {
                 if (!methodDeclaration.getParameters().get(i).getTypeAsString().equals(operation.getParameters().get(i).getType().toString())) {
@@ -334,6 +334,23 @@ public class Model {
 
         classOrInterfaceDeclarationOptional.get().remove(targetMethod);
         classOptional.get().removeOperation(operation);
+        umlController.updateDiagram();
+        codeController.updateCodeTab(codeFileOptional.get());
+    }
+
+    public void deleteSuperClass(String className) {
+        Optional<Class> classOptional = findClass(className);
+        Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
+        if(classOptional.isEmpty() || codeFileOptional.isEmpty() || classOptional.get().getSuperClass().isEmpty()) {
+            return;
+        }
+
+        // コード情報の更新
+        Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
+        classOrInterfaceDeclarationOptional.get().getExtendedTypes().remove(0);
+        // UML情報の更新
+        classOptional.get().setSuperClass(null);
+
         umlController.updateDiagram();
         codeController.updateCodeTab(codeFileOptional.get());
     }

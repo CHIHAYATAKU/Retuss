@@ -2,11 +2,11 @@ package io.github.morichan.retuss.controller;
 
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.retuss.model.Model;
 import io.github.morichan.retuss.model.uml.Class;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -17,7 +17,6 @@ import java.util.List;
 
 public class DeleteDialogController {
     @FXML TreeView cdTreeView;
-    @FXML Button deleteBtn;
     private Model model = Model.getInstance();
     private ArrayList cdTreeItemList = new ArrayList();
 
@@ -28,19 +27,36 @@ public class DeleteDialogController {
 
         List<Class> umlClassList = model.getUmlClassList();
         for(Class umlClass : umlClassList) {
+            // クラス
             cdTreeItemList.add(umlClass);
             TreeItem<String> classTreeItem = new TreeItem<>(umlClass.getName());
             classTreeItem.setExpanded(false);
+            // 属性またはコンポジション関係
             for(Attribute attribute : umlClass.getAttributeList()) {
                 cdTreeItemList.add(attribute);
-                TreeItem<String> attributeTreeItem = new TreeItem<>(attribute.toString());
-                classTreeItem.getChildren().add(attributeTreeItem);
+                if(isComposition(attribute.getType())) {
+                    // コンポジション関係
+                    TreeItem<String> compositionTreeItem = new TreeItem<>(String.format("Composition : %s", attribute.getType().getName()));
+                    classTreeItem.getChildren().add(compositionTreeItem);
+                } else {
+                    // 属性
+                    TreeItem<String> attributeTreeItem = new TreeItem<>(attribute.toString());
+                    classTreeItem.getChildren().add(attributeTreeItem);
+                }
             }
+            // 操作
             for(Operation operation : umlClass.getOperationList()) {
                 cdTreeItemList.add(operation);
                 TreeItem<String> operationTreeItem = new TreeItem<>(operation.toString());
                 classTreeItem.getChildren().add(operationTreeItem);
             }
+            // 汎化関係
+            if(umlClass.getSuperClass().isPresent()) {
+                cdTreeItemList.add("Generalization");
+                TreeItem<String> generalizationTreeItem = new TreeItem<>(String.format("Generalization : %s", umlClass.getSuperClass().get().getName()));
+                classTreeItem.getChildren().add(generalizationTreeItem);
+            }
+
             root.getChildren().add(classTreeItem);
         }
 
@@ -63,21 +79,39 @@ public class DeleteDialogController {
             model.delete(className);
         } else {
             // 属性・操作を削除する場合
+            // 対象のクラスを探索
             for(int i=selectedIndices.get(0) - 1; i>0; i--) {
                 if(cdTreeItemList.get(i) instanceof Class) {
                     className = ((Class) cdTreeItemList.get(i)).getName();
                     break;
                 }
             }
+            // 削除
             if(cdTreeItemList.get(selectedIndices.get(0)) instanceof Attribute) {
+                // 属性またはコンポジション関係の削除
                 model.delete(className, (Attribute) cdTreeItemList.get(selectedIndices.get(0)));
             } else if (cdTreeItemList.get(selectedIndices.get(0)) instanceof Operation) {
+                // 操作の削除
                 model.delete(className, (Operation) cdTreeItemList.get(selectedIndices.get(0)));
+            } else if (cdTreeItemList.get(selectedIndices.get(0)).equals("Generalization")) {
+                // 汎化関係の削除
+                model.deleteSuperClass(className);
             }
         }
 
         // ダイアログを閉じる
         Stage stage = (Stage) cdTreeView.getScene().getWindow();
         stage.close();
+    }
+
+    private Boolean isComposition(Type type) {
+        // typeがユーザ定義のクラス名と同一ならば、そのクラスとコンポジション関係とする
+        // 同一名のクラスが存在することは考慮しない
+        for(Class umlClass : model.getUmlClassList()) {
+            if(type.getName().getNameText().equals(umlClass.getName())) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
     }
 }
