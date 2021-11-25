@@ -22,10 +22,10 @@
                         <Insets right="50.0" />
                      </HBox.margin>
                   </Label>
-                  <ComboBox fx:id="relationshipComboBox" prefWidth="150.0" />
+                  <ComboBox fx:id="relationshipComboBox" onAction="#changeRelationshipImage" prefWidth="150.0" />
                </children>
             </HBox>
-            <HBox spacing="5.0">
+            <HBox>
                <children>
                   <VBox prefHeight="200.0" prefWidth="100.0">
                      <children>
@@ -33,7 +33,7 @@
                         <ComboBox fx:id="class1ComboBox" prefWidth="150.0" />
                      </children>
                   </VBox>
-                  <ImageView fx:id="relationshipImageView" fitHeight="30.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="relationshipImageView" fitHeight="30.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
                      <HBox.margin>
                         <Insets left="50.0" right="50.0" top="15.0" />
                      </HBox.margin>

@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
@@ -30,7 +31,7 @@ public class RelationshipDialogController {
         }
         // Relationshioコンボボックスに初期値を設定
         relationshipComboBox.setValue(relationshipList.get(0));
-//        relationshipImageView.setImage(new Image());
+        relationshipImageView.setImage(new Image("composition.png"));
 
         // 2つのクラスコンボボックスにumlClass名を設定
         for(Class umlClass : model.getUmlClassList()) {
@@ -43,7 +44,12 @@ public class RelationshipDialogController {
     }
 
     @FXML private void changeRelationshipImage() {
-
+        String selectedRelationship = relationshipComboBox.getValue().toString();
+        if(selectedRelationship.equals(relationshipList.get(0))) {
+            relationshipImageView.setImage(new Image("composition.png"));
+        } else if (selectedRelationship.equals(relationshipList.get(1))) {
+            relationshipImageView.setImage(new Image("generalization.png"));
+        }
     }
 
     @FXML private void createRelationship() {
