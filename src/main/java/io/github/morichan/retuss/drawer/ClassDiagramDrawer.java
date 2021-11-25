@@ -29,6 +29,7 @@ public class ClassDiagramDrawer {
 
         // plantUML構文を生成する
         StringBuilder puStrBuilder = new StringBuilder("@startuml\n");
+        puStrBuilder.append("scale 1.5\n");
         puStrBuilder.append("skinparam style strictuml\n");
         puStrBuilder.append("skinparam classAttributeIconSize 0\n");
         for(Class umlClass : umlClassList) {

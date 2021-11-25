@@ -12,6 +12,7 @@ public class Class {
     private Class superClass;
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
+    private List<Interaction> interactionList = new ArrayList();
 
     public Class(String name) {
         this.name = name;
@@ -63,12 +64,19 @@ public class Class {
         return Collections.unmodifiableList(operationList);
     }
 
+    public List<Interaction> getInteractionList() { return Collections.unmodifiableList(interactionList); }
+
     public void addAttribute(Attribute attribute) {
         attributeList.add(attribute);
     }
 
     public void addOperation(Operation operation) {
         operationList.add(operation);
+        addInteraction(new Interaction(operation, operation.toString()));
+    }
+
+    public void addInteraction(Interaction interaction) {
+        interactionList.add(interaction);
     }
 
     public void removeAttribute(Attribute attribute) {
@@ -77,5 +85,13 @@ public class Class {
 
     public void removeOperation(Operation operation) {
         operationList.remove(operation);
+        for(Interaction interaction : interactionList) {
+            if(operation.equals(interaction.getOperation())) {
+                removeInteraction(interaction);
+                return;
+            }
+        }
     }
+
+    public void removeInteraction(Interaction interaction) { interactionList.remove(interaction); }
 }
