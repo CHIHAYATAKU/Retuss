@@ -12,7 +12,7 @@ public class Class {
     private Class superClass;
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
-    private List<Interaction> interactionList = new ArrayList();
+    private List<Interaction> interactionList = new ArrayList<>();
 
     public Class(String name) {
         this.name = name;
@@ -73,6 +73,11 @@ public class Class {
     public void addOperation(Operation operation) {
         operationList.add(operation);
         addInteraction(new Interaction(operation, operation.toString()));
+    }
+
+    public void addOperation(Operation operation, Interaction interaction) {
+        operationList.add(operation);
+        addInteraction(interaction);
     }
 
     public void addInteraction(Interaction interaction) {

@@ -64,7 +64,7 @@ public class Model {
         CodeFile newCodeFile = new CodeFile(fileName);
         codeFileList.add(newCodeFile);
         codeController.updateCodeTab(newCodeFile);
-        umlController.updateDiagram();
+        umlController.updateDiagram(newCodeFile);
     }
 
     /**
@@ -75,7 +75,7 @@ public class Model {
         CodeFile codeFile = new CodeFile(String.format("%s.java", umlClass.getName()));
         codeFile.addUmlClass(umlClass);
         codeFileList.add(codeFile);
-        umlController.updateDiagram();
+        umlController.updateDiagram(codeFile);
         codeController.updateCodeTab(codeFile);
     }
 
@@ -117,7 +117,7 @@ public class Model {
     public void updateCodeFile(CodeFile changedCodeFile, String code) {
         try {
             changedCodeFile.updateCode(code);
-            umlController.updateDiagram();
+            umlController.updateDiagram(changedCodeFile);
         } catch (Exception e) {
             return;
         }
@@ -155,7 +155,7 @@ public class Model {
                 }
             }
             targetClass.get().addAttribute(attribute);
-            umlController.updateDiagram();
+            umlController.updateDiagram(targetCodeFile.get());
             codeController.updateCodeTab(targetCodeFile.get());
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -177,7 +177,7 @@ public class Model {
         try {
             targetCodeFile.get().getCompilationUnit().getClassByName(className).get().addMember(translator.translateOperation(operation));
             targetClass.get().addOperation(operation);
-            umlController.updateDiagram();
+            umlController.updateDiagram(targetCodeFile.get());
             codeController.updateCodeTab(targetCodeFile.get());
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -237,7 +237,7 @@ public class Model {
             generalizedCodeFile.getCompilationUnit().getClassByName(generalizedClassName).get().setExtendedTypes(extendedTypes);
             // UML更新
             generalizedClassOptional.get().setSuperClass(superClassOptional.get());
-            umlController.updateDiagram();
+            umlController.updateDiagram(generalizedCodefileOptional.get());
             codeController.updateCodeTab(generalizedCodefileOptional.get());
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -256,7 +256,7 @@ public class Model {
         }
 
         codeFileOptional.get().removeClass(classOptional.get());
-        umlController.updateDiagram();
+        umlController.updateDiagram(codeFileOptional.get());
         codeController.updateCodeTab(codeFileOptional.get());
     }
 
@@ -276,7 +276,7 @@ public class Model {
         Optional<FieldDeclaration> fieldOptional = classOrInterfaceDeclarationOptional.get().getFieldByName(attribute.getName().getNameText());
         classOrInterfaceDeclarationOptional.get().remove(fieldOptional.get());
 
-        umlController.updateDiagram();
+        umlController.updateDiagram(codeFileOptional.get());
         codeController.updateCodeTab(codeFileOptional.get());
     }
 
@@ -334,7 +334,7 @@ public class Model {
 
         classOrInterfaceDeclarationOptional.get().remove(targetMethod);
         classOptional.get().removeOperation(operation);
-        umlController.updateDiagram();
+        umlController.updateDiagram(codeFileOptional.get());
         codeController.updateCodeTab(codeFileOptional.get());
     }
 
@@ -351,7 +351,7 @@ public class Model {
         // UML情報の更新
         classOptional.get().setSuperClass(null);
 
-        umlController.updateDiagram();
+        umlController.updateDiagram(codeFileOptional.get());
         codeController.updateCodeTab(codeFileOptional.get());
     }
 }

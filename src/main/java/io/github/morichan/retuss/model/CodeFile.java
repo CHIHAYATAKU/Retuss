@@ -55,6 +55,7 @@ public class CodeFile {
             System.out.println(code);
         } catch (Exception e) {
             System.out.println("Cannot parse.");
+            System.out.println(e.getMessage());
             throw e;
         }
     }

@@ -53,8 +53,7 @@ dependencies {
     compile 'org.fxmisc.richtext:richtextfx:0.10.0'
     // JavaParser
     implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.23.1'
-    // https://mvnrepository.com/artifact/net.sourceforge.plantuml/plantuml
-    implementation group: 'net.sourceforge.plantuml', name: 'plantuml', version: '8059'
+    implementation (fileTree(dir: 'libs', include: ['plantuml-1.2021.15.jar']))
 
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.0-M1'
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.0-M1'

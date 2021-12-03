@@ -4,7 +4,8 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.VoidType;
@@ -17,6 +18,7 @@ import io.github.morichan.fescue.feature.value.expression.OneIdentifier;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.Model;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +64,17 @@ public class Translator {
                     umlParameter.setType(new Type(codeParameter.getTypeAsString()));
                     operation.addParameter(umlParameter);
                 }
-                umlClass.addOperation(operation);
+                // シーケンス図のInteractionの作成
+                Interaction interaction = new Interaction(operation, operation.toString());
+                List<MethodCallExpr> methodCallExprList = methodDeclaration.findAll(MethodCallExpr.class);
+                NodeList statements = methodDeclaration.getBody().get().getStatements();
+                for(int i=0; i<statements.size(); i++) {
+                    ExpressionStmt expressionStmt = (ExpressionStmt) statements.get(i);
+                    if(expressionStmt.getExpression() instanceof MethodCallExpr) {
+                        interaction.getInteractionFragmentList().add(toOccurenceSpecification(umlClass, (MethodCallExpr) expressionStmt.getExpression()));
+                    }
+                }
+                umlClass.addOperation(operation, interaction);
             }
 
             // 汎化関係
@@ -126,6 +138,36 @@ public class Translator {
         return new MethodDeclaration(modifiers, name, type, parameters);
     }
 
+    private OccurenceSpecification toOccurenceSpecification(Class umlClass, MethodCallExpr methodCallExpr) {
+        // メッセージ開始点の作成
+        OccurenceSpecification messageStart = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
+
+        // メッセージ終点の作成
+        OccurenceSpecification messageEnd;
+        if (methodCallExpr.getScope().isEmpty() || methodCallExpr.getScope().get() instanceof ThisExpr) {
+            // 自ライフラインへのメッセージの場合
+            messageEnd = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
+        } else {
+            // 他ライフラインへのメッセージの場合
+            messageEnd = new OccurenceSpecification(new Lifeline(methodCallExpr.getScope().get().toString()));
+        }
+
+        // メッセージの作成
+        Message message = new Message(methodCallExpr.getNameAsString(), messageEnd);
+        NodeList arguments = methodCallExpr.getArguments();
+        // メッセージの引数を設定
+        for(int i=0; i<arguments.size(); i++) {
+            Expression expression = (Expression) arguments.get(i);
+            // TODO:引数にメソッド呼び出し等がある場合の対応
+            io.github.morichan.fescue.feature.parameter.Parameter parameter = new io.github.morichan.fescue.feature.parameter.Parameter(new Name(expression.toString()));
+            message.getParameterList().add(parameter);
+        }
+        // メッセージの戻り値の型を設定
+
+        messageStart.setMessage(message);
+        return messageStart;
+    }
+
     private Visibility toVisibility(List<Modifier> modifierList) {
         for(Modifier modifier : modifierList) {
             Modifier.Keyword keyword = modifier.getKeyword();
@@ -168,4 +210,5 @@ public class Translator {
             return classOrInterfaceType;
         }
     }
+
 }

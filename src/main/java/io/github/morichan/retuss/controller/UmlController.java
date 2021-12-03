@@ -1,16 +1,28 @@
 package io.github.morichan.retuss.controller;
 
+import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.retuss.drawer.ClassDiagramDrawer;
+import io.github.morichan.retuss.drawer.SequenceDiagramDrawer;
+import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.Interaction;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class UmlController {
     @FXML private Tab classDiagramTab;
@@ -21,8 +33,15 @@ public class UmlController {
     @FXML private Button deleteBtn;
     @FXML private WebView classDiagramWebView;
 
+    @FXML private Tab sequenceDiagramTab;
+    @FXML private TabPane tabPaneInSequenceTab;
+
+
     private Model model = Model.getInstance();
     private ClassDiagramDrawer classDiagramDrawer;
+    private SequenceDiagramDrawer sequenceDiagramDrawer;
+    private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
+
 
     /**
      * <p> JavaFXにおけるデフォルトコンストラクタ </p>
@@ -36,6 +55,7 @@ public class UmlController {
     private void initialize() {
         model.setUmlController(this);
         classDiagramDrawer = new ClassDiagramDrawer(classDiagramWebView);
+        sequenceDiagramDrawer = new SequenceDiagramDrawer(tabPaneInSequenceTab);
     }
 
     @FXML
@@ -164,9 +184,59 @@ public class UmlController {
         }
     }
 
-    public void updateDiagram() {
-        if(classDiagramTab.isSelected()) {
-            classDiagramDrawer.draw();
+    public void updateDiagram(CodeFile codeFile) {
+        classDiagramDrawer.draw();
+        updateSequenceDiagram(codeFile);
+    }
+
+    /**
+     * codeFile従ってSDタブを更新する
+     * @param codeFile
+     */
+    private void updateSequenceDiagram(CodeFile codeFile) {
+        // ファイルタブの探索
+        Optional<Tab> fileTabOptional = findFileTab(codeFile);
+        Tab fileTab;
+        if(fileTabOptional.isPresent()) {
+            fileTab = fileTabOptional.get();
+        } else {
+            fileTab = new Tab(codeFile.getFileName());
+            fileTab.setContent(new TabPane());
+            fileSdTabList.add(new Pair<>(codeFile, fileTab));
+            tabPaneInSequenceTab.getTabs().add(fileTab);
+        }
+
+        // codeFileにクラス宣言がなければ終了
+        if(codeFile.getUmlClassList().size() == 0) return;
+
+        // SDタブの更新
+        TabPane tabPane = (TabPane)fileTab.getContent();
+        ObservableList<Tab> tabList = tabPane.getTabs();
+        Class umlClass = codeFile.getUmlClassList().get(0);
+        List<Operation> operationList = umlClass.getOperationList();
+        List<Interaction> interactionList = umlClass.getInteractionList();
+        // 既存のタブのタイトル、コンテンツを全て更新する
+        for(int i=0; i<operationList.size(); i++) {
+            if(i >= tabList.size()) {
+                // タブが足りない場合は追加する
+                Tab newTab = new Tab();
+                newTab.setContent(new WebView());
+                tabList.add(newTab);
+            }
+            Tab sdTab = tabList.get(i);
+            Interaction interaction = interactionList.get(i);
+            sdTab.setText(operationList.get(i).toString());
+            sequenceDiagramDrawer.draw(codeFile, interaction, (WebView) sdTab.getContent());
         }
     }
+
+    private Optional<Tab> findFileTab(CodeFile codeFile) {
+        for(Pair<CodeFile, Tab> fileTab : fileSdTabList) {
+            if(fileTab.getKey().equals(codeFile)) {
+                return Optional.of(fileTab.getValue());
+            }
+        }
+        return Optional.empty();
+    }
+
 }

@@ -8,4 +8,27 @@ public class Lifeline {
         this.name = name;
         this.type = type;
     }
+
+    public Lifeline(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getSignature() {
+        StringBuilder sb = new StringBuilder();
+        if(!name.isEmpty()) {
+            sb.append(name);
+        }
+        if(!type.isEmpty()) {
+            sb.append(":" + type);
+        }
+        return sb.toString();
+    }
 }

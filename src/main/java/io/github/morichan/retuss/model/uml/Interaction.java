@@ -17,4 +17,12 @@ public class Interaction {
     public Operation getOperation() {
         return operation;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<InteractionFragment> getInteractionFragmentList() {
+        return interactionFragmentList;
+    }
 }
