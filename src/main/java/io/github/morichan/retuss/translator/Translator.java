@@ -8,9 +8,7 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.ThisExpr;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.VoidType;
@@ -151,8 +149,11 @@ public class Translator {
                 return Optional.of(toOccurenceSpecification(umlClass, (MethodCallExpr) expressionStmt.getExpression()));
             }
         } else if(statement instanceof IfStmt) {
-            IfStmt ifStmt = (IfStmt) statement;
-            return Optional.of(toCombinedFragment(umlClass, ifStmt));
+            return Optional.of(toCombinedFragment(umlClass, (IfStmt)statement));
+        } else if(statement instanceof WhileStmt) {
+            return Optional.of(toCombinedFragment(umlClass, (WhileStmt)statement));
+        } else if(statement instanceof ForStmt) {
+            return Optional.of(toCombinedFragment(umlClass, (ForStmt)statement));
         }
 
         return Optional.empty();
@@ -200,6 +201,46 @@ public class Translator {
 
         CombinedFragment combinedFragment = new CombinedFragment(lifeline, interactionOperandKind);
         combinedFragment.getInteractionOperandList().addAll(ifStmtToInteractionOperand(umlClass, ifStmt));
+
+        return combinedFragment;
+    }
+
+    private CombinedFragment toCombinedFragment(Class umlClass, WhileStmt whileStmt) {
+        Lifeline lifeline = new Lifeline("", umlClass.getName());
+        CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.loop);
+
+        InteractionOperand interactionOperand = new InteractionOperand(lifeline, whileStmt.getCondition().toString());
+        NodeList statements = whileStmt.getBody().asBlockStmt().getStatements();
+        for (int i=0; i<statements.size(); i++) {
+            Statement statement = (Statement) statements.get(i);
+            Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
+            if(interactionFragmentOptional.isPresent()) {
+                interactionOperand.getInteractionFragmentList().add(interactionFragmentOptional.get());
+            }
+        }
+        combinedFragment.getInteractionOperandList().add(interactionOperand);
+
+        return combinedFragment;
+    }
+
+    private CombinedFragment toCombinedFragment(Class umlClass, ForStmt forStmt) {
+        Lifeline lifeline = new Lifeline("", umlClass.getName());
+        CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.loop);
+
+        String guard = "";
+        if(forStmt.getCompare().isPresent()) {
+            guard = forStmt.getCompare().get().toString();
+        }
+        InteractionOperand interactionOperand = new InteractionOperand(lifeline, guard);
+        NodeList statements = forStmt.getBody().asBlockStmt().getStatements();
+        for (int i=0; i<statements.size(); i++) {
+            Statement statement = (Statement) statements.get(i);
+            Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
+            if(interactionFragmentOptional.isPresent()) {
+                interactionOperand.getInteractionFragmentList().add(interactionFragmentOptional.get());
+            }
+        }
+        combinedFragment.getInteractionOperandList().add(interactionOperand);
 
         return combinedFragment;
     }
