@@ -4,8 +4,13 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.VoidType;
@@ -69,9 +74,10 @@ public class Translator {
                 List<MethodCallExpr> methodCallExprList = methodDeclaration.findAll(MethodCallExpr.class);
                 NodeList statements = methodDeclaration.getBody().get().getStatements();
                 for(int i=0; i<statements.size(); i++) {
-                    ExpressionStmt expressionStmt = (ExpressionStmt) statements.get(i);
-                    if(expressionStmt.getExpression() instanceof MethodCallExpr) {
-                        interaction.getInteractionFragmentList().add(toOccurenceSpecification(umlClass, (MethodCallExpr) expressionStmt.getExpression()));
+                    Statement statement = (Statement) statements.get(i);
+                    Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
+                    if(interactionFragmentOptional.isPresent()) {
+                        interaction.getInteractionFragmentList().add(interactionFragmentOptional.get());
                     }
                 }
                 umlClass.addOperation(operation, interaction);
@@ -138,6 +144,20 @@ public class Translator {
         return new MethodDeclaration(modifiers, name, type, parameters);
     }
 
+    private Optional<InteractionFragment> toInteractionFragment(Class umlClass, Statement statement) {
+        if(statement instanceof ExpressionStmt) {
+            ExpressionStmt expressionStmt = (ExpressionStmt) statement;
+            if(expressionStmt.getExpression() instanceof MethodCallExpr) {
+                return Optional.of(toOccurenceSpecification(umlClass, (MethodCallExpr) expressionStmt.getExpression()));
+            }
+        } else if(statement instanceof IfStmt) {
+            IfStmt ifStmt = (IfStmt) statement;
+            return Optional.of(toCombinedFragment(umlClass, ifStmt));
+        }
+
+        return Optional.empty();
+    }
+
     private OccurenceSpecification toOccurenceSpecification(Class umlClass, MethodCallExpr methodCallExpr) {
         // メッセージ開始点の作成
         OccurenceSpecification messageStart = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
@@ -166,6 +186,66 @@ public class Translator {
 
         messageStart.setMessage(message);
         return messageStart;
+    }
+
+    private CombinedFragment toCombinedFragment(Class umlClass, IfStmt ifStmt) {
+        Lifeline lifeline = new Lifeline("", umlClass.getName());
+        Optional<Statement> elseStmtOptional = ifStmt.getElseStmt();
+        InteractionOperandKind interactionOperandKind;
+        if(elseStmtOptional.isPresent()) {
+            interactionOperandKind = InteractionOperandKind.alt;
+        } else {
+            interactionOperandKind = InteractionOperandKind.opt;
+        }
+
+        CombinedFragment combinedFragment = new CombinedFragment(lifeline, interactionOperandKind);
+        combinedFragment.getInteractionOperandList().addAll(ifStmtToInteractionOperand(umlClass, ifStmt));
+
+        return combinedFragment;
+    }
+
+    private ArrayList<InteractionOperand> ifStmtToInteractionOperand(Class umlClass, IfStmt ifStmt) {
+        ArrayList<InteractionOperand> interactionOperands = new ArrayList<>();
+
+        // thenのステートメント
+        Lifeline lifeline = new Lifeline("", umlClass.getName());
+        InteractionOperand thenInteractionOperand = new InteractionOperand(lifeline, ifStmt.getCondition().toString());
+        NodeList thenStatements = ifStmt.getThenStmt().asBlockStmt().getStatements();
+        for(int i=0; i<thenStatements.size(); i++) {
+            Statement statement = (Statement) thenStatements.get(i);
+            Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
+            if(interactionFragmentOptional.isPresent()) {
+                thenInteractionOperand.getInteractionFragmentList().add(interactionFragmentOptional.get());
+            }
+        }
+        interactionOperands.add(thenInteractionOperand);
+
+        Optional<Statement> elseStmtOptional = ifStmt.getElseStmt();
+
+        // elseステートメント
+        if(elseStmtOptional.isEmpty()) {
+            return interactionOperands;
+        }
+
+        String elseGuard = "";
+        NodeList elseStatements;
+        if(elseStmtOptional.get() instanceof IfStmt) {
+            IfStmt elseIfStmt = (IfStmt) elseStmtOptional.get();
+            interactionOperands.addAll(ifStmtToInteractionOperand(umlClass, elseIfStmt));
+        } else {
+            elseStatements = elseStmtOptional.get().asBlockStmt().getStatements();
+            InteractionOperand elseInteractionOperand = new InteractionOperand(lifeline, "else");
+            for (int i = 0; i < elseStatements.size(); i++) {
+                Statement statement = (Statement) elseStatements.get(i);
+                Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
+                if (interactionFragmentOptional.isPresent()) {
+                    elseInteractionOperand.getInteractionFragmentList().add(interactionFragmentOptional.get());
+                }
+            }
+            interactionOperands.add(elseInteractionOperand);
+        }
+
+        return interactionOperands;
     }
 
     private Visibility toVisibility(List<Modifier> modifierList) {
