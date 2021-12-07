@@ -10,6 +10,7 @@ import net.sourceforge.plantuml.SourceStringReader;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 public class SequenceDiagramDrawer {
     private TabPane tabPaneInSequenceTab;
@@ -83,6 +84,25 @@ public class SequenceDiagramDrawer {
             sb.append(String.format("activate \"%s\"\n", endLifeline.getSignature()));
             // ここにmessageEnd側のメッセージを入れ子呼び出し
             sb.append(String.format("deactivate \"%s\"\n", endLifeline.getSignature()));
+
+        } else if (interactionFragment instanceof CombinedFragment) {
+            CombinedFragment combinedFragment = (CombinedFragment) interactionFragment;
+            ArrayList<InteractionOperand> interactionOperandList = combinedFragment.getInteractionOperandList();
+
+            for(int i=0; i<interactionOperandList.size(); i++) {
+                InteractionOperand interactionOperand = interactionOperandList.get(i);
+                if(i == 0) {
+                    sb.append(String.format("%s %s\n", combinedFragment.getKind().toString(), interactionOperand.getGuard()));
+                } else {
+                    // altでのみ使用する
+                    sb.append(String.format("else %s\n", interactionOperand.getGuard()));
+                }
+
+                for(InteractionFragment interactionFragmentInCF : interactionOperand.getInteractionFragmentList()) {
+                    sb.append(interactionFragmentToPlantUml(interactionFragmentInCF));
+                }
+            }
+            sb.append("end\n");
         }
 
         return sb.toString();

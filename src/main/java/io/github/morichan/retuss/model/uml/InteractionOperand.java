@@ -7,4 +7,8 @@ public class InteractionOperand extends InteractionFragment {
         super.setLifeline(lifeline);
         this.guard = guard;
     }
+
+    public String getGuard() {
+        return guard;
+    }
 }
