@@ -36,7 +36,6 @@ public class UmlController {
     @FXML private Tab sequenceDiagramTab;
     @FXML private TabPane tabPaneInSequenceTab;
 
-
     private Model model = Model.getInstance();
     private ClassDiagramDrawer classDiagramDrawer;
     private SequenceDiagramDrawer sequenceDiagramDrawer;
@@ -93,7 +92,25 @@ public class UmlController {
      */
     @FXML
     public void showCreateMessageDialog() {
+        Tab selectedFileTab = tabPaneInSequenceTab.getSelectionModel().getSelectedItem();
+        Tab selectedOperationTab = ((TabPane) selectedFileTab.getContent()).getSelectionModel().getSelectedItem();
+        String selectedFileName = selectedFileTab.getText();
+        String selectedOperationId = selectedOperationTab.getText();
 
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/messageDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            MessageDialogController messageDialogController = fxmlLoader.getController();
+            messageDialogController.initialize(selectedFileName, selectedOperationId);
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("New Message Dialog");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     @FXML

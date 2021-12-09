@@ -3,7 +3,10 @@ package io.github.morichan.retuss.model.uml;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class Class {
     private String name = "";
@@ -99,4 +102,18 @@ public class Class {
     }
 
     public void removeInteraction(Interaction interaction) { interactionList.remove(interaction); }
+
+    public Optional<Operation> findOperation(String operationId) {
+        for(Operation operation : operationList) {
+            if(operation.toString().equals(operationId)) {
+                return Optional.of(operation);
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

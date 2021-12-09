@@ -1,7 +1,12 @@
 package io.github.morichan.retuss.model;
 
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
@@ -11,6 +16,7 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.*;
 import io.github.morichan.retuss.translator.Translator;
 
 import java.util.*;
@@ -353,5 +359,97 @@ public class Model {
 
         umlController.updateDiagram(codeFileOptional.get());
         codeController.updateCodeTab(codeFileOptional.get());
+    }
+
+    public void addMessage(String className, Operation operation, Message message) {
+        Optional<Class> classOptional = findClass(className);
+        Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
+        if(classOptional.isEmpty() || codeFileOptional.isEmpty()) {
+            return;
+        }
+        Class targetClass = classOptional.get();
+        CodeFile targetFile = codeFileOptional.get();
+
+        // Interactionの探索
+        Interaction targetInteraction = null;
+        for(Interaction interaction : classOptional.get().getInteractionList()) {
+            if(interaction.getOperation().equals(operation)) {
+                targetInteraction = interaction;
+                break;
+            }
+        }
+        if(Objects.isNull(targetInteraction)) {
+            return;
+        }
+
+        // OccurenceSpecificationの作成・追加
+        OccurenceSpecification occurenceSpecification = new OccurenceSpecification(new Lifeline("", targetClass.getName()));
+        occurenceSpecification.setMessage(message);
+        targetInteraction.getInteractionFragmentList().add(occurenceSpecification);
+
+        // operationに対応するmethodDeclarationを取得
+        Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
+        List<MethodDeclaration> methodDeclarationList = classOrInterfaceDeclarationOptional.get().getMethodsByName(operation.getName().getNameText());
+        Optional<MethodDeclaration> methodDeclarationOptional = findMethodDeclaration(methodDeclarationList, operation);
+        if(methodDeclarationOptional.isEmpty()) {
+            return;
+        }
+        MethodDeclaration targetMethodDeclaration = methodDeclarationOptional.get();
+
+        // methodDeclarationのBodyを取得
+        BlockStmt body = targetMethodDeclaration.getBody().orElse(new BlockStmt());
+
+        // messageをMethodCallExprに変換
+        MethodCallExpr methodCallExpr = translator.translateMethodCallExpr(occurenceSpecification);
+        body.addStatement(methodCallExpr);
+
+        // 再描画
+        umlController.updateDiagram(codeFileOptional.get());
+        codeController.updateCodeTab(codeFileOptional.get());
+    }
+
+    /**
+     * methodDeclarationListから、Operationと一致するmethodDeclarationを探索する
+     * @param methodDeclarationList
+     * @param operation
+     * @return
+     */
+    private Optional<MethodDeclaration> findMethodDeclaration(List<MethodDeclaration> methodDeclarationList, Operation operation) {
+        MethodDeclaration targetMethod = null;
+
+        int operationParameterSize = 0;
+        try {
+            operationParameterSize = operation.getParameters().size();
+        } catch (Exception e) {
+
+        }
+
+        for(MethodDeclaration methodDeclaration : methodDeclarationList) {
+            if(methodDeclaration.getParameters().size() != operationParameterSize) {
+                // 引数の数が異なる場合
+                continue;
+            }
+
+            if(operationParameterSize == 0) {
+                // 引数の数が同じ、かつ、引数が0の場合
+                targetMethod = methodDeclaration;
+                break;
+            }
+
+            // 引数の数が同じ、かつ、引数が複数ある場合
+            int cntSameParameters = 0;
+            for (int i = 0; i < methodDeclaration.getParameters().size(); i++) {
+                if (!methodDeclaration.getParameters().get(i).getTypeAsString().equals(operation.getParameters().get(i).getType().toString())) {
+                    break;
+                }
+                cntSameParameters++;
+            }
+            if (cntSameParameters == methodDeclaration.getParameters().size()) {
+                targetMethod = methodDeclaration;
+                break;
+            }
+        }
+
+        return Optional.ofNullable(targetMethod);
     }
 }

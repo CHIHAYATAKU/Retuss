@@ -11,33 +11,33 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.window.CreateMessageDialogController">
+<TabPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.controller.MessageDialogController">
   <tabs>
-    <Tab text="操作呼び出し">
+    <Tab text="Call Operation">
          <content>
             <VBox prefHeight="200.0" prefWidth="100.0" spacing="20.0">
                <children>
                   <HBox spacing="10.0">
                      <children>
-                        <Label maxWidth="-Infinity" minWidth="-Infinity" prefWidth="80.0" text="クラス" HBox.hgrow="ALWAYS" />
-                        <ComboBox fx:id="classCombo" onAction="#setMethod" prefWidth="300.0" />
+                        <Label maxWidth="-Infinity" minWidth="-Infinity" prefWidth="80.0" text="Class" HBox.hgrow="ALWAYS" />
+                        <ComboBox fx:id="classCombo" onAction="#setOperation" prefWidth="300.0" />
                      </children>
                   </HBox>
                   <HBox spacing="10.0">
                      <children>
-                        <Label maxWidth="-Infinity" minWidth="-Infinity" prefWidth="80.0" text="操作" HBox.hgrow="ALWAYS" />
-                        <ComboBox fx:id="methodCombo" prefWidth="300.0" />
+                        <Label maxWidth="-Infinity" minWidth="-Infinity" prefWidth="80.0" text="Operation" HBox.hgrow="ALWAYS" />
+                        <ComboBox fx:id="operationCombo" prefWidth="300.0" />
                      </children>
                   </HBox>
                   <HBox spacing="10.0">
                      <children>
-                        <Label maxWidth="-Infinity" minWidth="-Infinity" prefWidth="80.0" text="引数" HBox.hgrow="ALWAYS" />
-                        <TextField fx:id="parameterTextField" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="300.0" />
+                        <Label maxWidth="-Infinity" minWidth="-Infinity" prefWidth="80.0" text="Arguments" HBox.hgrow="ALWAYS" />
+                        <TextField fx:id="argumentTextField" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="300.0" />
                      </children>
                   </HBox>
                   <ButtonBar prefHeight="40.0" prefWidth="200.0">
                     <buttons>
-                      <Button fx:id="createButton" mnemonicParsing="false" onAction="#createMessage" text="メッセージを追加" />
+                      <Button fx:id="createButton" mnemonicParsing="false" onAction="#createMessage" text="Add Message" />
                     </buttons>
                   </ButtonBar>
                </children>

@@ -4,10 +4,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.SimpleName;
-import com.github.javaparser.ast.expr.ThisExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
@@ -140,6 +137,32 @@ public class Translator {
         }
 
         return new MethodDeclaration(modifiers, name, type, parameters);
+    }
+
+    public MethodCallExpr translateMethodCallExpr(OccurenceSpecification occurenceSpecification) {
+        // scopeの作成
+        Lifeline startLifeline = occurenceSpecification.getLifeline();
+        Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
+        Expression scope;
+        if(startLifeline.getSignature().equals(endLifeline.getSignature())) {
+            scope = new ThisExpr();
+        } else if (endLifeline.getName().isEmpty()) {
+            scope = new NameExpr(endLifeline.getType());
+        } else {
+            scope = new NameExpr(endLifeline.getName());
+        }
+
+        // nameの作成
+        String name = occurenceSpecification.getMessage().getName();
+
+        // 引数の作成
+        NodeList<Expression> arguments = new NodeList<>();
+        for(io.github.morichan.fescue.feature.parameter.Parameter parameter : occurenceSpecification.getMessage().getParameterList()) {
+            arguments.add(new NameExpr(parameter.getName().getNameText()));
+        }
+
+        MethodCallExpr methodCallExpr = new MethodCallExpr(scope, name, arguments);
+        return methodCallExpr;
     }
 
     private Optional<InteractionFragment> toInteractionFragment(Class umlClass, Statement statement) {
@@ -300,7 +323,7 @@ public class Translator {
                 return Visibility.Private;
             }
         }
-        // (独自仕様) Javaで上記のいずれも記述されていない場合は、UMLでPackageとして扱う
+        // (独自仕様) Javaで上記のいずれも記述されていない場合は、UMLでpackageとして扱う
         return Visibility.Package;
     }
 
