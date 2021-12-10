@@ -115,7 +115,25 @@ public class UmlController {
 
     @FXML
     public void showCreateCombinedFragmentDialog() {
+        Tab selectedFileTab = tabPaneInSequenceTab.getSelectionModel().getSelectedItem();
+        Tab selectedOperationTab = ((TabPane) selectedFileTab.getContent()).getSelectionModel().getSelectedItem();
+        String selectedFileName = selectedFileTab.getText();
+        String selectedOperationId = selectedOperationTab.getText();
 
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/createCombinedFragmentDialog.fxml"));
+            Parent parent = fxmlLoader.load();
+            CombinedFragmentDialogController combinedFragmentController = fxmlLoader.getController();
+            combinedFragmentController.initialize(selectedFileName, selectedOperationId);
+            Scene scene = new Scene(parent);
+            Stage stage = new Stage();
+            stage.setTitle("New Combined Fragment Dialog");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**

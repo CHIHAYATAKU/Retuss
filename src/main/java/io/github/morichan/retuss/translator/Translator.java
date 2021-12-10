@@ -139,7 +139,7 @@ public class Translator {
         return new MethodDeclaration(modifiers, name, type, parameters);
     }
 
-    public MethodCallExpr translateMethodCallExpr(OccurenceSpecification occurenceSpecification) {
+    public MethodCallExpr translateOcccurenceSpecification(OccurenceSpecification occurenceSpecification) {
         // scopeの作成
         Lifeline startLifeline = occurenceSpecification.getLifeline();
         Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
@@ -163,6 +163,54 @@ public class Translator {
 
         MethodCallExpr methodCallExpr = new MethodCallExpr(scope, name, arguments);
         return methodCallExpr;
+    }
+
+    public Statement translateCombinedFragment(CombinedFragment combinedFragment) {
+        Statement statement = null;
+
+        if(combinedFragment.getKind() == InteractionOperandKind.opt) {
+            IfStmt ifStmt = new IfStmt();
+            NameExpr condition = new NameExpr(combinedFragment.getInteractionOperandList().get(0).getGuard());
+            BlockStmt thenStmt = new BlockStmt();
+            ifStmt.setCondition(condition);
+            ifStmt.setThenStmt(thenStmt);
+            statement = ifStmt;
+
+        } else if (combinedFragment.getKind() == InteractionOperandKind.alt) {
+            IfStmt firstIfStmt = new IfStmt();
+            firstIfStmt.setCondition(new NameExpr(combinedFragment.getInteractionOperandList().get(0).getGuard()));
+            firstIfStmt.setThenStmt(new BlockStmt());
+            IfStmt preIfStmt = firstIfStmt;
+
+            // 2つ目以降のif文
+            for(int i=1; i<combinedFragment.getInteractionOperandList().size(); i++) {
+                InteractionOperand interactionOperand = combinedFragment.getInteractionOperandList().get(i);
+
+                if(interactionOperand.getGuard().equals("else")) {
+                    BlockStmt elseStmt = new BlockStmt();
+                    preIfStmt.setElseStmt(elseStmt);
+                } else {
+                    IfStmt elseIfStmt = new IfStmt();
+                    elseIfStmt.setCondition(new NameExpr(combinedFragment.getInteractionOperandList().get(i).getGuard()));
+                    elseIfStmt.setThenStmt(new BlockStmt());
+                    if(i == 0) {
+                        preIfStmt = elseIfStmt;
+                    } else {
+                        preIfStmt.setElseStmt(elseIfStmt);
+                        preIfStmt = elseIfStmt;
+                    }
+                }
+            }
+            statement = firstIfStmt;
+
+        } else if (combinedFragment.getKind() == InteractionOperandKind.loop) {
+            WhileStmt whileStmt = new WhileStmt();
+            whileStmt.setCondition(new NameExpr(combinedFragment.getInteractionOperandList().get(0).getGuard()));
+            whileStmt.setBody(new BlockStmt());
+            statement = whileStmt;
+        }
+
+        return statement;
     }
 
     private Optional<InteractionFragment> toInteractionFragment(Class umlClass, Statement statement) {

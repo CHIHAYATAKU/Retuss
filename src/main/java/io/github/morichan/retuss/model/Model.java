@@ -7,6 +7,7 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
@@ -382,10 +383,9 @@ public class Model {
             return;
         }
 
-        // OccurenceSpecificationの作成・追加
+        // OccurenceSpecificationの作成
         OccurenceSpecification occurenceSpecification = new OccurenceSpecification(new Lifeline("", targetClass.getName()));
         occurenceSpecification.setMessage(message);
-        targetInteraction.getInteractionFragmentList().add(occurenceSpecification);
 
         // operationに対応するmethodDeclarationを取得
         Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
@@ -400,12 +400,62 @@ public class Model {
         BlockStmt body = targetMethodDeclaration.getBody().orElse(new BlockStmt());
 
         // messageをMethodCallExprに変換
-        MethodCallExpr methodCallExpr = translator.translateMethodCallExpr(occurenceSpecification);
+        MethodCallExpr methodCallExpr = translator.translateOcccurenceSpecification(occurenceSpecification);
+
+        // UMLモデルとコードモデルに追加
+        targetInteraction.getInteractionFragmentList().add(occurenceSpecification);
         body.addStatement(methodCallExpr);
 
         // 再描画
         umlController.updateDiagram(codeFileOptional.get());
         codeController.updateCodeTab(codeFileOptional.get());
+    }
+
+    public void addCombinedFragment(String className, Operation operation, CombinedFragment combinedFragment) {
+        Optional<Class> classOptional = findClass(className);
+        Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
+        if(classOptional.isEmpty() || codeFileOptional.isEmpty()) {
+            return;
+        }
+        Class targetClass = classOptional.get();
+        CodeFile targetFile = codeFileOptional.get();
+
+        // Interactionの探索
+        Interaction targetInteraction = null;
+        for(Interaction interaction : classOptional.get().getInteractionList()) {
+            if(interaction.getOperation().equals(operation)) {
+                targetInteraction = interaction;
+                break;
+            }
+        }
+        if(Objects.isNull(targetInteraction)) {
+            return;
+        }
+
+        // operationに対応するmethodDeclarationを取得
+        Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
+        List<MethodDeclaration> methodDeclarationList = classOrInterfaceDeclarationOptional.get().getMethodsByName(operation.getName().getNameText());
+        Optional<MethodDeclaration> methodDeclarationOptional = findMethodDeclaration(methodDeclarationList, operation);
+        if(methodDeclarationOptional.isEmpty()) {
+            return;
+        }
+        MethodDeclaration targetMethodDeclaration = methodDeclarationOptional.get();
+
+        // methodDeclarationのBodyを取得
+        BlockStmt body = targetMethodDeclaration.getBody().orElse(new BlockStmt());
+
+        // messageをMethodCallExprに変換
+        Statement statement = translator.translateCombinedFragment(combinedFragment);
+
+        // UMLモデルとコードモデルに追加
+        targetInteraction.getInteractionFragmentList().add(combinedFragment);
+        body.addStatement(statement);
+
+        // 再描画
+        umlController.updateDiagram(codeFileOptional.get());
+        codeController.updateCodeTab(codeFileOptional.get());
+
+
     }
 
     /**
