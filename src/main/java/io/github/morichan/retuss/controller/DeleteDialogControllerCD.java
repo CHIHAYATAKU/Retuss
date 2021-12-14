@@ -15,7 +15,7 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeleteDialogController {
+public class DeleteDialogControllerCD {
     @FXML TreeView cdTreeView;
     private Model model = Model.getInstance();
     private ArrayList cdTreeItemList = new ArrayList();

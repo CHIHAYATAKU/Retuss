@@ -47,7 +47,7 @@
                                                                     <Button fx:id="attributeBtn" mnemonicParsing="false" onAction="#showAttributeDialog" text="Attribute" />
                                                                     <Button fx:id="operationBtn" mnemonicParsing="false" onAction="#showOperationDialog" text="Operation" />
                                                 <Button fx:id="relationshipBtn" mnemonicParsing="false" onAction="#showRelationshipDialog" text="Relationship" />
-                                                                    <Button fx:id="deleteBtn" mnemonicParsing="false" onAction="#showDeleteDialog" text="Delete" />
+                                                                    <Button fx:id="deleteBtn" mnemonicParsing="false" onAction="#showDeleteDialogCD" text="Delete" />
                                                                 </items>
                                                             </ToolBar>
                                                         </top>
@@ -74,7 +74,7 @@
                                                 <Button fx:id="normalButtonInSD" mnemonicParsing="false" onAction="#normalMessageInSD" text="Normal" />
                                                 <Button fx:id="messageButtonInSD" mnemonicParsing="false" onAction="#showCreateMessageDialog" text="Message" />
                                                 <Button fx:id="cfButtonInSD" mnemonicParsing="false" onAction="#showCreateCombinedFragmentDialog" text="Combined Fragment" />
-                                                <Button fx:id="deleteButtonInSD" mnemonicParsing="false" onAction="#showDeleteDialog" text="Delete" />
+                                                <Button fx:id="deleteButtonInSD" mnemonicParsing="false" onAction="#showDeleteDialogSD" text="Delete" />
                                             </items>
                                           </ToolBar>
                                        </top>

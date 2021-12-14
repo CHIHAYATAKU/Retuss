@@ -66,4 +66,9 @@ public class Message {
 
         return sb.toString();
     }
+
+    @Override
+    public String toString() {
+        return getSignature();
+    }
 }

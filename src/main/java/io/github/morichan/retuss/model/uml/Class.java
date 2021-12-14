@@ -112,6 +112,15 @@ public class Class {
         return Optional.empty();
     }
 
+    public Optional<Interaction> findInteraction(Operation operation) {
+        for(Interaction interaction : interactionList) {
+            if(interaction.getOperation().equals(operation)) {
+                return Optional.of(interaction);
+            }
+        }
+        return Optional.empty();
+    }
+
     @Override
     public String toString() {
         return this.name;

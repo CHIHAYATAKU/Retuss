@@ -8,12 +8,12 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.controller.DeleteDialogControllerCD">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.controller.DeleteDialogControllerSD">
    <children>
       <VBox prefHeight="406.0" prefWidth="600.0" spacing="10.0">
          <children>
             <Label text="Pleases selet the element to be deleted." />
-            <TreeView fx:id="cdTreeView" minWidth="-Infinity" prefHeight="300.0" />
+            <TreeView fx:id="sdTreeView" minWidth="-Infinity" prefHeight="300.0" />
             <ButtonBar prefHeight="40.0" prefWidth="200.0">
               <buttons>
                 <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#delete" text="Delete" />

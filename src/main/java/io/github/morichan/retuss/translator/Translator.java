@@ -233,6 +233,7 @@ public class Translator {
     private OccurenceSpecification toOccurenceSpecification(Class umlClass, MethodCallExpr methodCallExpr) {
         // メッセージ開始点の作成
         OccurenceSpecification messageStart = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
+        messageStart.setStatement((Statement) methodCallExpr.getParentNode().get());
 
         // メッセージ終点の作成
         OccurenceSpecification messageEnd;
@@ -271,6 +272,7 @@ public class Translator {
         }
 
         CombinedFragment combinedFragment = new CombinedFragment(lifeline, interactionOperandKind);
+        combinedFragment.setStatement(ifStmt);
         combinedFragment.getInteractionOperandList().addAll(ifStmtToInteractionOperand(umlClass, ifStmt));
 
         return combinedFragment;
@@ -279,6 +281,7 @@ public class Translator {
     private CombinedFragment toCombinedFragment(Class umlClass, WhileStmt whileStmt) {
         Lifeline lifeline = new Lifeline("", umlClass.getName());
         CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.loop);
+        combinedFragment.setStatement(whileStmt);
 
         InteractionOperand interactionOperand = new InteractionOperand(lifeline, whileStmt.getCondition().toString());
         NodeList statements = whileStmt.getBody().asBlockStmt().getStatements();
@@ -297,6 +300,7 @@ public class Translator {
     private CombinedFragment toCombinedFragment(Class umlClass, ForStmt forStmt) {
         Lifeline lifeline = new Lifeline("", umlClass.getName());
         CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.loop);
+        combinedFragment.setStatement(forStmt);
 
         String guard = "";
         if(forStmt.getCompare().isPresent()) {

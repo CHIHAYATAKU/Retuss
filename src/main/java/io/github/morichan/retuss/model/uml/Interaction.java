@@ -25,4 +25,28 @@ public class Interaction {
     public ArrayList<InteractionFragment> getInteractionFragmentList() {
         return interactionFragmentList;
     }
+
+    public void deleteInteractionFragment(InteractionFragment targetIf) {
+        delete(targetIf, interactionFragmentList);
+    }
+
+    private boolean delete(InteractionFragment targetIf, ArrayList<InteractionFragment> ifList) {
+        if(ifList.remove(targetIf)) {
+            return true;
+        }
+
+        for(InteractionFragment interactionFragment : ifList) {
+            if(interactionFragment instanceof CombinedFragment) {
+                CombinedFragment cf = (CombinedFragment)interactionFragment;
+                for(InteractionOperand interactionOperand : cf.getInteractionOperandList()) {
+                    if(delete(targetIf, interactionOperand.getInteractionFragmentList())) {
+                        return true;
+                    }
+                }
+
+            }
+        }
+
+        return false;
+    }
 }

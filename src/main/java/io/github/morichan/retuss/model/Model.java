@@ -7,6 +7,7 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import io.github.morichan.fescue.feature.Attribute;
@@ -345,6 +346,104 @@ public class Model {
         codeController.updateCodeTab(codeFileOptional.get());
     }
 
+    /**
+     * interactionFragmentを削除する
+     * @param className
+     * @param operation
+     * @param interactionFragment
+     */
+    public void delete(String className, Operation operation, InteractionFragment interactionFragment) {
+        // UML情報とコード情報の探索
+        Optional<Class> classOptional = findClass(className);
+        Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
+        if(classOptional.isEmpty() || codeFileOptional.isEmpty()) {
+            return;
+        }
+        Class targetClass = classOptional.get();
+        CodeFile targetFile = codeFileOptional.get();
+
+        // Interactionの探索
+        Interaction targetInteraction = null;
+        for(Interaction interaction : classOptional.get().getInteractionList()) {
+            if(interaction.getOperation().equals(operation)) {
+                targetInteraction = interaction;
+                break;
+            }
+        }
+        if(Objects.isNull(targetInteraction)) {
+            return;
+        }
+
+        // メソッド名と引数の型が一致するメソッド宣言を探索
+        Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
+        List<MethodDeclaration> methodList = classOrInterfaceDeclarationOptional.get().getMethodsByName(operation.getName().getNameText());
+        if(methodList.size() <= 0) {
+            return;
+        }
+
+        int operationParameterSize = 0;
+        try {
+            operationParameterSize = operation.getParameters().size();
+        } catch (Exception e) {
+
+        }
+
+        MethodDeclaration targetMethod = null;
+        for(MethodDeclaration methodDeclaration : methodList) {
+            if(methodDeclaration.getParameters().size() != operationParameterSize) {
+                // 引数の数が異なる場合
+                continue;
+            }
+
+            if(operationParameterSize == 0) {
+                // 引数の数が同じ、かつ、引数が0の場合
+                targetMethod = methodDeclaration;
+                break;
+            }
+
+            // 引数の数が同じ、かつ、引数が複数ある場合
+            int cntSameParameters = 0;
+            for (int i = 0; i < methodDeclaration.getParameters().size(); i++) {
+                if (!methodDeclaration.getParameters().get(i).getTypeAsString().equals(operation.getParameters().get(i).getType().toString())) {
+                    break;
+                }
+                cntSameParameters++;
+            }
+            if (cntSameParameters == methodDeclaration.getParameters().size()) {
+                targetMethod = methodDeclaration;
+                break;
+            }
+        }
+        // 削除対象メソッドが見つからない、または、削除対象メソッドが空である場合
+        if(Objects.isNull(targetMethod) || targetMethod.getBody().isEmpty()) {
+            return;
+        }
+
+        // interacctionFragmentに対応するコード情報を探索
+        Optional<Statement> removeTargetOptional = Optional.empty();
+        if (interactionFragment instanceof OccurenceSpecification) {
+            removeTargetOptional = ((OccurenceSpecification) interactionFragment).getStatement();
+        } else if (interactionFragment instanceof CombinedFragment) {
+            removeTargetOptional = ((CombinedFragment) interactionFragment).getStatement();
+        } else {
+            return;
+        }
+
+        if(removeTargetOptional.isEmpty()) {
+            return;
+        }
+
+        // コード情報から削除
+        if(!removeTargetOptional.get().remove()) {
+            return;
+        }
+        // UML情報からinteractionFragmentの削除
+        targetInteraction.deleteInteractionFragment(interactionFragment);
+        // コード情報から削除
+        umlController.updateDiagram(codeFileOptional.get());
+        codeController.updateCodeTab(codeFileOptional.get());
+    }
+
     public void deleteSuperClass(String className) {
         Optional<Class> classOptional = findClass(className);
         Optional<CodeFile> codeFileOptional = findCodeFile(className + ".java");
@@ -383,10 +482,6 @@ public class Model {
             return;
         }
 
-        // OccurenceSpecificationの作成
-        OccurenceSpecification occurenceSpecification = new OccurenceSpecification(new Lifeline("", targetClass.getName()));
-        occurenceSpecification.setMessage(message);
-
         // operationに対応するmethodDeclarationを取得
         Optional<ClassOrInterfaceDeclaration> classOrInterfaceDeclarationOptional = codeFileOptional.get().getCompilationUnit().getClassByName(className);
         List<MethodDeclaration> methodDeclarationList = classOrInterfaceDeclarationOptional.get().getMethodsByName(operation.getName().getNameText());
@@ -399,12 +494,18 @@ public class Model {
         // methodDeclarationのBodyを取得
         BlockStmt body = targetMethodDeclaration.getBody().orElse(new BlockStmt());
 
-        // messageをMethodCallExprに変換
+        // OccurenceSpecificationの作成
+        OccurenceSpecification occurenceSpecification = new OccurenceSpecification(new Lifeline("", targetClass.getName()));
+        occurenceSpecification.setMessage(message);
+
+        // messageをMethodCallExprを持つExpressionStmtに変換
         MethodCallExpr methodCallExpr = translator.translateOcccurenceSpecification(occurenceSpecification);
+        ExpressionStmt expressionStmt = new ExpressionStmt(methodCallExpr);
+        occurenceSpecification.setStatement(expressionStmt);
 
         // UMLモデルとコードモデルに追加
         targetInteraction.getInteractionFragmentList().add(occurenceSpecification);
-        body.addStatement(methodCallExpr);
+        body.addStatement(expressionStmt);
 
         // 再描画
         umlController.updateDiagram(codeFileOptional.get());
@@ -444,8 +545,9 @@ public class Model {
         // methodDeclarationのBodyを取得
         BlockStmt body = targetMethodDeclaration.getBody().orElse(new BlockStmt());
 
-        // messageをMethodCallExprに変換
+        // CombinedFragmnetをStatementに変換
         Statement statement = translator.translateCombinedFragment(combinedFragment);
+        combinedFragment.setStatement(statement);
 
         // UMLモデルとコードモデルに追加
         targetInteraction.getInteractionFragmentList().add(combinedFragment);
