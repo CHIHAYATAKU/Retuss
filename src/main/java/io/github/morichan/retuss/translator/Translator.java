@@ -2,6 +2,7 @@ package io.github.morichan.retuss.translator;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
@@ -22,6 +23,7 @@ import io.github.morichan.retuss.model.uml.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class Translator {
@@ -66,7 +68,6 @@ public class Translator {
                 }
                 // シーケンス図のInteractionの作成
                 Interaction interaction = new Interaction(operation, operation.toString());
-                List<MethodCallExpr> methodCallExprList = methodDeclaration.findAll(MethodCallExpr.class);
                 NodeList statements = methodDeclaration.getBody().get().getStatements();
                 for(int i=0; i<statements.size(); i++) {
                     Statement statement = (Statement) statements.get(i);
@@ -75,6 +76,7 @@ public class Translator {
                         interaction.getInteractionFragmentList().add(interactionFragmentOptional.get());
                     }
                 }
+
                 umlClass.addOperation(operation, interaction);
             }
 
@@ -217,7 +219,16 @@ public class Translator {
         if(statement instanceof ExpressionStmt) {
             ExpressionStmt expressionStmt = (ExpressionStmt) statement;
             if(expressionStmt.getExpression() instanceof MethodCallExpr) {
+                // メソッド呼び出し式の場合
                 return Optional.of(toOccurenceSpecification(umlClass, (MethodCallExpr) expressionStmt.getExpression()));
+            } else if(expressionStmt.getExpression() instanceof VariableDeclarationExpr) {
+                VariableDeclarationExpr variableDeclarationExpr = (VariableDeclarationExpr) expressionStmt.getExpression();
+                for(VariableDeclarator variableDeclarator : variableDeclarationExpr.getVariables()) {
+                    if(variableDeclarator.getInitializer().isPresent() && variableDeclarator.getInitializer().get() instanceof ObjectCreationExpr) {
+                        // インスタンス化を行う変数宣言の場合
+                        return Optional.of(toOccurenceSpecification(umlClass, (ObjectCreationExpr) variableDeclarator.getInitializer().get()));
+                    }
+                }
             }
         } else if(statement instanceof IfStmt) {
             return Optional.of(toCombinedFragment(umlClass, (IfStmt)statement));
@@ -242,12 +253,41 @@ public class Translator {
             messageEnd = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
         } else {
             // 他ライフラインへのメッセージの場合
-            messageEnd = new OccurenceSpecification(new Lifeline(methodCallExpr.getScope().get().toString()));
+            String lifelineType = findInstanceType(methodCallExpr, methodCallExpr.getScope().get().toString());
+            messageEnd = new OccurenceSpecification(new Lifeline(methodCallExpr.getScope().get().toString(), lifelineType));
         }
 
         // メッセージの作成
         Message message = new Message(methodCallExpr.getNameAsString(), messageEnd);
         NodeList arguments = methodCallExpr.getArguments();
+        // メッセージの引数を設定
+        for(int i=0; i<arguments.size(); i++) {
+            Expression expression = (Expression) arguments.get(i);
+            // TODO:引数にメソッド呼び出し等がある場合の対応
+            io.github.morichan.fescue.feature.parameter.Parameter parameter = new io.github.morichan.fescue.feature.parameter.Parameter(new Name(expression.toString()));
+            message.getParameterList().add(parameter);
+        }
+        // メッセージの戻り値の型を設定
+
+        messageStart.setMessage(message);
+        return messageStart;
+    }
+
+    private OccurenceSpecification toOccurenceSpecification(Class umlClass, ObjectCreationExpr objectCreationExpr) {
+        VariableDeclarator variableDeclarator = (VariableDeclarator) objectCreationExpr.getParentNode().get();
+
+        // メッセージ開始点の作成
+        OccurenceSpecification messageStart = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
+        messageStart.setStatement((Statement) variableDeclarator.getParentNode().get().getParentNode().get());
+
+        // メッセージ終点の作成
+        OccurenceSpecification messageEnd;
+        messageEnd = new OccurenceSpecification(new Lifeline(variableDeclarator.getNameAsString(), objectCreationExpr.getTypeAsString()));
+
+        // メッセージの作成
+        Message message = new Message("create", messageEnd);
+        message.setMessageSort(MessageSort.createMessage);
+        NodeList arguments = objectCreationExpr.getArguments();
         // メッセージの引数を設定
         for(int i=0; i<arguments.size(); i++) {
             Expression expression = (Expression) arguments.get(i);
@@ -405,6 +445,51 @@ public class Translator {
             classOrInterfaceType.setName(new SimpleName(typeName));
             return classOrInterfaceType;
         }
+    }
+
+    /**
+     * nodeが属するメソッド内の変数宣言と、nodeが属するクラスのフィールド宣言から、instanceNameの型名を見つける
+     * ただし、メソッド内の変数のスコープは考慮していないため、実際は使えない変数宣言から型名を取得する場合がある
+     * @param node
+     * @param instanceName
+     * @return
+     */
+    private String findInstanceType(Node node, String instanceName) {
+        // methodDeclarationの探索
+        MethodDeclaration methodDeclaration = null;
+        Optional<Node> parentOptional = node.getParentNode();
+        while(true) {
+            if(parentOptional.isEmpty()) {
+                break;
+            }
+            if(parentOptional.get() instanceof MethodDeclaration) {
+                methodDeclaration = (MethodDeclaration) parentOptional.get();
+                break;
+            }
+            parentOptional = parentOptional.get().getParentNode();
+        }
+
+        // methodDeclaration内の変数宣言を取得
+        List<VariableDeclarator> variableDeclaratorList = new ArrayList<>();
+        if(Objects.nonNull(methodDeclaration)) {
+            variableDeclaratorList.addAll(methodDeclaration.getBody().get().findAll(VariableDeclarator.class));
+        }
+
+        // クラス内のフィールド宣言を取得
+        Node root = node.findRootNode();
+        List<FieldDeclaration> fieldDeclarationList = root.findAll(FieldDeclaration.class);
+        for(FieldDeclaration fieldDeclaration : fieldDeclarationList) {
+            variableDeclaratorList.addAll(fieldDeclaration.getVariables());
+        }
+
+        // instanceNameが変数名となっている変数宣言orフィールド宣言を探索
+        for(VariableDeclarator variableDeclarator : variableDeclaratorList) {
+            if(variableDeclarator.getNameAsString().equals(instanceName)) {
+                return variableDeclarator.getTypeAsString();
+            }
+        }
+
+        return "";
     }
 
 }

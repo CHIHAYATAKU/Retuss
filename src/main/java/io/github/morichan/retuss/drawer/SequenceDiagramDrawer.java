@@ -80,10 +80,15 @@ public class SequenceDiagramDrawer {
             Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
             Message message = occurenceSpecification.getMessage();
 
-            sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifeline.getSignature() , endLifeline.getSignature(), message.getSignature()));
-            sb.append(String.format("activate \"%s\"\n", endLifeline.getSignature()));
-            // ここにmessageEnd側のメッセージを入れ子呼び出し
-            sb.append(String.format("deactivate \"%s\"\n", endLifeline.getSignature()));
+            if (message.getMessageSort() == MessageSort.synchCall) {
+                sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifeline.getSignature() , endLifeline.getSignature(), message.getSignature()));
+                sb.append(String.format("activate \"%s\"\n", endLifeline.getSignature()));
+                // ここにmessageEnd側のメッセージを入れ子呼び出し
+                sb.append(String.format("deactivate \"%s\"\n", endLifeline.getSignature()));
+
+            } else if (message.getMessageSort() == MessageSort.createMessage) {
+                sb.append(String.format("\"%s\" -->> \"%s\" ** : %s\n", startLifeline.getSignature() , endLifeline.getSignature(), message.getSignature()));
+            }
 
         } else if (interactionFragment instanceof CombinedFragment) {
             CombinedFragment combinedFragment = (CombinedFragment) interactionFragment;
