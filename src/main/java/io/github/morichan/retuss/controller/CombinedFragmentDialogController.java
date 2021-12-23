@@ -20,6 +20,7 @@ public class CombinedFragmentDialogController {
     @FXML private Button addGuardButton;
     @FXML private Button deleteGuardButton;
     @FXML private TextField guardTextFieldLoop;
+    @FXML private TextField guardTextFieldBreak;
     @FXML private Button createButton;
 
     private Class targetClass;
@@ -92,6 +93,8 @@ public class CombinedFragmentDialogController {
             isCreated = createCFAlt();
         } else if (selectedTab.getText().equals("loop")) {
             isCreated = createCFLoop();
+        } else if (selectedTab.getText().equals("break")) {
+            isCreated = createCFBreak();
         }
 
         if (isCreated) {
@@ -141,6 +144,21 @@ public class CombinedFragmentDialogController {
         Lifeline lifeline = new Lifeline("", targetClass.getName());
         CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.loop);
         InteractionOperand interactionOperand = new InteractionOperand(lifeline, guardTextFieldLoop.getText());
+        combinedFragment.getInteractionOperandList().add(interactionOperand);
+
+        model.addCombinedFragment(targetClass.getName(), targetOperation, combinedFragment);
+
+        return true;
+    }
+
+    private boolean createCFBreak() {
+        if (guardTextFieldBreak.getText().isEmpty()) {
+            return false;
+        }
+
+        Lifeline lifeline = new Lifeline("", targetClass.getName());
+        CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.BREAK);
+        InteractionOperand interactionOperand = new InteractionOperand(lifeline, guardTextFieldBreak.getText());
         combinedFragment.getInteractionOperandList().add(interactionOperand);
 
         model.addCombinedFragment(targetClass.getName(), targetOperation, combinedFragment);

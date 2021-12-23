@@ -553,8 +553,6 @@ public class Model {
         // 再描画
         umlController.updateDiagram(codeFileOptional.get());
         codeController.updateCodeTab(codeFileOptional.get());
-
-
     }
 
     /**

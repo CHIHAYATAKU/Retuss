@@ -243,6 +243,16 @@ public class Translator {
             whileStmt.setCondition(new NameExpr(combinedFragment.getInteractionOperandList().get(0).getGuard()));
             whileStmt.setBody(new BlockStmt());
             statement = whileStmt;
+
+        } else if (combinedFragment.getKind() == InteractionOperandKind.BREAK) {
+            IfStmt ifStmt = new IfStmt();
+            NameExpr condition = new NameExpr(combinedFragment.getInteractionOperandList().get(0).getGuard());
+            BlockStmt thenStmt = new BlockStmt();
+            thenStmt.getStatements().add(new ReturnStmt());
+            ifStmt.setCondition(condition);
+            ifStmt.setThenStmt(thenStmt);
+            statement = ifStmt;
+
         }
 
         return statement;
