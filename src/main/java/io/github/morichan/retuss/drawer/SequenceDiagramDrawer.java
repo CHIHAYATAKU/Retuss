@@ -97,7 +97,7 @@ public class SequenceDiagramDrawer {
             for(int i=0; i<interactionOperandList.size(); i++) {
                 InteractionOperand interactionOperand = interactionOperandList.get(i);
                 if(i == 0) {
-                    sb.append(String.format("%s %s\n", combinedFragment.getKind().toString(), interactionOperand.getGuard()));
+                    sb.append(String.format("%s %s\n", combinedFragment.getKind().toString().toLowerCase(), interactionOperand.getGuard()));
                 } else {
                     // altでのみ使用する
                     sb.append(String.format("else %s\n", interactionOperand.getGuard()));

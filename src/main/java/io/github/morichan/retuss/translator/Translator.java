@@ -337,9 +337,12 @@ public class Translator {
     private CombinedFragment toCombinedFragment(Class umlClass, IfStmt ifStmt) {
         Lifeline lifeline = new Lifeline("", umlClass.getName());
         Optional<Statement> elseStmtOptional = ifStmt.getElseStmt();
+
         InteractionOperandKind interactionOperandKind;
         if(elseStmtOptional.isPresent()) {
             interactionOperandKind = InteractionOperandKind.alt;
+        } else if (isBreakCF(ifStmt)) {
+            interactionOperandKind = InteractionOperandKind.BREAK;
         } else {
             interactionOperandKind = InteractionOperandKind.opt;
         }
@@ -349,6 +352,34 @@ public class Translator {
         combinedFragment.getInteractionOperandList().addAll(ifStmtToInteractionOperand(umlClass, ifStmt));
 
         return combinedFragment;
+    }
+
+    private Boolean isBreakCF(IfStmt ifStmt) {
+        // thenStmtにbreak文を含む、かつ、while文またはfor文の中にあるif文である場合は、複合フラグメントbreakとする
+        if (ifStmt.getThenStmt().findFirst(BreakStmt.class).isPresent()) {
+            try {
+                Node parentParentNode = ifStmt.getParentNode().get().getParentNode().get();
+                if (parentParentNode instanceof WhileStmt || parentParentNode instanceof ForStmt) {
+                    return true;
+                }
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        // thenStmtにreturn文を含む、かつ、メソッド内に直接書かれているif文である (while文等の中ではない)
+        if (ifStmt.getThenStmt().findFirst(ReturnStmt.class).isPresent()) {
+            try {
+                Node parentParentNode = ifStmt.getParentNode().get().getParentNode().get();
+                if (parentParentNode instanceof MethodDeclaration) {
+                    return true;
+                }
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     private CombinedFragment toCombinedFragment(Class umlClass, WhileStmt whileStmt) {
