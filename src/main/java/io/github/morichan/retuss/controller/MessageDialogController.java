@@ -6,25 +6,32 @@ import io.github.morichan.fescue.feature.name.Name;
 import io.github.morichan.fescue.feature.parameter.Parameter;
 import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.uml.*;
 import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.model.uml.Lifeline;
-import io.github.morichan.retuss.model.uml.Message;
-import io.github.morichan.retuss.model.uml.OccurenceSpecification;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 
 
 public class MessageDialogController {
+    // SynchCallタブ
+    @FXML private ComboBox<MessageSort> sortCombo;
     @FXML private ComboBox<Class> classCombo;
     @FXML private ComboBox<Operation> operationCombo;
+    @FXML private TextField lifelineNameTextField;
     @FXML private TextField argumentTextField;
     @FXML private Button createButton;
+    @FXML private HBox classHBox;
+    @FXML private HBox operationHBox;
+    @FXML private HBox lifelineNameHBox;
+    @FXML private HBox argumentsHBox;
     private Model model = Model.getInstance();
     private Class targetClass;
     private Operation targetOperation;
@@ -55,6 +62,12 @@ public class MessageDialogController {
         }
         this.targetOperation = operationOptional.get();
 
+        // メッセージソートをコンボボックスに追加
+        for (MessageSort messageSort : MessageSort.values()) {
+            sortCombo.getItems().add(messageSort);
+        }
+        sortCombo.setValue(MessageSort.synchCall);
+
         // クラスをコンボボックスに追加
         for (Class umlClass : model.getUmlClassList()) {
             classCombo.getItems().add(umlClass);
@@ -63,6 +76,14 @@ public class MessageDialogController {
 
         // 操作をコンボボックスに追加
         setOperation();
+
+        // 入力項目の表示・非表示を初期化
+        changeForm();
+        // 非表示のHBoxの領域を詰めて他のHBoxを表示する
+        classHBox.managedProperty().bind(classHBox.visibleProperty());
+        operationHBox.managedProperty().bind(operationHBox.visibleProperty());
+        lifelineNameHBox.managedProperty().bind(lifelineNameHBox.visibleProperty());
+        argumentsHBox.managedProperty().bind(argumentsHBox.visibleProperty());
     }
 
     @FXML private void setOperation() {
@@ -75,7 +96,55 @@ public class MessageDialogController {
         operationCombo.getSelectionModel().select(0);
     }
 
+    /**
+     * 選択されたMessageSortに応じて、入力する項目を変更する
+     */
+    @FXML private void changeForm() {
+        // 全て非表示にする
+        classHBox.setVisible(false);
+        operationHBox.setVisible(false);
+        lifelineNameHBox.setVisible(false);
+        argumentsHBox.setVisible(false);
+
+        // 必要なHBoxを表示する
+        MessageSort selectedMessageSort = sortCombo.getValue();
+        if (selectedMessageSort == MessageSort.synchCall) {
+            classHBox.setVisible(true);
+            operationHBox.setVisible(true);
+            argumentsHBox.setVisible(true);
+        } else if (selectedMessageSort == MessageSort.createMessage) {
+            classHBox.setVisible(true);
+            lifelineNameHBox.setVisible(true);
+            argumentsHBox.setVisible(true);
+        } else {
+
+        }
+    }
+
     @FXML private void createMessage() {
+
+        MessageSort messageSort = sortCombo.getValue();
+        Message message = null;
+        if (messageSort == MessageSort.synchCall) {
+            message = createSynchCallMessage();
+        } else if (messageSort == MessageSort.createMessage) {
+            message = createCreateMessage();
+        }
+
+        if (Objects.isNull(message)) {
+            // TODO: エラー処理
+            return;
+        }
+
+        // messageの追加
+        model.addMessage(targetClass.getName(), targetOperation, message);
+
+        // ダイアログを閉じる
+        Stage stage = (Stage) createButton.getScene().getWindow();
+        stage.close();
+    }
+
+    private Message createSynchCallMessage() {
         // messageの作成
         String messageName = operationCombo.getValue().getName().getNameText();
 
@@ -99,7 +168,7 @@ public class MessageDialogController {
         Message message = new Message(messageName, messageEnd);
 
         // 引数を設定
-        if(argumentTextField.getText().length() > 0) {
+        if(!argumentTextField.getText().isEmpty()) {
             ArrayList<Parameter> parameterList = new ArrayList<>();
             String[] argumentsText = argumentTextField.getText().split(",");
             for(String argument : argumentsText) {
@@ -108,12 +177,34 @@ public class MessageDialogController {
             message.setParameterList(parameterList);
         }
 
-        // messageの追加
-        model.addMessage(targetClass.getName(), targetOperation, message);
-
-        // ダイアログを閉じる
-        Stage stage = (Stage) createButton.getScene().getWindow();
-        stage.close();
+        return message;
     }
 
+    private Message createCreateMessage() {
+        Class selectedClass = classCombo.getValue();
+
+        // messageEndの生成
+        String lifelineName = lifelineNameTextField.getText();
+        if(lifelineName.isEmpty()) {
+            lifelineName = selectedClass.getName().toLowerCase();
+        }
+        Lifeline endLifeline = new Lifeline(lifelineName, selectedClass.getName());
+        OccurenceSpecification messageEnd = new OccurenceSpecification(endLifeline);
+
+        // メッセージ名の生成
+        String messageName = "create";
+        Message message = new Message(messageName, messageEnd);
+        message.setMessageSort(MessageSort.createMessage);
+        // 引数を設定
+        if(!argumentTextField.getText().isEmpty()) {
+            ArrayList<Parameter> parameterList = new ArrayList<>();
+            String[] argumentsText = argumentTextField.getText().split(",");
+            for(String argument : argumentsText) {
+                parameterList.add(new Parameter(new Name(argument)));
+            }
+            message.setParameterList(parameterList);
+        }
+
+        return message;
+    }
 }

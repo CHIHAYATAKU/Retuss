@@ -141,7 +141,21 @@ public class Translator {
         return new MethodDeclaration(modifiers, name, type, parameters);
     }
 
-    public MethodCallExpr translateOcccurenceSpecification(OccurenceSpecification occurenceSpecification) {
+    public ExpressionStmt occurenceSpeccificationToExpressionStmt(OccurenceSpecification occurenceSpecification) {
+        ExpressionStmt expressionStmt = null;
+        MessageSort messageSort = occurenceSpecification.getMessage().getMessageSort();
+        if (messageSort == MessageSort.synchCall) {
+            MethodCallExpr methodCallExpr = occurenceSpecificationToMethodCallExpr(occurenceSpecification);
+            expressionStmt = new ExpressionStmt(methodCallExpr);
+        } else if (messageSort == MessageSort.createMessage) {
+            VariableDeclarationExpr variableDeclarationExpr = occurenceSpecificationToVariableDeclarationExpr(occurenceSpecification);
+            expressionStmt = new ExpressionStmt(variableDeclarationExpr);
+        }
+
+        return expressionStmt;
+    }
+
+    private MethodCallExpr occurenceSpecificationToMethodCallExpr(OccurenceSpecification occurenceSpecification) {
         // scopeの作成
         Lifeline startLifeline = occurenceSpecification.getLifeline();
         Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
@@ -165,6 +179,25 @@ public class Translator {
 
         MethodCallExpr methodCallExpr = new MethodCallExpr(scope, name, arguments);
         return methodCallExpr;
+    }
+
+    private VariableDeclarationExpr occurenceSpecificationToVariableDeclarationExpr(OccurenceSpecification occurenceSpecification) {
+        Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
+        ArrayList<io.github.morichan.fescue.feature.parameter.Parameter> messageParameterList = occurenceSpecification.getMessage().getParameterList();
+
+        // ObjectCreationExprの作成
+        ObjectCreationExpr objectCreationExpr = new ObjectCreationExpr();
+        objectCreationExpr.setType(new ClassOrInterfaceType(endLifeline.getType()));
+        // 引数の設定
+        NodeList<Expression> arguments = new NodeList<>();
+        for(io.github.morichan.fescue.feature.parameter.Parameter parameter : occurenceSpecification.getMessage().getParameterList()) {
+            arguments.add(new NameExpr(parameter.getName().getNameText()));
+        }
+        objectCreationExpr.setArguments(arguments);
+
+        VariableDeclarator variableDeclarator = new VariableDeclarator(new ClassOrInterfaceType(endLifeline.getType()), endLifeline.getName(), objectCreationExpr);
+        VariableDeclarationExpr variableDeclarationExpr = new VariableDeclarationExpr(variableDeclarator);
+        return variableDeclarationExpr;
     }
 
     public Statement translateCombinedFragment(CombinedFragment combinedFragment) {

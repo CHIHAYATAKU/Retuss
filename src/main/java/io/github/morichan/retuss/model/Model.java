@@ -5,7 +5,6 @@ import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.Statement;
@@ -498,10 +497,8 @@ public class Model {
         OccurenceSpecification occurenceSpecification = new OccurenceSpecification(new Lifeline("", targetClass.getName()));
         occurenceSpecification.setMessage(message);
 
-        // messageをMethodCallExprを持つExpressionStmtに変換
-        MethodCallExpr methodCallExpr = translator.translateOcccurenceSpecification(occurenceSpecification);
-        ExpressionStmt expressionStmt = new ExpressionStmt(methodCallExpr);
-        occurenceSpecification.setStatement(expressionStmt);
+        // 変換
+        ExpressionStmt expressionStmt = translator.occurenceSpeccificationToExpressionStmt(occurenceSpecification);
 
         // UMLモデルとコードモデルに追加
         targetInteraction.getInteractionFragmentList().add(occurenceSpecification);
