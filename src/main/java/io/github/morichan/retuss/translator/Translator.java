@@ -181,6 +181,11 @@ public class Translator {
         return methodCallExpr;
     }
 
+    /**
+     * 生成メッセージからインスタンス生成式への変換
+     * @param occurenceSpecification
+     * @return
+     */
     private VariableDeclarationExpr occurenceSpecificationToVariableDeclarationExpr(OccurenceSpecification occurenceSpecification) {
         Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
         ArrayList<io.github.morichan.fescue.feature.parameter.Parameter> messageParameterList = occurenceSpecification.getMessage().getParameterList();
@@ -284,6 +289,12 @@ public class Translator {
         return Optional.empty();
     }
 
+    /**
+     * メソッド呼び出し式から同期Methodメッセージへの変換
+     * @param umlClass
+     * @param methodCallExpr
+     * @return
+     */
     private OccurenceSpecification toOccurenceSpecification(Class umlClass, MethodCallExpr methodCallExpr) {
         // メッセージ開始点の作成
         OccurenceSpecification messageStart = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
@@ -316,6 +327,12 @@ public class Translator {
         return messageStart;
     }
 
+    /**
+     * インスタンス生成式から生成メッセージへの変換
+     * @param umlClass
+     * @param objectCreationExpr
+     * @return
+     */
     private OccurenceSpecification toOccurenceSpecification(Class umlClass, ObjectCreationExpr objectCreationExpr) {
         VariableDeclarator variableDeclarator = (VariableDeclarator) objectCreationExpr.getParentNode().get();
 
