@@ -300,16 +300,22 @@ public class Translator {
         OccurenceSpecification messageStart = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
         messageStart.setStatement((Statement) methodCallExpr.getParentNode().get());
 
-        // メッセージ終点の作成
-        OccurenceSpecification messageEnd;
+        // メッセージ終点と相互作用オカレンスの作成
+        Lifeline endLifeline;
+        InteractionUse interactionUse;
         if (methodCallExpr.getScope().isEmpty() || methodCallExpr.getScope().get() instanceof ThisExpr) {
             // 自ライフラインへのメッセージの場合
-            messageEnd = new OccurenceSpecification(new Lifeline("", umlClass.getName()));
+            endLifeline = new Lifeline("", umlClass.getName());
+            interactionUse = new InteractionUse(endLifeline, methodCallExpr.getNameAsString());
         } else {
             // 他ライフラインへのメッセージの場合
             String lifelineType = findInstanceType(methodCallExpr, methodCallExpr.getScope().get().toString());
-            messageEnd = new OccurenceSpecification(new Lifeline(methodCallExpr.getScope().get().toString(), lifelineType));
+            endLifeline = new Lifeline(methodCallExpr.getScope().get().toString(), lifelineType);
+            interactionUse = new InteractionUse(endLifeline, methodCallExpr.getNameAsString());
+            interactionUse.setCollaborationUse(methodCallExpr.getScope().get().toString());
         }
+        OccurenceSpecification messageEnd = new OccurenceSpecification(endLifeline);
+        messageEnd.getInteractionFragmentList().add(interactionUse);
 
         // メッセージの作成
         Message message = new Message(methodCallExpr.getNameAsString(), messageEnd);
@@ -320,10 +326,10 @@ public class Translator {
             // TODO:引数にメソッド呼び出し等がある場合の対応
             io.github.morichan.fescue.feature.parameter.Parameter parameter = new io.github.morichan.fescue.feature.parameter.Parameter(new Name(expression.toString()));
             message.getParameterList().add(parameter);
+            interactionUse.getParameterList().add(parameter);
         }
-        // メッセージの戻り値の型を設定
-
         messageStart.setMessage(message);
+
         return messageStart;
     }
 

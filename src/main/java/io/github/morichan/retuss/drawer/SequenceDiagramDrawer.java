@@ -64,7 +64,7 @@ public class SequenceDiagramDrawer {
         }
 
         // 図示対象の操作呼び出しメッセージの戻りメッセージ
-        sb.append(String.format("[<-- \"%s\"\n", mainLifelineName));
+        sb.append(String.format("[<<-- \"%s\"\n", mainLifelineName));
         // 図示対象の操作呼び出しメッセージの活性区間終了
         sb.append(String.format("deactivate \"%s\"\n", mainLifelineName));
 
@@ -79,13 +79,18 @@ public class SequenceDiagramDrawer {
             Lifeline startLifeline = occurenceSpecification.getLifeline();
             Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
             Message message = occurenceSpecification.getMessage();
+            InteractionUse interactionUse = (InteractionUse) occurenceSpecification.getMessage().getMessageEnd().getInteractionFragmentList().get(0);
 
             if (message.getMessageSort() == MessageSort.synchCall) {
-                sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifeline.getSignature() , endLifeline.getSignature(), message.getSignature()));
-                sb.append(String.format("activate \"%s\"\n", endLifeline.getSignature()));
-                // ここにmessageEnd側のメッセージを入れ子呼び出し
-                sb.append(String.format("deactivate \"%s\"\n", endLifeline.getSignature()));
-
+                sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifeline.getSignature(), endLifeline.getSignature(), message.getSignature()));
+                if(startLifeline.getSignature().equals(endLifeline.getSignature())) {
+                    sb.append(String.format("ref over \"%s\" : %s \n", endLifeline.getSignature(), interactionUse.getSignature()));
+                } else {
+                    sb.append(String.format("activate \"%s\"\n", endLifeline.getSignature()));
+                    sb.append(String.format("ref over \"%s\" : %s \n", endLifeline.getSignature(), interactionUse.getSignature()));
+                    sb.append(String.format("\"%s\" <<-- \"%s\" \n", startLifeline.getSignature(), endLifeline.getSignature()));
+                    sb.append(String.format("deactivate \"%s\"\n", endLifeline.getSignature()));
+                }
             } else if (message.getMessageSort() == MessageSort.createMessage) {
                 sb.append(String.format("\"%s\" -->> \"%s\" ** : %s\n", startLifeline.getSignature() , endLifeline.getSignature(), message.getSignature()));
             }

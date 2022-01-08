@@ -151,6 +151,7 @@ public class MessageDialogController {
         // 終点Lifelineの作成
         // 属性にない他クラスの操作を呼び出す場合は、クラス名のみのライフラインとする
         Lifeline endLifeline = new Lifeline("", classCombo.getValue().getName());
+        InteractionUse interactionUse = new InteractionUse(endLifeline, messageName);
         if(targetClass.equals(classCombo.getValue())) {
             // 自分が持つ操作を呼び出す場合
             endLifeline = new Lifeline("", targetClass.getName());
@@ -159,12 +160,14 @@ public class MessageDialogController {
             for(Attribute attribute : targetClass.getAttributeList()) {
                 if(attribute.getType().getName().getNameText().equals(classCombo.getValue().getName())) {
                     endLifeline = new Lifeline(attribute.getName().getNameText(), attribute.getType().toString());
+                    interactionUse.setCollaborationUse(attribute.getName().getNameText());
                     break;
                 }
             }
         }
 
         OccurenceSpecification messageEnd = new OccurenceSpecification(endLifeline);
+        messageEnd.getInteractionFragmentList().add(interactionUse);
         Message message = new Message(messageName, messageEnd);
 
         // 引数を設定
@@ -174,7 +177,8 @@ public class MessageDialogController {
             for(String argument : argumentsText) {
                 parameterList.add(new Parameter(new Name(argument)));
             }
-            message.setParameterList(parameterList);
+            message.getParameterList().addAll(parameterList);
+            interactionUse.getParameterList().addAll(parameterList);
         }
 
         return message;
