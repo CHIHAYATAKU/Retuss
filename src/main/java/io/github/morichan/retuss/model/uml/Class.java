@@ -121,6 +121,16 @@ public class Class {
         return Optional.empty();
     }
 
+    public Optional<Interaction> findInteraction(String operationName) {
+        // 同じ名前のInteractionが複数あるとダメ
+        for(Interaction interaction : interactionList) {
+            if(interaction.getOperation().getName().getNameText().equals(operationName)) {
+                return Optional.of(interaction);
+            }
+        }
+        return Optional.empty();
+    }
+
     @Override
     public String toString() {
         return this.name;
