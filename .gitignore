@@ -6,6 +6,7 @@
 /out/
 *.test
 *.swp
+*.properties
 /src/main/gen/
 build.publish.gradle
 .DS_Store
