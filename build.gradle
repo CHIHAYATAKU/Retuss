@@ -28,8 +28,8 @@ apply plugin: 'spring-boot'
 // SpringBoot pluginを利用することで邪魔になったため除外
 mainClassName = 'io.github.morichan.retuss.RetussWindow'
 
-sourceCompatibility = 11
-targetCompatibility = 11
+sourceCompatibility = '11'
+targetCompatibility = '11'
 tasks.withType(AbstractCompile)*.options*.encoding =
         tasks.withType(GroovyCompile)*.groovyOptions*.encoding =
                 javadoc.options.encoding =
@@ -47,7 +47,7 @@ apply plugin: "org.openjfx.javafxplugin"
 apply plugin: "org.beryx.jlink"
 
 dependencies {
-    antlr 'org.antlr:antlr4:4+'
+    antlr 'org.antlr:antlr4:4.13.2'
 
     compile 'io.github.morichan:fescue:2.1.1'
     compile 'org.fxmisc.richtext:richtextfx:0.10.0'

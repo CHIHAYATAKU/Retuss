@@ -44,8 +44,9 @@ public class CodeController {
     }
 
     /**
-     * <p> ソースコードを更新する。AST->コードタブ </p>
+     * <p> ソースコードを更新する。AST-&gt;コードタブ </p>
      */
+
     public void updateCodeTab(CodeFile changedCodeFile) {
         UUID changedFileId = changedCodeFile.getID();
 
