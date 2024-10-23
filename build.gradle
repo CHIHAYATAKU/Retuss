@@ -47,7 +47,7 @@ apply plugin: "org.openjfx.javafxplugin"
 apply plugin: "org.beryx.jlink"
 
 dependencies {
-    antlr 'org.antlr:antlr4:4.13.2'
+    antlr 'org.antlr:antlr4:4.7.1'
 
     compile 'io.github.morichan:fescue:2.1.1'
     compile 'org.fxmisc.richtext:richtextfx:0.10.0'
