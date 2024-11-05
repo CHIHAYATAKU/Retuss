@@ -5,7 +5,7 @@ import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.name.Name;
 import io.github.morichan.fescue.feature.parameter.Parameter;
 import io.github.morichan.retuss.model.CodeFile;
-import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.*;
 import io.github.morichan.retuss.model.uml.Class;
 import javafx.fxml.FXML;
@@ -19,34 +19,43 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 
-
 public class MessageDialogController {
     // SynchCallタブ
-    @FXML private ComboBox<MessageSort> sortCombo;
-    @FXML private ComboBox<Class> classCombo;
-    @FXML private ComboBox<Operation> operationCombo;
-    @FXML private TextField lifelineNameTextField;
-    @FXML private TextField argumentTextField;
-    @FXML private Button createButton;
-    @FXML private HBox classHBox;
-    @FXML private HBox operationHBox;
-    @FXML private HBox lifelineNameHBox;
-    @FXML private HBox argumentsHBox;
-    private Model model = Model.getInstance();
+    @FXML
+    private ComboBox<MessageSort> sortCombo;
+    @FXML
+    private ComboBox<Class> classCombo;
+    @FXML
+    private ComboBox<Operation> operationCombo;
+    @FXML
+    private TextField lifelineNameTextField;
+    @FXML
+    private TextField argumentTextField;
+    @FXML
+    private Button createButton;
+    @FXML
+    private HBox classHBox;
+    @FXML
+    private HBox operationHBox;
+    @FXML
+    private HBox lifelineNameHBox;
+    @FXML
+    private HBox argumentsHBox;
+    private JavaModel model = JavaModel.getInstance();
     private Class targetClass;
     private Operation targetOperation;
 
     public void initialize(String fileName, String operationId) {
         // tagetFileの探索
         Optional<CodeFile> fileOptional = model.findCodeFile(fileName);
-        if(fileOptional.isEmpty()) {
+        if (fileOptional.isEmpty()) {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.close();
             return;
         }
 
         // targetClassの探索
-        if(fileOptional.get().getUmlClassList().size() == 0){
+        if (fileOptional.get().getUmlClassList().size() == 0) {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.close();
             return;
@@ -55,7 +64,7 @@ public class MessageDialogController {
 
         // targetOperationの探索
         Optional<Operation> operationOptional = targetClass.findOperation(operationId);
-        if(operationOptional.isEmpty()) {
+        if (operationOptional.isEmpty()) {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.close();
             return;
@@ -86,7 +95,8 @@ public class MessageDialogController {
         argumentsHBox.managedProperty().bind(argumentsHBox.visibleProperty());
     }
 
-    @FXML private void setOperation() {
+    @FXML
+    private void setOperation() {
         // classComboで選択したクラスが持つpublicメソッドをmethodComboにセットする
         operationCombo.getItems().clear();
         Class selectedClass = classCombo.getValue();
@@ -99,7 +109,8 @@ public class MessageDialogController {
     /**
      * 選択されたMessageSortに応じて、入力する項目を変更する
      */
-    @FXML private void changeForm() {
+    @FXML
+    private void changeForm() {
         // 全て非表示にする
         classHBox.setVisible(false);
         operationHBox.setVisible(false);
@@ -121,7 +132,8 @@ public class MessageDialogController {
         }
     }
 
-    @FXML private void createMessage() {
+    @FXML
+    private void createMessage() {
 
         MessageSort messageSort = sortCombo.getValue();
         Message message = null;
@@ -152,13 +164,13 @@ public class MessageDialogController {
         // 属性にない他クラスの操作を呼び出す場合は、クラス名のみのライフラインとする
         Lifeline endLifeline = new Lifeline("", classCombo.getValue().getName());
         InteractionUse interactionUse = new InteractionUse(endLifeline, messageName);
-        if(targetClass.equals(classCombo.getValue())) {
+        if (targetClass.equals(classCombo.getValue())) {
             // 自分が持つ操作を呼び出す場合
             endLifeline = new Lifeline("", targetClass.getName());
         } else {
             // 属性に持つ他クラスの操作を呼び出す場合
-            for(Attribute attribute : targetClass.getAttributeList()) {
-                if(attribute.getType().getName().getNameText().equals(classCombo.getValue().getName())) {
+            for (Attribute attribute : targetClass.getAttributeList()) {
+                if (attribute.getType().getName().getNameText().equals(classCombo.getValue().getName())) {
                     endLifeline = new Lifeline(attribute.getName().getNameText(), attribute.getType().toString());
                     interactionUse.setCollaborationUse(attribute.getName().getNameText());
                     break;
@@ -171,10 +183,10 @@ public class MessageDialogController {
         Message message = new Message(messageName, messageEnd);
 
         // 引数を設定
-        if(!argumentTextField.getText().isEmpty()) {
+        if (!argumentTextField.getText().isEmpty()) {
             ArrayList<Parameter> parameterList = new ArrayList<>();
             String[] argumentsText = argumentTextField.getText().split(",");
-            for(String argument : argumentsText) {
+            for (String argument : argumentsText) {
                 parameterList.add(new Parameter(new Name(argument)));
             }
             message.getParameterList().addAll(parameterList);
@@ -189,7 +201,7 @@ public class MessageDialogController {
 
         // messageEndの生成
         String lifelineName = lifelineNameTextField.getText();
-        if(lifelineName.isEmpty()) {
+        if (lifelineName.isEmpty()) {
             lifelineName = selectedClass.getName().toLowerCase();
         }
         Lifeline endLifeline = new Lifeline(lifelineName, selectedClass.getName());
@@ -200,10 +212,10 @@ public class MessageDialogController {
         Message message = new Message(messageName, messageEnd);
         message.setMessageSort(MessageSort.createMessage);
         // 引数を設定
-        if(!argumentTextField.getText().isEmpty()) {
+        if (!argumentTextField.getText().isEmpty()) {
             ArrayList<Parameter> parameterList = new ArrayList<>();
             String[] argumentsText = argumentTextField.getText().split(",");
-            for(String argument : argumentsText) {
+            for (String argument : argumentsText) {
                 parameterList.add(new Parameter(new Name(argument)));
             }
             message.setParameterList(parameterList);

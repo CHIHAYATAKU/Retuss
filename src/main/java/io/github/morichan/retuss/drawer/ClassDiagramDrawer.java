@@ -3,7 +3,7 @@ package io.github.morichan.retuss.drawer;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.type.Type;
-import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
@@ -15,9 +15,8 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 public class ClassDiagramDrawer {
-    private Model model = Model.getInstance();
+    private JavaModel model = JavaModel.getInstance();
     private WebView webView;
-
 
     public ClassDiagramDrawer(WebView webView) {
         this.webView = webView;
@@ -32,7 +31,7 @@ public class ClassDiagramDrawer {
         puStrBuilder.append("scale 1.5\n");
         puStrBuilder.append("skinparam style strictuml\n");
         puStrBuilder.append("skinparam classAttributeIconSize 0\n");
-        for(Class umlClass : umlClassList) {
+        for (Class umlClass : umlClassList) {
             puStrBuilder.append(umlClassToPlantUml(umlClass));
         }
         puStrBuilder.append("@enduml\n");
@@ -41,7 +40,7 @@ public class ClassDiagramDrawer {
         SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         // Write the first image to "os"
-        try{
+        try {
             String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
             os.close();
         } catch (Exception e) {
@@ -59,7 +58,7 @@ public class ClassDiagramDrawer {
         StringBuilder compositionSb = new StringBuilder();
 
         // 抽象クラス
-        if(umlClass.getAbstruct()) {
+        if (umlClass.getAbstruct()) {
             sb.append("abstract ");
         }
         sb.append("class ");
@@ -67,17 +66,17 @@ public class ClassDiagramDrawer {
         sb.append(" { \n");
 
         // 属性またはコンポジション関係
-        for(Attribute attribute : umlClass.getAttributeList()) {
-            if(isComposition(attribute.getType())) {
+        for (Attribute attribute : umlClass.getAttributeList()) {
+            if (isComposition(attribute.getType())) {
                 // コンポジション関係
                 compositionSb.append(umlClass.getName());
                 compositionSb.append(" *-- ");
                 compositionSb.append(" \" ");
-                compositionSb.append(attribute.getVisibility());    // 可視性
+                compositionSb.append(attribute.getVisibility()); // 可視性
                 compositionSb.append(" ");
-                compositionSb.append(attribute.getName());          // 関連端名
+                compositionSb.append(attribute.getName()); // 関連端名
                 compositionSb.append(" ");
-                compositionSb.append("1");                          // 多重度
+                compositionSb.append("1"); // 多重度
                 compositionSb.append(" \" ");
                 compositionSb.append(attribute.getType().getName().getNameText());
                 compositionSb.append("\n");
@@ -90,7 +89,7 @@ public class ClassDiagramDrawer {
         }
 
         // 操作
-        for(Operation operation : umlClass.getOperationList()) {
+        for (Operation operation : umlClass.getOperationList()) {
             sb.append("{method} ");
             sb.append(operation.toString());
             sb.append("\n");
@@ -98,7 +97,7 @@ public class ClassDiagramDrawer {
         sb.append("}\n");
 
         // 汎化関係
-        if(umlClass.getSuperClass().isPresent()) {
+        if (umlClass.getSuperClass().isPresent()) {
             sb.append(umlClass.getName());
             sb.append(" --|> ");
             sb.append(umlClass.getSuperClass().get().getName());
@@ -114,8 +113,8 @@ public class ClassDiagramDrawer {
     private Boolean isComposition(Type type) {
         // typeがユーザ定義のクラス名と同一ならば、そのクラスとコンポジション関係とする
         // 同一名のクラスが存在することは考慮しない
-        for(Class umlClass : model.getUmlClassList()) {
-            if(type.getName().getNameText().equals(umlClass.getName())) {
+        for (Class umlClass : model.getUmlClassList()) {
+            if (type.getName().getNameText().equals(umlClass.getName())) {
                 return Boolean.TRUE;
             }
         }

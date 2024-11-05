@@ -1,10 +1,11 @@
 package io.github.morichan.retuss.controller;
 
 import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.retuss.RetussWindow;
 import io.github.morichan.retuss.drawer.ClassDiagramDrawer;
 import io.github.morichan.retuss.drawer.SequenceDiagramDrawer;
 import io.github.morichan.retuss.model.CodeFile;
-import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
 import javafx.collections.ObservableList;
@@ -25,29 +26,40 @@ import java.util.List;
 import java.util.Optional;
 
 public class UmlController {
-    @FXML private Tab classDiagramTab;
-    @FXML private Button classBtn;
-    @FXML private Button attributeBtn;
-    @FXML private Button operationBtn;
-    @FXML private Button relationshipBtn;
-    @FXML private Button deleteBtn;
-    @FXML private WebView classDiagramWebView;
+    @FXML
+    private Tab classDiagramTab;
+    @FXML
+    private Button classBtn;
+    @FXML
+    private Button attributeBtn;
+    @FXML
+    private Button operationBtn;
+    @FXML
+    private Button relationshipBtn;
+    @FXML
+    private Button deleteBtn;
+    @FXML
+    private WebView classDiagramWebView;
 
-    @FXML private Tab sequenceDiagramTab;
-    @FXML private TabPane tabPaneInSequenceTab;
+    @FXML
+    private Tab sequenceDiagramTab;
+    @FXML
+    private TabPane tabPaneInSequenceTab;
 
-    private Model model = Model.getInstance();
+    private JavaModel model = JavaModel.getInstance();
     private ClassDiagramDrawer classDiagramDrawer;
     private SequenceDiagramDrawer sequenceDiagramDrawer;
     private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
 
-
     /**
-     * <p> JavaFXにおけるデフォルトコンストラクタ </p>
+     * <p>
+     * JavaFXにおけるデフォルトコンストラクタ
+     * </p>
      *
      * <p>
      * Javaにおける通常のコンストラクタ（ {@code Controller()} メソッド）は使えないため、
-     * {@link RetussWindow} クラス内でのFXMLファイル読込み時に {@link #initialize()} メソッドを呼び出す仕様になっています。
+     * {@link RetussWindow} クラス内でのFXMLファイル読込み時に {@link #initialize()}
+     * メソッドを呼び出す仕様になっています。
      * </p>
      */
     @FXML
@@ -78,7 +90,8 @@ public class UmlController {
     }
 
     /**
-     * <p> シーケンス図タブのノーマルボタン選択時のシグナルハンドラ</>
+     * <p>
+     * シーケンス図タブのノーマルボタン選択時のシグナルハンドラ</>
      */
     @FXML
     private void normalMessageInSD() {
@@ -86,9 +99,15 @@ public class UmlController {
     }
 
     /**
-     * <p> シーケンス図タブのキャンバスを右クリックメニューにある「メッセージの追加」をクリック時のシグナルハンドラ </p>
-     * <p> シーケンス図タブのキャンバスはSequenceDiagramDrawerクラスで動的に生成するため、シグナルハンドラも動的に割り当てている </p>
-     * <p> メッセージ作成ダイアログを表示する </p>
+     * <p>
+     * シーケンス図タブのキャンバスを右クリックメニューにある「メッセージの追加」をクリック時のシグナルハンドラ
+     * </p>
+     * <p>
+     * シーケンス図タブのキャンバスはSequenceDiagramDrawerクラスで動的に生成するため、シグナルハンドラも動的に割り当てている
+     * </p>
+     * <p>
+     * メッセージ作成ダイアログを表示する
+     * </p>
      */
     @FXML
     public void showCreateMessageDialog() {
@@ -143,6 +162,9 @@ public class UmlController {
         String selectedFileName = selectedFileTab.getText();
         String selectedOperationId = selectedOperationTab.getText();
 
+        System.out.println("Selected File Tab: " + selectedFileName);
+        System.out.println("Selected Operation Tab: " + selectedOperationId);
+
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/deleteDialogSD.fxml"));
             Parent parent = fxmlLoader.load();
@@ -159,7 +181,8 @@ public class UmlController {
         }
     }
 
-    @FXML private void showClassDialog() {
+    @FXML
+    private void showClassDialog() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/classDialog.fxml"));
             Parent parent = fxmlLoader.load();
@@ -174,7 +197,8 @@ public class UmlController {
         }
     }
 
-    @FXML private void showAttributeDialog() {
+    @FXML
+    private void showAttributeDialog() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/attributeDialog.fxml"));
             Parent parent = fxmlLoader.load();
@@ -189,7 +213,8 @@ public class UmlController {
         }
     }
 
-    @FXML private void showOperationDialog() {
+    @FXML
+    private void showOperationDialog() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/operationDialog.fxml"));
             Parent parent = fxmlLoader.load();
@@ -204,7 +229,8 @@ public class UmlController {
         }
     }
 
-    @FXML private void showRelationshipDialog() {
+    @FXML
+    private void showRelationshipDialog() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/relationshipDialog.fxml"));
             Parent parent = fxmlLoader.load();
@@ -219,7 +245,8 @@ public class UmlController {
         }
     }
 
-    @FXML private void showDeleteDialogCD() {
+    @FXML
+    private void showDeleteDialogCD() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/deleteDialogCD.fxml"));
             Parent parent = fxmlLoader.load();
@@ -241,13 +268,14 @@ public class UmlController {
 
     /**
      * codeFile従ってSDタブを更新する
+     *
      * @param codeFile
      */
     private void updateSequenceDiagram(CodeFile codeFile) {
         // ファイルタブの探索
         Optional<Tab> fileTabOptional = findFileTab(codeFile);
         Tab fileTab;
-        if(fileTabOptional.isPresent()) {
+        if (fileTabOptional.isPresent()) {
             fileTab = fileTabOptional.get();
         } else {
             fileTab = new Tab(codeFile.getFileName());
@@ -257,17 +285,22 @@ public class UmlController {
         }
 
         // codeFileにクラス宣言がなければ終了
-        if(codeFile.getUmlClassList().size() == 0) return;
+        if (codeFile.getUmlClassList().size() == 0)
+            return;
+
+        Class umlClass = codeFile.getUmlClassList().get(0);
+
+        // タブのタイトルをファイル名からクラス名に変更
+        fileTab.setText(umlClass.getName() + ".java");
 
         // SDタブの更新
-        TabPane tabPane = (TabPane)fileTab.getContent();
+        TabPane tabPane = (TabPane) fileTab.getContent();
         ObservableList<Tab> tabList = tabPane.getTabs();
-        Class umlClass = codeFile.getUmlClassList().get(0);
         List<Operation> operationList = umlClass.getOperationList();
         List<Interaction> interactionList = umlClass.getInteractionList();
         // 既存のタブのタイトル、コンテンツを全て更新する
-        for(int i=0; i<operationList.size(); i++) {
-            if(i >= tabList.size()) {
+        for (int i = 0; i < operationList.size(); i++) {
+            if (i >= tabList.size()) {
                 // タブが足りない場合は追加する
                 Tab newTab = new Tab();
                 newTab.setContent(new WebView());
@@ -275,14 +308,16 @@ public class UmlController {
             }
             Tab sdTab = tabList.get(i);
             Interaction interaction = interactionList.get(i);
+
+            // タブのタイトルを操作名に設定し、必要に応じてファイル名を使う
             sdTab.setText(operationList.get(i).toString());
             sequenceDiagramDrawer.draw(codeFile, interaction, (WebView) sdTab.getContent());
         }
     }
 
     private Optional<Tab> findFileTab(CodeFile codeFile) {
-        for(Pair<CodeFile, Tab> fileTab : fileSdTabList) {
-            if(fileTab.getKey().equals(codeFile)) {
+        for (Pair<CodeFile, Tab> fileTab : fileSdTabList) {
+            if (fileTab.getKey().equals(codeFile)) {
                 return Optional.of(fileTab.getValue());
             }
         }

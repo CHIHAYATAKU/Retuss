@@ -1,7 +1,7 @@
 package io.github.morichan.retuss.drawer;
 
 import io.github.morichan.retuss.model.CodeFile;
-import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.*;
 import javafx.scene.control.TabPane;
 import javafx.scene.web.WebView;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class SequenceDiagramDrawer {
     private TabPane tabPaneInSequenceTab;
-    private Model model = Model.getInstance();
+    private JavaModel model = JavaModel.getInstance();
 
     public SequenceDiagramDrawer(TabPane tabPaneInSequenceTab) {
         this.tabPaneInSequenceTab = tabPaneInSequenceTab;
@@ -34,7 +34,7 @@ public class SequenceDiagramDrawer {
         SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         // Write the first image to "os"
-        try{
+        try {
             String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
             os.close();
         } catch (Exception e) {
@@ -61,7 +61,7 @@ public class SequenceDiagramDrawer {
         sb.append(String.format("activate \"%s\"\n", mainLifelineName));
 
         // メッセージ
-        for(InteractionFragment interactionFragment : interaction.getInteractionFragmentList()) {
+        for (InteractionFragment interactionFragment : interaction.getInteractionFragmentList()) {
             sb.append(interactionFragmentToPlantUml(interactionFragment, mainLifelineName));
         }
 
@@ -73,62 +73,77 @@ public class SequenceDiagramDrawer {
         return sb.toString();
     }
 
-    private String interactionFragmentToPlantUml(InteractionFragment interactionFragment, String startLifelineSignature) {
+    private String interactionFragmentToPlantUml(InteractionFragment interactionFragment,
+            String startLifelineSignature) {
         StringBuilder sb = new StringBuilder();
 
-        if(interactionFragment instanceof OccurenceSpecification) {
+        if (interactionFragment instanceof OccurenceSpecification) {
             OccurenceSpecification occurenceSpecification = (OccurenceSpecification) interactionFragment;
             Lifeline startLifeline = occurenceSpecification.getLifeline();
             Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
             Message message = occurenceSpecification.getMessage();
 
             if (message.getMessageSort() == MessageSort.synchCall) {
-                InteractionUse interactionUse = (InteractionUse) occurenceSpecification.getMessage().getMessageEnd().getInteractionFragmentList().get(0);
+                InteractionUse interactionUse = (InteractionUse) occurenceSpecification.getMessage().getMessageEnd()
+                        .getInteractionFragmentList().get(0);
 
-                if(startLifeline.getSignature().equals(endLifeline.getSignature())) {
+                if (startLifeline.getSignature().equals(endLifeline.getSignature())) {
                     // 自ライフラインに対するメッセージ
-                    sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifelineSignature, startLifelineSignature, message.getSignature()));
-                    if(model.findClass(endLifeline.getType()).isPresent() && model.findClass(endLifeline.getType()).get().findInteraction(interactionUse.getInteractionName()).isPresent()) {
+                    sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifelineSignature, startLifelineSignature,
+                            message.getSignature()));
+                    if (model.findClass(endLifeline.getType()).isPresent() && model.findClass(endLifeline.getType())
+                            .get().findInteraction(interactionUse.getInteractionName()).isPresent()) {
                         sb.append(String.format("activate \"%s\"\n", startLifelineSignature));
-                        for(InteractionFragment ifInMessage : model.findClass(endLifeline.getType()).get().findInteraction(interactionUse.getInteractionName()).get().getInteractionFragmentList()) {
+                        for (InteractionFragment ifInMessage : model.findClass(endLifeline.getType()).get()
+                                .findInteraction(interactionUse.getInteractionName()).get()
+                                .getInteractionFragmentList()) {
                             sb.append(interactionFragmentToPlantUml(ifInMessage, endLifeline.getSignature()));
                         }
                         sb.append(String.format("deactivate \"%s\"\n", startLifelineSignature));
                     } else {
-                        sb.append(String.format("ref over \"%s\" : %s \n", startLifelineSignature, interactionUse.getSignature()));
+                        sb.append(String.format("ref over \"%s\" : %s \n", startLifelineSignature,
+                                interactionUse.getSignature()));
                     }
                 } else {
                     // 他ライフラインに対するメッセージ
-                    sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifelineSignature, endLifeline.getSignature(), message.getSignature()));
+                    sb.append(String.format("\"%s\" -> \"%s\": %s\n", startLifelineSignature,
+                            endLifeline.getSignature(), message.getSignature()));
                     sb.append(String.format("activate \"%s\"\n", endLifeline.getSignature()));
-                    if(model.findClass(endLifeline.getType()).isPresent() && model.findClass(endLifeline.getType()).get().findInteraction(interactionUse.getInteractionName()).isPresent()) {
-                        for(InteractionFragment ifInMessage : model.findClass(endLifeline.getType()).get().findInteraction(interactionUse.getInteractionName()).get().getInteractionFragmentList()) {
+                    if (model.findClass(endLifeline.getType()).isPresent() && model.findClass(endLifeline.getType())
+                            .get().findInteraction(interactionUse.getInteractionName()).isPresent()) {
+                        for (InteractionFragment ifInMessage : model.findClass(endLifeline.getType()).get()
+                                .findInteraction(interactionUse.getInteractionName()).get()
+                                .getInteractionFragmentList()) {
                             sb.append(interactionFragmentToPlantUml(ifInMessage, endLifeline.getSignature()));
                         }
                     } else {
-                        sb.append(String.format("ref over \"%s\" : %s \n", endLifeline.getSignature(), interactionUse.getSignature()));
+                        sb.append(String.format("ref over \"%s\" : %s \n", endLifeline.getSignature(),
+                                interactionUse.getSignature()));
                     }
-                    sb.append(String.format("\"%s\" <<-- \"%s\" \n", startLifelineSignature, endLifeline.getSignature()));
+                    sb.append(
+                            String.format("\"%s\" <<-- \"%s\" \n", startLifelineSignature, endLifeline.getSignature()));
                     sb.append(String.format("deactivate \"%s\"\n", endLifeline.getSignature()));
                 }
             } else if (message.getMessageSort() == MessageSort.createMessage) {
-                sb.append(String.format("\"%s\" -->> \"%s\" ** : %s\n", startLifeline.getSignature() , endLifeline.getSignature(), message.getSignature()));
+                sb.append(String.format("\"%s\" -->> \"%s\" ** : %s\n", startLifeline.getSignature(),
+                        endLifeline.getSignature(), message.getSignature()));
             }
 
         } else if (interactionFragment instanceof CombinedFragment) {
             CombinedFragment combinedFragment = (CombinedFragment) interactionFragment;
             ArrayList<InteractionOperand> interactionOperandList = combinedFragment.getInteractionOperandList();
 
-            for(int i=0; i<interactionOperandList.size(); i++) {
+            for (int i = 0; i < interactionOperandList.size(); i++) {
                 InteractionOperand interactionOperand = interactionOperandList.get(i);
-                if(i == 0) {
-                    sb.append(String.format("%s %s\n", combinedFragment.getKind().toString().toLowerCase(), interactionOperand.getGuard()));
+                if (i == 0) {
+                    sb.append(String.format("%s %s\n", combinedFragment.getKind().toString().toLowerCase(),
+                            interactionOperand.getGuard()));
                 } else {
                     // altでのみ使用する
                     sb.append(String.format("else %s\n", interactionOperand.getGuard()));
                 }
 
-                for(InteractionFragment interactionFragmentInCF : interactionOperand.getInteractionFragmentList()) {
+                for (InteractionFragment interactionFragmentInCF : interactionOperand.getInteractionFragmentList()) {
                     sb.append(interactionFragmentToPlantUml(interactionFragmentInCF, startLifelineSignature));
                 }
             }

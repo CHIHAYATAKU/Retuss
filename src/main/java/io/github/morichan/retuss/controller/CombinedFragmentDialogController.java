@@ -2,7 +2,7 @@ package io.github.morichan.retuss.controller;
 
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.retuss.model.CodeFile;
-import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.*;
 import io.github.morichan.retuss.model.uml.Class;
 import javafx.fxml.FXML;
@@ -14,30 +14,38 @@ import javafx.stage.Stage;
 import java.util.Optional;
 
 public class CombinedFragmentDialogController {
-    @FXML private TabPane kindTabPane;
-    @FXML private TextField guardTextFieldOpt;
-    @FXML private VBox guardVBoxAlt;
-    @FXML private Button addGuardButton;
-    @FXML private Button deleteGuardButton;
-    @FXML private TextField guardTextFieldLoop;
-    @FXML private TextField guardTextFieldBreak;
-    @FXML private Button createButton;
+    @FXML
+    private TabPane kindTabPane;
+    @FXML
+    private TextField guardTextFieldOpt;
+    @FXML
+    private VBox guardVBoxAlt;
+    @FXML
+    private Button addGuardButton;
+    @FXML
+    private Button deleteGuardButton;
+    @FXML
+    private TextField guardTextFieldLoop;
+    @FXML
+    private TextField guardTextFieldBreak;
+    @FXML
+    private Button createButton;
 
     private Class targetClass;
     private Operation targetOperation;
-    private Model model = Model.getInstance();
+    private JavaModel model = JavaModel.getInstance();
 
     public void initialize(String fileName, String operationId) {
         // tagetFileの探索
         Optional<CodeFile> fileOptional = model.findCodeFile(fileName);
-        if(fileOptional.isEmpty()) {
+        if (fileOptional.isEmpty()) {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.close();
             return;
         }
 
         // targetClassの探索
-        if(fileOptional.get().getUmlClassList().size() == 0){
+        if (fileOptional.get().getUmlClassList().size() == 0) {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.close();
             return;
@@ -46,7 +54,7 @@ public class CombinedFragmentDialogController {
 
         // targetOperationの探索
         Optional<Operation> operationOptional = targetClass.findOperation(operationId);
-        if(operationOptional.isEmpty()) {
+        if (operationOptional.isEmpty()) {
             Stage stage = (Stage) createButton.getScene().getWindow();
             stage.close();
             return;
@@ -121,7 +129,7 @@ public class CombinedFragmentDialogController {
     private boolean createCFAlt() {
         Lifeline lifeline = new Lifeline("", targetClass.getName());
         CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.alt);
-        for(int i = 0; i < guardVBoxAlt.getChildren().size(); i++) {
+        for (int i = 0; i < guardVBoxAlt.getChildren().size(); i++) {
             HBox hBox = (HBox) guardVBoxAlt.getChildren().get(i);
             TextField guardTextField = (TextField) hBox.getChildren().get(1);
             if (guardTextField.getText().isEmpty()) {

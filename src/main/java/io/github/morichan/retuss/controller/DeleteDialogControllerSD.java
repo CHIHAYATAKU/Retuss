@@ -2,7 +2,7 @@ package io.github.morichan.retuss.controller;
 
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.retuss.model.CodeFile;
-import io.github.morichan.retuss.model.Model;
+import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.*;
 import javafx.collections.ObservableList;
@@ -16,24 +16,25 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class DeleteDialogControllerSD {
-    @FXML TreeView sdTreeView;
+    @FXML
+    TreeView sdTreeView;
     private Class targetClass;
     private Operation targetOperation;
     private Interaction targetInteraction;
-    private Model model = Model.getInstance();
+    private JavaModel model = JavaModel.getInstance();
     private ArrayList sdTreeItemList = new ArrayList();
 
     public void initialize(String fileName, String operationId) {
         // tagetFileの探索
         Optional<CodeFile> fileOptional = model.findCodeFile(fileName);
-        if(fileOptional.isEmpty()) {
+        if (fileOptional.isEmpty()) {
             Stage stage = (Stage) sdTreeView.getScene().getWindow();
             stage.close();
             return;
         }
 
         // targetClassの探索
-        if(fileOptional.get().getUmlClassList().size() == 0){
+        if (fileOptional.get().getUmlClassList().size() == 0) {
             Stage stage = (Stage) sdTreeView.getScene().getWindow();
             stage.close();
             return;
@@ -42,7 +43,7 @@ public class DeleteDialogControllerSD {
 
         // targetOperationの探索
         Optional<Operation> operationOptional = targetClass.findOperation(operationId);
-        if(operationOptional.isEmpty()) {
+        if (operationOptional.isEmpty()) {
             Stage stage = (Stage) sdTreeView.getScene().getWindow();
             stage.close();
             return;
@@ -51,7 +52,7 @@ public class DeleteDialogControllerSD {
 
         // targetInteractionの探索
         Optional<Interaction> interactionOptional = targetClass.findInteraction(targetOperation);
-        if(interactionOptional.isEmpty()) {
+        if (interactionOptional.isEmpty()) {
             Stage stage = (Stage) sdTreeView.getScene().getWindow();
             stage.close();
             return;
@@ -63,7 +64,7 @@ public class DeleteDialogControllerSD {
         root.setExpanded(true);
         sdTreeItemList.add(targetInteraction);
 
-        for(InteractionFragment interactionFragment : targetInteraction.getInteractionFragmentList()) {
+        for (InteractionFragment interactionFragment : targetInteraction.getInteractionFragmentList()) {
             root.getChildren().add(interactionFragmentToTreeItem(interactionFragment));
         }
 
@@ -71,7 +72,8 @@ public class DeleteDialogControllerSD {
         sdTreeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
-    @FXML private void delete() {
+    @FXML
+    private void delete() {
         ObservableList<Integer> selectedIndices = sdTreeView.getSelectionModel().getSelectedIndices();
         // 未選択または"Class List"を選択している場合
         if (selectedIndices.size() == 0 || selectedIndices.get(0) == 0) {
@@ -79,11 +81,12 @@ public class DeleteDialogControllerSD {
         }
 
         // OccurenceSpecificationまたはCombinedFragmentだけで削除できるようにする
-        if(sdTreeItemList.get(selectedIndices.get(0)) instanceof InteractionOperand) {
+        if (sdTreeItemList.get(selectedIndices.get(0)) instanceof InteractionOperand) {
             return;
         }
 
-        model.delete(targetClass.getName(), targetOperation, (InteractionFragment) sdTreeItemList.get(selectedIndices.get(0)));
+        model.delete(targetClass.getName(), targetOperation,
+                (InteractionFragment) sdTreeItemList.get(selectedIndices.get(0)));
 
         // ダイアログを閉じる
         Stage stage = (Stage) sdTreeView.getScene().getWindow();
@@ -92,11 +95,11 @@ public class DeleteDialogControllerSD {
 
     private TreeItem<String> interactionFragmentToTreeItem(InteractionFragment interactionFragment) {
         TreeItem<String> treeItem;
-        if(interactionFragment instanceof OccurenceSpecification) {
+        if (interactionFragment instanceof OccurenceSpecification) {
             sdTreeItemList.add(interactionFragment);
             treeItem = new TreeItem<>("Message : " + interactionFragment.toString());
         } else {
-            treeItem = CombinedFragmentToTreeItem((CombinedFragment)interactionFragment);
+            treeItem = CombinedFragmentToTreeItem((CombinedFragment) interactionFragment);
         }
         return treeItem;
     }
@@ -106,11 +109,11 @@ public class DeleteDialogControllerSD {
         cfRoot.setExpanded(true);
         sdTreeItemList.add(combinedFragment);
 
-        for(InteractionOperand interactionOperand : combinedFragment.getInteractionOperandList()) {
+        for (InteractionOperand interactionOperand : combinedFragment.getInteractionOperandList()) {
             TreeItem<String> ioItem = new TreeItem<>(interactionOperand.getGuard());
             ioItem.setExpanded(true);
             sdTreeItemList.add(interactionOperand);
-            for(InteractionFragment interactionFragment : interactionOperand.getInteractionFragmentList()) {
+            for (InteractionFragment interactionFragment : interactionOperand.getInteractionFragmentList()) {
                 ioItem.getChildren().add(interactionFragmentToTreeItem(interactionFragment));
             }
             cfRoot.getChildren().add(ioItem);

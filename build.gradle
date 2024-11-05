@@ -19,13 +19,19 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'java'
 apply plugin: 'spring-boot'
+apply plugin: 'org.junit.platform.gradle.plugin'
+apply plugin: 'antlr'
+apply plugin: "org.openjfx.javafxplugin"
+apply plugin: "org.beryx.jlink"
+apply plugin: 'jacoco'
 
+application {
+    mainClassName = 'io.github.morichan.retuss.test.CPPAnalyzerTest'
+}
 
-
-// SpringBoot pluginを利用することで邪魔になったため除外
 mainClassName = 'io.github.morichan.retuss.RetussWindow'
 
 sourceCompatibility = '11'
@@ -35,73 +41,101 @@ tasks.withType(AbstractCompile)*.options*.encoding =
                 javadoc.options.encoding =
                         javadoc.options.charSet = 'UTF-8'
 
-
-
 repositories {
     mavenCentral()
 }
 
-apply plugin: 'org.junit.platform.gradle.plugin'
-apply plugin: 'antlr'
-apply plugin: "org.openjfx.javafxplugin"
-apply plugin: "org.beryx.jlink"
+def generatedSourcesDir = "src/main/java/io/github/morichan/retuss/parser/cpp"
 
 dependencies {
-    antlr 'org.antlr:antlr4:4.7.1'
-
-    compile 'io.github.morichan:fescue:2.1.1'
-    compile 'org.fxmisc.richtext:richtextfx:0.10.0'
-    // JavaParser
+    antlr 'org.antlr:antlr4:4.7.2'
+    implementation 'org.antlr:antlr4-runtime:4.7.2'
+    implementation 'io.github.morichan:fescue:2.1.1'
+    implementation 'org.fxmisc.richtext:richtextfx:0.10.0'
     implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.23.1'
     implementation (fileTree(dir: 'libs', include: ['plantuml-mit-1.2024.7.jar']))
 
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.0-M1'
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.0-M1'
-    testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.0-M1' // parameterized tests
-    testCompile 'org.mockito:mockito-core:2.+'
-    testCompile 'org.powermock:powermock-api-mockito-common:1+'
-    testCompile 'org.jmockit:jmockit:1.38'
-    testCompile 'org.assertj:assertj-core:3.10.0'
-    testCompile 'net.java.quickcheck:quickcheck:0.6'
-    testCompile 'org.testfx:testfx-junit5:4.0.13-alpha'
-    testCompile "org.testfx:openjfx-monocle:8u76-b04" // jdk-9+181 for Cpp 9
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.0-M1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.0-M1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.3.0-M1'
+    testImplementation 'org.mockito:mockito-core:2.+'
+    testImplementation 'org.powermock:powermock-api-mockito-common:1+'
+    testImplementation 'org.jmockit:jmockit:1.38'
+    testImplementation 'org.assertj:assertj-core:3.10.0'
+    testImplementation 'net.java.quickcheck:quickcheck:0.6'
+    testImplementation 'org.testfx:testfx-junit5:4.0.13-alpha'
+    testImplementation "org.testfx:openjfx-monocle:8u76-b04"
 
     testCompileOnly 'org.apiguardian:apiguardian-api:1.0.0'
 }
 
-/*
-ext.antlr = [destinationDir: 'src/main/java/io/github/morichan/retuss/parser/cpp']
+task copyParserBase(type: Copy) {
+    from 'libs/CPP14ParserBase.java'
+    into generatedSourcesDir
+    // 生成ディレクトリが存在する場合のみ実行
+    onlyIf {
+        file(generatedSourcesDir).exists()
+    }
+}
+
+// ディレクトリ作成タスクを定義
+task createDirectories {
+    doLast {
+        file(generatedSourcesDir).mkdirs()
+    }
+}
+
 generateGrammarSource {
-    outputDirectory = file(new File("${antlr.destinationDir}"))
-    arguments = ["-package", "io.github.morichan.retuss.parser.cpp", "-listener", "-no-visitor"].flatten()
+    maxHeapSize = "64m"
+    outputDirectory = file(generatedSourcesDir)
+    arguments = [
+        "-visitor",
+        "-listener",
+        "-package", "io.github.morichan.retuss.parser.cpp",
+        "-encoding", "UTF-8",
+        "-lib", "src/main/antlr"
+    ]
+   // createDirectoriesタスクに依存
+    dependsOn createDirectories
+    doFirst {
+        file(generatedSourcesDir).deleteDir()
+        file(generatedSourcesDir).mkdirs()
+    }
+
+        // 生成後にParserBaseをコピー
+    finalizedBy copyParserBase
 }
-clean {
-    delete antlr.destinationDir
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+        antlr {
+            srcDir 'src/main/antlr'
+        }
+    }
 }
-*/
 
 if (gradle.startParameter.taskNames.contains('uploadArchives')) {
     apply from: 'build.publish.gradle'
 }
 
-
-
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
     from javadoc
 }
+
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
 }
+
 artifacts {
     archives javadocJar, sourcesJar
 }
 
 jar {
-    // SpringBoot pluginを利用することで邪魔になったため除外
-    // manifest.attributes 'Main-Class': 'io.github.morichan.retuss.window.RetussWindow'
-    jar.into('') from configurations.runtime
     manifest {
         attributes 'Main-Class': mainClassName
     }
@@ -111,8 +145,6 @@ jar {
         }
     }
 }
-
-
 
 javafx {
     version = "17"
@@ -133,32 +165,26 @@ test {
     systemProperties 'property': 'value'
 }
 
-
-// gradleでOSのアーキテクチャ情報を利用する方法を語りき, http://saygox.blogspot.com/2013/08/gradle-os.html
 class OSChecker {
     static String getFamily() {
-        String os=System.getProperty("os.name")
-        if(os!=null && os.startsWith("Windows")) return "windows"
+        String os = System.getProperty("os.name")
+        if (os != null && os.startsWith("Windows")) return "windows"
         else return "not windows"
     }
 }
+
 println ">>> Tests is run in this OS be " + OSChecker.getFamily()
 
-
-
-// GUIテストを行わない設定を追加
 task setWithoutGUITests() {
     junitPlatform.filters.tags.exclude "GUITests"
 }
 
-// OSがWindowsでない場合はTest実行時にGUITestsタグを付けたテストスイートを実行しない
 if (OSChecker.getFamily() != "windows") {
     junitPlatform.filters.tags.exclude "GUITests"
 }
 
 junitPlatform.enableStandardTestTask true
 
-apply plugin: 'jacoco'
 jacoco {
     toolVersion = '0.+'
     applyTo junitPlatformTest
@@ -169,7 +195,6 @@ junitPlatformTest {
         destinationFile = file("${buildDir}/jacoco/test.exec")
     }
 }
-
 
 jacocoTestReport {
     afterEvaluate {
@@ -183,3 +208,18 @@ jacocoTestReport {
         html.enabled = true
     }
 }
+
+
+clean {
+   delete generatedSourcesDir
+}
+
+
+compileJava {
+    dependsOn generateGrammarSource
+    options.encoding = 'UTF-8'
+}
+
+// タスクの依存関係を設定
+generateGrammarSource.finalizedBy copyParserBase
+compileJava.dependsOn generateGrammarSource
