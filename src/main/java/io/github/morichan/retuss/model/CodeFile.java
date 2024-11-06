@@ -22,7 +22,7 @@ public class CodeFile implements ICodeFile {
         this.compilationUnit = new CompilationUnit();
         String className = fileName.substring(0, this.fileName.length() - extension.length());
         this.compilationUnit.addClass(className);
-        this.umlClassList = translator.translateCodeToUml(this.compilationUnit);
+        this.umlClassList = translator.translateCodeToUml(this.compilationUnit.toString());
     }
 
     @Override
@@ -68,7 +68,7 @@ public class CodeFile implements ICodeFile {
             }
 
             this.compilationUnit = compilationUnit;
-            this.umlClassList = translator.translateCodeToUml(compilationUnit);
+            this.umlClassList = translator.translateCodeToUml(compilationUnit.toString());
             System.out.println(code);
         } catch (Exception e) {
             System.out.println("Cannot parse.");

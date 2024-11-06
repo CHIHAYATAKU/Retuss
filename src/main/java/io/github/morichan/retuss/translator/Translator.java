@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.translator;
 
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
@@ -20,19 +21,26 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.*;
+import io.github.morichan.retuss.translator.common.AbstractTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class Translator {
+public class Translator extends AbstractTranslator {
     /**
      * <p>
      * ソースコードのASTをUMLデータに変換する。
      * </p>
      */
-    public List<Class> translateCodeToUml(CompilationUnit compilationUnit) {
+    @Override
+    public List<Class> translateCodeToUml(String code) {
+        CompilationUnit compilationUnit = StaticJavaParser.parse(code);
+        return translateCodeToUml(compilationUnit);
+    }
+
+    private List<Class> translateCodeToUml(CompilationUnit compilationUnit) {
 
         List<Class> umlClassList = new ArrayList<>();
 
@@ -105,6 +113,7 @@ public class Translator {
      * UMLデータをソースコードのASTに変換する。
      * </p>
      */
+    @Override
     public CompilationUnit translateUmlToCode(List<Class> classList) {
         System.out.println("\n=== Starting UML to Code Translation ===");
         CompilationUnit newCU = new CompilationUnit();
@@ -188,12 +197,13 @@ public class Translator {
         return newCU;
     }
 
+    @Override
     public FieldDeclaration translateAttribute(Attribute attribute) {
         NodeList<Modifier> modifiers = new NodeList<>();
         toModifierKeyword(attribute.getVisibility())
                 .ifPresent(modifierKeyword -> modifiers.add(new Modifier(modifierKeyword)));
 
-        com.github.javaparser.ast.type.Type type = toJavaType(attribute.getType());
+        com.github.javaparser.ast.type.Type type = toSourceCodeType(attribute.getType());
         String name = attribute.getName().getNameText();
         // 初期値を持つFieldDeclarationの作り方がわからず、現状は初期値も変数名が持っている
         try {
@@ -204,6 +214,7 @@ public class Translator {
         return new FieldDeclaration(modifiers, type, name);
     }
 
+    @Override
     public MethodDeclaration translateOperation(Operation operation) {
         NodeList<Modifier> modifiers = new NodeList<>();
         toModifierKeyword(operation.getVisibility())
@@ -211,12 +222,12 @@ public class Translator {
 
         String name = operation.getName().getNameText();
 
-        com.github.javaparser.ast.type.Type type = toJavaType(operation.getReturnType());
+        com.github.javaparser.ast.type.Type type = toSourceCodeType(operation.getReturnType());
 
         NodeList<Parameter> parameters = new NodeList<>();
         try {
             for (io.github.morichan.fescue.feature.parameter.Parameter umlParameter : operation.getParameters()) {
-                Parameter javaParameter = new Parameter(toJavaType(umlParameter.getType()),
+                Parameter javaParameter = new Parameter(toSourceCodeType(umlParameter.getType()),
                         umlParameter.getName().getNameText());
                 parameters.add(javaParameter);
             }
@@ -225,6 +236,36 @@ public class Translator {
         }
 
         return new MethodDeclaration(modifiers, name, type, parameters);
+    }
+
+    @Override
+    protected Optional<Modifier.Keyword> toSourceCodeVisibility(Visibility visibility) {
+        if (visibility == Visibility.Public) {
+            return Optional.of(Modifier.Keyword.PUBLIC);
+        } else if (visibility == Visibility.Protected) {
+            return Optional.of(Modifier.Keyword.PROTECTED);
+        } else if (visibility == Visibility.Private) {
+            return Optional.of(Modifier.Keyword.PRIVATE);
+        } else {
+            // (独自仕様) UMLのPackageは、Javaでアクセス修飾子なしとして扱う
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    protected com.github.javaparser.ast.type.Type toSourceCodeType(Type umlType) {
+        String typeName = umlType.getName().getNameText();
+        if (typeName.equals("void")) {
+            return new VoidType();
+        }
+
+        try {
+            return new PrimitiveType(PrimitiveType.Primitive.valueOf(typeName));
+        } catch (IllegalArgumentException e) {
+            ClassOrInterfaceType classOrInterfaceType = new ClassOrInterfaceType();
+            classOrInterfaceType.setName(new SimpleName(typeName));
+            return classOrInterfaceType;
+        }
     }
 
     public ExpressionStmt occurenceSpeccificationToExpressionStmt(OccurenceSpecification occurenceSpecification) {
@@ -628,21 +669,6 @@ public class Translator {
         } else {
             // (独自仕様) UMLのPackageは、Javaでアクセス修飾子なしとして扱う
             return Optional.empty();
-        }
-    }
-
-    private com.github.javaparser.ast.type.Type toJavaType(Type umlType) {
-        String typeName = umlType.getName().getNameText();
-        if (typeName.equals("void")) {
-            return new VoidType();
-        }
-
-        try {
-            return new PrimitiveType(PrimitiveType.Primitive.valueOf(typeName));
-        } catch (IllegalArgumentException e) {
-            ClassOrInterfaceType classOrInterfaceType = new ClassOrInterfaceType();
-            classOrInterfaceType.setName(new SimpleName(typeName));
-            return classOrInterfaceType;
         }
     }
 
