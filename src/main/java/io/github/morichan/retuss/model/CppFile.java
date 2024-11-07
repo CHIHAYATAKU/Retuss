@@ -26,6 +26,11 @@ public class CppFile implements ICodeFile {
         } else {
             initializeImplementationFile();
         }
+
+        // 初期化後にUMLクラスリストを更新（ヘッダーファイルのみ）
+        if (isHeader && sourceCode != null) {
+            this.umlClassList = translator.translateCodeToUml(sourceCode);
+        }
     }
 
     // ファイルの種類に応じた初期化の改善
@@ -43,11 +48,17 @@ public class CppFile implements ICodeFile {
         sb.append("};\n\n");
         sb.append("#endif // ").append(guardName).append("\n");
 
-        updateCode(sb.toString()); // updateCodeを使用して初期化
+        this.sourceCode = sb.toString();
     }
 
     private void initializeImplementationFile() {
-        this.sourceCode = "";
+        String className = fileName.replace(".cpp", "");
+        StringBuilder sb = new StringBuilder();
+        sb.append("#include \"").append(className).append(".hpp\"\n\n");
+        sb.append(className).append("::").append(className).append("() {\n}\n\n");
+        sb.append(className).append("::~").append(className).append("() {\n}\n");
+
+        this.sourceCode = sb.toString();
     }
 
     @Override
@@ -62,60 +73,67 @@ public class CppFile implements ICodeFile {
 
     @Override
     public String getCode() {
-        return sourceCode;
+        return sourceCode != null ? sourceCode : "";
     }
 
     @Override
     public List<Class> getUmlClassList() {
-        return Collections.unmodifiableList(umlClassList);
+        return isHeader ? Collections.unmodifiableList(umlClassList) : Collections.emptyList();
     }
 
     @Override
     public void updateCode(String code) {
+        if (code.equals(this.sourceCode))
+            return;
+
         try {
-            // コードが実質的に変更されている場合のみ処理
-            if (!code.equals(this.sourceCode)) {
-                // C++のコードをUMLに変換
-                if (isHeader) {
-                    List<Class> newUmlClassList = translator.translateCodeToUml(code);
-                    // クラスリストが有効な場合のみ更新
-                    if (!newUmlClassList.isEmpty()) {
-                        this.umlClassList = newUmlClassList;
-                    }
+            if (isHeader) {
+                // ヘッダーファイルの場合のみUMLクラスリストを更新
+                List<Class> newUmlClassList = translator.translateCodeToUml(code);
+                if (!newUmlClassList.isEmpty()) {
+                    this.umlClassList = newUmlClassList;
+
+                    // クラス名の変更を検出
+                    Optional<String> newClassName = translator.extractClassName(code);
+                    newClassName.ifPresent(className -> {
+                        String expectedFileName = className + ".hpp";
+                        if (!expectedFileName.equals(this.fileName)) {
+                            String oldFileName = this.fileName;
+                            this.fileName = expectedFileName;
+                            notifyFileNameChanged(oldFileName, expectedFileName);
+                        }
+                    });
                 }
-
-                // ファイル名の同期処理
-                Optional<String> newClass = translator.extractClassName(code);
-                newClass.ifPresent(className -> {
-                    // mainClassが存在すればファイル名を更新
-                    String expectedFileName = className + (isHeader ? ".hpp" : ".cpp");
-                    if (!expectedFileName.equals(this.fileName)) {
-                        String oldFileName = this.fileName; // 古いファイル名を保存
-                        this.fileName = expectedFileName;
-                        notifyFileNameChanged(oldFileName, this.fileName); // ファイル名変更を通知
-                    }
-
-                });
-
-                // コードが更新されたことを通知
-                this.sourceCode = code;
-                notifyFileChanged();
             }
+
+            this.sourceCode = code;
+            notifyFileChanged();
         } catch (Exception e) {
-            System.err.println("Failed to update C++ code in " + fileName + ": " + e.getMessage());
+            System.err.println("Failed to update code: " + e.getMessage());
+            throw e;
         }
     }
 
     @Override
     public void addUmlClass(Class umlClass) {
-        this.umlClassList.add(umlClass);
-        this.sourceCode = translator.translateUmlToCode(umlClassList).toString();
+        if (!isHeader)
+            return;
+
+        umlClassList.add(umlClass);
+        String newCode = translator.translateUmlToCode(Collections.singletonList(umlClass));
+        updateCode(newCode);
     }
 
     @Override
     public void removeClass(Class umlClass) {
-        this.umlClassList.remove(umlClass);
-        this.sourceCode = translator.translateUmlToCode(umlClassList).toString();
+        if (!isHeader)
+            return;
+
+        umlClassList.remove(umlClass);
+        if (!umlClassList.isEmpty()) {
+            String newCode = translator.translateUmlToCode(umlClassList);
+            updateCode(newCode);
+        }
     }
 
     public boolean isHeader() {
@@ -126,23 +144,32 @@ public class CppFile implements ICodeFile {
     public interface FileChangeListener {
         void onFileChanged(CppFile file);
 
-        default void onFileNameChanged(String oldName, String newName) {
-        }
+        void onFileNameChanged(String oldName, String newName);
     }
 
     public void addChangeListener(FileChangeListener listener) {
-        listeners.add(listener);
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
     }
 
     private void notifyFileChanged() {
         for (FileChangeListener listener : listeners) {
-            listener.onFileChanged(this);
+            try {
+                listener.onFileChanged(this);
+            } catch (Exception e) {
+                System.err.println("Error notifying file change: " + e.getMessage());
+            }
         }
     }
 
     private void notifyFileNameChanged(String oldName, String newName) {
         for (FileChangeListener listener : listeners) {
-            listener.onFileNameChanged(oldName, newName);
+            try {
+                listener.onFileNameChanged(oldName, newName);
+            } catch (Exception e) {
+                System.err.println("Error notifying filename change: " + e.getMessage());
+            }
         }
     }
 

@@ -11,7 +11,7 @@ import java.util.List;
 public abstract class AbstractTranslator {
     /**
      * ソースコードをUMLクラスのリストに変換する
-     * 
+     *
      * @param code ソースコード文字列
      * @return UMLクラスのリスト
      */
@@ -19,7 +19,7 @@ public abstract class AbstractTranslator {
 
     /**
      * UMLクラスのリストをソースコードに変換する
-     * 
+     *
      * @param classList UMLクラスのリスト
      * @return 言語固有の構文木（戻り値の型は実装クラスで指定）
      */
@@ -27,7 +27,7 @@ public abstract class AbstractTranslator {
 
     /**
      * 属性をソースコードの形式に変換する
-     * 
+     *
      * @param attribute UML属性
      * @return 言語固有の属性表現
      */
@@ -35,7 +35,7 @@ public abstract class AbstractTranslator {
 
     /**
      * 操作をソースコードの形式に変換する
-     * 
+     *
      * @param operation UML操作
      * @return 言語固有のメソッド表現
      */
@@ -43,7 +43,7 @@ public abstract class AbstractTranslator {
 
     /**
      * アクセス修飾子をソースコードの形式に変換する
-     * 
+     *
      * @param visibility UMLの可視性
      * @return 言語固有のアクセス修飾子表現
      */
@@ -51,7 +51,7 @@ public abstract class AbstractTranslator {
 
     /**
      * UMLの型を言語固有の型に変換する
-     * 
+     *
      * @param umlType UMLの型
      * @return 言語固有の型表現
      */

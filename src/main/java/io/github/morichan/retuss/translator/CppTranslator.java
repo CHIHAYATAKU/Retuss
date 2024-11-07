@@ -34,90 +34,176 @@ public class CppTranslator extends AbstractTranslator {
         typeMap.put("long", "long");
     }
 
-    @Override
-    public List<Class> translateCodeToUml(String code) {
-        classMap.clear();
+    private class CppClassExtractor extends CPP14ParserBaseListener {
+        private List<Class> extractedClasses = new ArrayList<>();
+        private Class currentClass = null;
+        private String currentVisibility = "private"; // デフォルトの可視性
 
-        if (code == null || code.trim().isEmpty()) {
-            System.out.println("Empty code provided");
-            return new ArrayList<>();
+        @Override
+        public void enterClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
+            if (ctx.classHead() != null &&
+                    ctx.classHead().classHeadName() != null &&
+                    ctx.classHead().classHeadName().className() != null) {
+
+                String className = ctx.classHead().classHeadName().className().getText();
+                System.out.println("DEBUG: Found class: " + className);
+                currentClass = new Class(className);
+            }
         }
 
-        try {
-            // プリプロセッサディレクティブを一時的に削除
-            String processedCode = code.replaceAll("#.*\\n", "\n");
+        @Override
+        public void exitClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
+            if (currentClass != null) {
+                extractedClasses.add(currentClass);
+                System.out.println("DEBUG: Finished processing class: " + currentClass.getName());
+                dumpClassInfo(currentClass);
+                currentClass = null;
+                currentVisibility = "private"; // リセット
+            }
+        }
 
-            CharStream input = CharStreams.fromString(processedCode);
-            CPP14Lexer lexer = new CPP14Lexer(input);
+        @Override
+        public void enterMemberSpecification(CPP14Parser.MemberSpecificationContext ctx) {
+            if (ctx.accessSpecifier() != null && !ctx.accessSpecifier().isEmpty()) {
+                currentVisibility = ctx.accessSpecifier().get(0).getText().toLowerCase();
+                System.out.println("DEBUG: Access specifier found: " + currentVisibility);
+            }
+        }
 
-            // カスタムエラーハンドリング
-            lexer.removeErrorListeners();
-            lexer.addErrorListener(new BaseErrorListener() {
-                @Override
-                public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
-                        int line, int charPositionInLine, String msg, RecognitionException e) {
-                    System.err.println("Lexer error at " + line + ":" + charPositionInLine + " - " + msg);
+        @Override
+        public void enterMemberdeclaration(CPP14Parser.MemberdeclarationContext ctx) {
+            if (currentClass == null)
+                return;
+
+            try {
+                if (ctx.declSpecifierSeq() != null) {
+                    String type = ctx.declSpecifierSeq().getText();
+                    System.out.println("DEBUG: Processing member - Type: " + type +
+                            ", Current visibility: " + currentVisibility);
+
+                    if (ctx.memberDeclaratorList() != null) {
+                        for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList()
+                                .memberDeclarator()) {
+
+                            processMemberDeclarator(memberDec, type);
+                        }
+                    }
                 }
-            });
+            } catch (Exception e) {
+                System.err.println("Error in enterMemberdeclaration: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
 
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            CPP14Parser parser = new CPP14Parser(tokens);
-            System.err.println(parser);
+        private void processMemberDeclarator(CPP14Parser.MemberDeclaratorContext memberDec, String type) {
+            if (memberDec.declarator() == null)
+                return;
 
-            parser.removeErrorListeners();
-            parser.addErrorListener(new BaseErrorListener() {
-                @Override
-                public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
-                        int line, int charPositionInLine, String msg, RecognitionException e) {
-                    System.err.println("Parser error at " + line + ":" + charPositionInLine + " - " + msg);
+            CPP14Parser.DeclaratorContext declarator = memberDec.declarator();
+            String declaratorText = declarator.getText();
+
+            // パラメータリストの存在を確認してメソッドかを判定
+            boolean isMethod = declarator.parametersAndQualifiers() != null;
+
+            System.out.println("DEBUG: Processing declarator: " + declaratorText +
+                    ", isMethod: " + isMethod +
+                    ", visibility: " + currentVisibility);
+
+            if (isMethod) {
+                // メソッドの処理
+                String methodName = declaratorText.substring(0, declaratorText.indexOf('('));
+                Operation operation = new Operation(new Name(methodName));
+                operation.setReturnType(new Type(type));
+                operation.setVisibility(convertToVisibility(currentVisibility));
+
+                currentClass.addOperation(operation);
+                System.out.println("DEBUG: Added method - " + methodName +
+                        " with visibility " + currentVisibility);
+            } else {
+                // フィールドの処理
+                Attribute attribute = new Attribute(new Name(declaratorText));
+                attribute.setType(new Type(type));
+                attribute.setVisibility(convertToVisibility(currentVisibility));
+
+                currentClass.addAttribute(attribute);
+                System.out.println("DEBUG: Added field - " + declaratorText +
+                        " with visibility " + currentVisibility);
+            }
+        }
+
+        private void dumpCurrentState() {
+            System.out.println("\nDEBUG: Current Parser State ----");
+            System.out.println("Current class: " + (currentClass != null ? currentClass.getName() : "null"));
+            System.out.println("Current visibility: " + currentVisibility);
+            if (currentClass != null) {
+                System.out.println("Current attributes count: " + currentClass.getAttributeList().size());
+                for (Attribute attr : currentClass.getAttributeList()) {
+                    System.out.println("  - " + attr.getVisibility() + " " +
+                            attr.getName() + " : " + attr.getType());
                 }
-            });
+            }
+            System.out.println("------------------------\n");
+        }
 
-            // デバッグモードを有効化
-            parser.setTrace(true);
-
-            ParseTree tree = parser.translationUnit();
-            System.out.println("Abstract Syntax Tree (AST):");
-            System.out.println(tree.toStringTree(parser));
-
-            if (parser.getNumberOfSyntaxErrors() > 0) {
-                System.err.println("Failed to parse C++ code: " + parser.getNumberOfSyntaxErrors() + " errors");
-                return new ArrayList<>();
+        private Visibility getVisibility(String visibility) {
+            if (visibility == null) {
+                System.out.println("DEBUG: Using default PRIVATE visibility");
+                return Visibility.Private;
             }
 
-            CppHeaderParseListener listener = new CppHeaderParseListener();
-            ParseTreeWalker walker = new ParseTreeWalker();
-            resolveInheritance();
+            switch (visibility.toUpperCase()) {
+                case "PUBLIC":
+                    System.out.println("DEBUG: Converting to PUBLIC visibility");
+                    return Visibility.Public;
+                case "PROTECTED":
+                    System.out.println("DEBUG: Converting to PROTECTED visibility");
+                    return Visibility.Protected;
+                case "PRIVATE":
+                    System.out.println("DEBUG: Converting to PRIVATE visibility");
+                    return Visibility.Private;
+                default:
+                    System.out.println("DEBUG: Using default PRIVATE visibility");
+                    return Visibility.Private;
+            }
+        }
 
-            return new ArrayList<>(classMap.values());
-        } catch (Exception e) {
-            System.err.println("Error in translateCodeToUml: " + e.getMessage());
-            e.printStackTrace();
-            return new ArrayList<>();
+        public List<Class> getExtractedClasses() {
+            return extractedClasses;
         }
     }
 
     /**
      * ヘッダーファイルとソースファイルの両方からUML情報を抽出
      */
-    public List<Class> translateCodeToUml(String headerCode, String implCode) {
-        classMap.clear();
-
+    @Override
+    public List<Class> translateCodeToUml(String code) {
         try {
-            // まずヘッダーファイルを解析
-            parseHeaderFile(headerCode);
+            System.out.println("\nDEBUG: Starting C++ code translation");
+            System.out.println("Original code:\n" + code);
 
-            // 次に実装ファイルを解析
-            if (implCode != null && !implCode.trim().isEmpty()) {
-                parseImplementationFile(implCode);
-            }
+            // プリプロセッサディレクティブを一時的に削除
+            String processedCode = code.replaceAll("#.*\\n", "\n");
+            System.out.println("\nProcessed code:\n" + processedCode);
 
-            // 継承関係を解決
-            resolveInheritance();
+            CharStream input = CharStreams.fromString(processedCode);
+            CPP14Lexer lexer = new CPP14Lexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            CPP14Parser parser = new CPP14Parser(tokens);
 
-            return new ArrayList<>(classMap.values());
+            ParseTree tree = parser.translationUnit();
+            System.out.println("\nDEBUG: Parse Tree:");
+            System.out.println(tree.toStringTree(parser));
+
+            CppClassExtractor extractor = new CppClassExtractor();
+            ParseTreeWalker walker = new ParseTreeWalker();
+            walker.walk(extractor, tree);
+
+            List<Class> classes = extractor.getExtractedClasses();
+            System.out.println("\nDEBUG: Translation complete. Found " + classes.size() + " classes.");
+
+            return classes;
         } catch (Exception e) {
-            System.err.println("Error in translateCodeToUml: " + e.getMessage());
+            System.err.println("Failed to translate C++ code to UML: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
         }
@@ -231,6 +317,18 @@ public class CppTranslator extends AbstractTranslator {
         }
     }
 
+    private void dumpClassInfo(Class cls) {
+        System.out.println("\nDEBUG: Class Dump ----");
+        System.out.println("Class name: " + cls.getName());
+        System.out.println("Attributes:");
+        for (Attribute attr : cls.getAttributeList()) {
+            System.out.println("  - Name: " + attr.getName() +
+                    ", Type: " + attr.getType() +
+                    ", Visibility: " + attr.getVisibility());
+        }
+        System.out.println("------------------\n");
+    }
+
     private void resolveInheritance() {
         for (Map.Entry<String, Class> entry : classMap.entrySet()) {
             Class currentClass = entry.getValue();
@@ -245,7 +343,7 @@ public class CppTranslator extends AbstractTranslator {
     }
 
     @Override
-    public Object translateUmlToCode(List<Class> classList) {
+    public String translateUmlToCode(List<Class> classList) { // Object から String に変更
         StringBuilder code = new StringBuilder();
 
         // ヘッダーインクルード
@@ -286,7 +384,7 @@ public class CppTranslator extends AbstractTranslator {
             code.append("#endif // ").append(classList.get(0).getName().toUpperCase()).append("_H\n");
         }
 
-        return code.toString();
+        return code.toString(); // toString()を呼び出して文字列を返す
     }
 
     private String translateClass(Class umlClass) {
@@ -355,7 +453,7 @@ public class CppTranslator extends AbstractTranslator {
     }
 
     @Override
-    public Object translateAttribute(Attribute attribute) {
+    public String translateAttribute(Attribute attribute) { // Object から String に変更
         StringBuilder builder = new StringBuilder();
 
         // constメンバの場合
@@ -372,7 +470,7 @@ public class CppTranslator extends AbstractTranslator {
     }
 
     @Override
-    public Object translateOperation(Operation operation) {
+    public String translateOperation(Operation operation) { // Object から String に変更
         StringBuilder builder = new StringBuilder();
 
         // 仮想関数の場合
@@ -423,53 +521,76 @@ public class CppTranslator extends AbstractTranslator {
         private String currentVisibility = "private";
 
         @Override
-        public void enterMemberDeclarator(CPP14Parser.MemberDeclaratorContext ctx) {
+        public void enterMemberdeclaration(CPP14Parser.MemberdeclarationContext ctx) {
+            if (currentClass == null)
+                return;
+
             try {
-                if (currentClass == null)
-                    return;
+                if (ctx.declSpecifierSeq() != null) {
+                    String type = ctx.declSpecifierSeq().getText();
+                    System.out.println("DEBUG: Found member declaration - Type: " + type +
+                            ", Current visibility: " + currentVisibility);
 
-                if (ctx.getParent() instanceof CPP14Parser.MemberDeclaratorListContext) {
-                    CPP14Parser.MemberdeclarationContext memberCtx = (CPP14Parser.MemberdeclarationContext) ctx
-                            .getParent().getParent();
+                    if (ctx.memberDeclaratorList() != null) {
+                        for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList()
+                                .memberDeclarator()) {
 
-                    // メソッド宣言はスキップ
-                    if (ctx.getText().contains("(")) {
-                        System.out.println("Skipping method declaration");
-                        return;
-                    }
+                            if (memberDec.declarator() != null) {
+                                String declaratorText = memberDec.declarator().getText();
 
-                    if (memberCtx != null && memberCtx.declSpecifierSeq() != null) {
-                        String type = memberCtx.declSpecifierSeq().getText();
-                        String name = ctx.declarator().getText();
+                                // メソッド宣言の判定をより正確に
+                                boolean isMethod = isMethodDeclaration(memberDec.declarator());
 
-                        System.out.println("Processing member: type=" + type + ", name=" + name +
-                                ", visibility=" + currentVisibility);
+                                if (isMethod) {
+                                    // メソッドの処理
+                                    String methodName = extractMethodName(declaratorText);
+                                    Operation operation = new Operation(new Name(methodName));
+                                    operation.setReturnType(new Type(type));
+                                    operation.setVisibility(convertToVisibility(currentVisibility));
 
-                        try {
-                            // Nameオブジェクトを確実に生成
-                            Name attributeName = new Name(name);
-                            // Typeオブジェクトを確実に生成
-                            Type attributeType = new Type(type);
+                                    // パラメータ処理も必要に応じて追加
 
-                            // 属性の作成
-                            Attribute attribute = new Attribute(attributeName);
-                            attribute.setName(attributeName);
-                            attribute.setType(attributeType);
-                            attribute.setVisibility(Visibility.valueOf(currentVisibility.toUpperCase()));
+                                    currentClass.addOperation(operation);
+                                    System.out.println("DEBUG: Added method - Name: " + methodName +
+                                            ", Return Type: " + type +
+                                            ", Visibility: " + currentVisibility);
+                                } else {
+                                    // フィールドの処理
+                                    Attribute attribute = new Attribute(new Name(declaratorText));
+                                    attribute.setType(new Type(type));
+                                    attribute.setVisibility(convertToVisibility(currentVisibility));
 
-                            // クラスに属性を追加
-                            currentClass.addAttribute(attribute);
-                            System.out.println("Successfully added attribute: " + attribute);
-                        } catch (Exception e) {
-                            System.err.println("Error creating attribute: " + e.getMessage());
-                            e.printStackTrace();
+                                    currentClass.addAttribute(attribute);
+                                    System.out.println("DEBUG: Added field - Name: " + declaratorText +
+                                            ", Type: " + type +
+                                            ", Visibility: " + currentVisibility);
+                                }
+                            }
                         }
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Error in enterMemberDeclarator: " + e.getMessage());
+                System.err.println("Error processing member declaration: " + e.getMessage());
                 e.printStackTrace();
             }
+        }
+
+        private boolean isMethodDeclaration(CPP14Parser.DeclaratorContext declarator) {
+            // パラメータリストを探す
+            if (declarator.parametersAndQualifiers() != null) {
+                return true;
+            }
+            // または他のメソッド判定基準を追加
+            return false;
+        }
+
+        private String extractMethodName(String declaratorText) {
+            // 括弧の前の部分を取得
+            int parenIndex = declaratorText.indexOf('(');
+            if (parenIndex > 0) {
+                return declaratorText.substring(0, parenIndex);
+            }
+            return declaratorText;
         }
 
         @Override
@@ -493,10 +614,9 @@ public class CppTranslator extends AbstractTranslator {
 
         @Override
         public void enterAccessSpecifier(CPP14Parser.AccessSpecifierContext ctx) {
-            if (ctx != null && ctx.getText() != null) {
-                currentVisibility = ctx.getText().toLowerCase();
-                System.out.println("Access specifier changed to: " + currentVisibility);
-            }
+            // アクセス指定子を直接取得
+            currentVisibility = ctx.getText().toLowerCase();
+            System.out.println("DEBUG: Access specifier changed to: " + currentVisibility);
         }
 
         @Override
@@ -548,5 +668,40 @@ public class CppTranslator extends AbstractTranslator {
             System.err.println("Failed to extract class name: " + e.getMessage());
             return Optional.empty();
         }
+    }
+
+    private Visibility convertToVisibility(String visibility) {
+        if (visibility == null) {
+            System.out.println("DEBUG: Null visibility, using PRIVATE");
+            return Visibility.Private;
+        }
+
+        System.out.println("DEBUG: Converting visibility: " + visibility);
+        Visibility result;
+        if (visibility == null) {
+            System.out.println("DEBUG: Unknown visibility: null, using PRIVATE");
+            result = Visibility.Private;
+        } else {
+            switch (visibility.toUpperCase()) {
+                case "PUBLIC":
+                    System.out.println("DEBUG: Set to PUBLIC");
+                    result = Visibility.Public;
+                    break;
+                case "PROTECTED":
+                    System.out.println("DEBUG: Set to PROTECTED");
+                    result = Visibility.Protected;
+                    break;
+                case "PRIVATE":
+                    System.out.println("DEBUG: Set to PRIVATE");
+                    result = Visibility.Private;
+                    break;
+                default:
+                    System.out.println("DEBUG: Unknown visibility: " + visibility + ", using PRIVATE");
+                    result = Visibility.Private;
+                    break;
+            }
+        }
+        return result;
+
     }
 }

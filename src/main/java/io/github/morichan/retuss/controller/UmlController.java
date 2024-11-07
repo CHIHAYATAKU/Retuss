@@ -6,7 +6,9 @@ import io.github.morichan.retuss.drawer.*;
 import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.CppFile;
 import io.github.morichan.retuss.model.CppModel;
+import io.github.morichan.retuss.model.CppPairFile;
 import io.github.morichan.retuss.model.JavaModel;
+import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
 import javafx.collections.ObservableList;
@@ -286,14 +288,20 @@ public class UmlController {
         }
     }
 
-    public void updateDiagram(CodeFile codeFile) {
-        javaClassDiagramDrawer.draw();
-        updateSequenceDiagram(codeFile);
-    }
-
-    public void updateDiagram(CppFile codeFile) {
-        cppClassDiagramDrawer.draw();
-        // C++ではシーケンス図は今回は実装しない
+    public void updateDiagram(ICodeFile codeFile) {
+        if (codeFile instanceof CodeFile) {
+            // Javaファイルの場合
+            javaClassDiagramDrawer.draw();
+            updateSequenceDiagram((CodeFile) codeFile);
+        } else if (codeFile instanceof CppFile) {
+            // C++ファイルの場合
+            CppFile cppFile = (CppFile) codeFile;
+            if (cppFile.isHeader()) { // ヘッダーファイルの場合のみUML図を更新
+                System.out.println("Updating diagram for C++ header file: " + cppFile.getFileName());
+                System.out.println("UML classes: " + cppFile.getUmlClassList().size());
+                cppClassDiagramDrawer.draw();
+            }
+        }
     }
 
     /**

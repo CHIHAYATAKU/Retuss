@@ -1,26 +1,30 @@
 package io.github.morichan.retuss.model;
 
+import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.parser.cpp.CPP14ParserBaseListener;
+import io.github.morichan.retuss.translator.CppTranslator;
 
 import java.util.*;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-public class CppPairFile {
+public class CppPairFile implements ICodeFile {
     private final UUID ID = UUID.randomUUID();
     private CppFile headerFile;
     private CppFile implFile;
+    private CppTranslator translator = new CppTranslator();
     private Set<String> dependencies = new HashSet<>();
     private List<Class> mergedUmlClassList = new ArrayList<>();
+    private String className;
 
     public CppPairFile(String baseName) {
         this.headerFile = new CppFile(baseName + ".hpp", true);
         this.implFile = new CppFile(baseName + ".cpp", false);
-        initializeImplFile(baseName);
+        initialize(baseName);
 
         // ヘッダファイルの変更を監視
         headerFile.addChangeListener(new CppFile.FileChangeListener() {
@@ -46,16 +50,98 @@ public class CppPairFile {
         });
     }
 
-    private void initializeImplFile(String baseName) {
+    private void initialize(String baseName) {
+        // 初期化処理
         StringBuilder sb = new StringBuilder();
         sb.append("#include \"").append(baseName).append(".hpp\"\n\n");
         implFile.updateCode(sb.toString());
     }
 
+    @Override
     public UUID getID() {
         return ID;
     }
 
+    @Override
+    public String getFileName() {
+        return headerFile.getFileName(); // ペアを代表してヘッダーファイル名を返す
+    }
+
+    @Override
+    public List<CppFile> getFiles() {
+        return Arrays.asList(headerFile, implFile);
+    }
+
+    // メインファイル（ヘッダー）かどうかの判定
+    @Override
+    public boolean isMainFile() {
+        return true; // ヘッダーファイルをメインとする
+    }
+
+    @Override
+    public String getCode() {
+        return headerFile.getCode(); // ペアを代表してヘッダーファイルのコードを返す
+    }
+
+    @Override
+    public List<Class> getUmlClassList() {
+        // ヘッダーファイルの基本情報を取得
+        List<Class> baseClasses = new ArrayList<>(headerFile.getUmlClassList());
+
+        if (!baseClasses.isEmpty() && implFile != null) {
+            // 実装ファイルから関係性を解析して統合
+            Class mainClass = baseClasses.get(0);
+            analyzeImplementationRelationships(mainClass);
+            mergedUmlClassList = baseClasses; // 統合結果を保存
+        }
+
+        return Collections.unmodifiableList(mergedUmlClassList);
+    }
+
+    @Override
+    public void updateCode(String code) {
+        // クラス名の抽出と更新
+        Optional<String> newClassName = translator.extractClassName(code);
+        newClassName.ifPresent(name -> {
+            if (!name.equals(className)) {
+                className = name;
+                // ヘッダーファイルとインプリメンテーションファイルの名前を更新
+                String oldHeaderName = headerFile.getFileName();
+                String newHeaderName = name + ".hpp";
+                String oldImplName = implFile.getFileName();
+                String newImplName = name + ".cpp";
+                // 実装ファイルの内容も更新
+                implFile.getCode().replace(oldHeaderName, newHeaderName);
+            }
+
+            headerFile.updateCode(code);
+            implFile.updateCode(implFile.getCode());
+            System.err.println("ヘッダー！ = " + headerFile.getCode());
+            System.err.println("実装！ = " + implFile.getCode());
+
+        });
+    }
+
+    @Override
+    public void addUmlClass(Class umlClass) {
+        // ヘッダーファイルにクラスを追加
+        headerFile.addUmlClass(umlClass);
+        // 実装ファイルのインクルードを更新
+        updateImplementationIncludes();
+    }
+
+    @Override
+    public void removeClass(Class umlClass) {
+        headerFile.removeClass(umlClass);
+        // 実装ファイルも更新
+        initialize(umlClass.getName());
+    }
+
+    public CppFile getFileByType(boolean isHeader) {
+        return isHeader ? headerFile : implFile;
+    }
+
+    // CppPairFile固有のメソッド
     public CppFile getHeaderFile() {
         return headerFile;
     }
@@ -64,51 +150,51 @@ public class CppPairFile {
         return implFile;
     }
 
-    public List<Class> getUmlClassList() {
-        // ヘッダーファイルからの基本情報
-        List<Class> headerClasses = headerFile.getUmlClassList();
+    private void updateImplFileName(String oldHeaderName, String newHeaderName) {
+        String oldBaseName = oldHeaderName.replace(".hpp", "");
+        String newBaseName = newHeaderName.replace(".hpp", "");
+        String oldImplName = implFile.getFileName();
+        String newImplName = oldImplName.replace(oldBaseName, newBaseName);
 
-        // 実装ファイルからの追加情報を統合
-        if (!headerClasses.isEmpty() && implFile != null) {
-            Class mainClass = headerClasses.get(0);
-
-            // 実装ファイルのコードを解析して関係性を抽出
-            analyzeImplementationRelationships(mainClass, implFile.getCode());
-
-            mergedUmlClassList = headerClasses;
+        // 実装ファイルの更新
+        StringBuilder newCode = new StringBuilder();
+        newCode.append("#include \"").append(newHeaderName).append("\"\n\n");
+        String existingCode = implFile.getCode();
+        int implStart = existingCode.indexOf("\n\n");
+        if (implStart != -1) {
+            newCode.append(existingCode.substring(implStart + 2));
         }
-
-        return Collections.unmodifiableList(mergedUmlClassList);
-    }
-
-    private void analyzeImplementationRelationships(Class mainClass, String implCode) {
-        // 実装ファイルから関係性を解析
-        // 例：
-        // - メソッド内での他クラスのインスタンス化
-        // - フレンド関係
-        // - 集約関係
-        // - その他の依存関係
-        try {
-            if (implCode != null && !implCode.trim().isEmpty()) {
-                // 実装ファイルのパース
-                CharStream input = CharStreams.fromString(implCode);
-                CPP14Lexer lexer = new CPP14Lexer(input);
-                CommonTokenStream tokens = new CommonTokenStream(lexer);
-                CPP14Parser parser = new CPP14Parser(tokens);
-
-                // カスタムリスナーで関係性を抽出
-                ImplRelationshipListener listener = new ImplRelationshipListener(mainClass);
-                ParseTreeWalker walker = new ParseTreeWalker();
-                walker.walk(listener, parser.translationUnit());
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to analyze implementation relationships: " + e.getMessage());
-        }
+        implFile.updateCode(newCode.toString());
     }
 
     public void addInclude(String headerName) {
         dependencies.add(headerName);
         updateHeaderIncludes();
+    }
+
+    private void analyzeImplementationRelationships(Class mainClass) {
+        try {
+            String implCode = implFile.getCode();
+            if (implCode == null || implCode.trim().isEmpty())
+                return;
+
+            // 実装ファイルのパース
+            CharStream input = CharStreams.fromString(implCode);
+            CPP14Lexer lexer = new CPP14Lexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            CPP14Parser parser = new CPP14Parser(tokens);
+
+            // 実装関係の解析用リスナー
+            ImplRelationshipAnalyzer analyzer = new ImplRelationshipAnalyzer(mainClass);
+            ParseTreeWalker walker = new ParseTreeWalker();
+            walker.walk(analyzer, parser.translationUnit());
+
+            // 解析結果を反映
+            applyRelationships(mainClass, analyzer.getRelationships());
+
+        } catch (Exception e) {
+            System.err.println("Failed to analyze implementation relationships: " + e.getMessage());
+        }
     }
 
     private void updateHeaderIncludes() {
@@ -249,5 +335,115 @@ public class CppPairFile {
     @Override
     public int hashCode() {
         return Objects.hash(ID);
+    }
+
+    private class ImplRelationshipAnalyzer extends CPP14ParserBaseListener {
+        private final Class mainClass;
+        private final Map<String, RelationType> relationships = new HashMap<>();
+        private String currentMethod = null;
+
+        public ImplRelationshipAnalyzer(Class mainClass) {
+            this.mainClass = mainClass;
+        }
+
+        @Override
+        public void enterFunctionDefinition(CPP14Parser.FunctionDefinitionContext ctx) {
+            if (ctx.declarator() != null) {
+                String text = ctx.declarator().getText();
+                // クラスのメソッド定義を検出（例：ClassName::methodName）
+                int scopePos = text.indexOf("::");
+                if (scopePos > 0) {
+                    currentMethod = text.substring(scopePos + 2);
+                }
+            }
+        }
+
+        @Override
+        public void exitFunctionDefinition(CPP14Parser.FunctionDefinitionContext ctx) {
+            currentMethod = null;
+        }
+
+        @Override
+        public void enterSimpleDeclaration(CPP14Parser.SimpleDeclarationContext ctx) {
+            if (ctx.declSpecifierSeq() != null) {
+                String type = ctx.declSpecifierSeq().getText();
+                // メンバー変数の型を解析して依存関係を追加
+                if (!isBuiltInType(type)) {
+                    relationships.put(type, RelationType.DEPENDENCY);
+                }
+            }
+        }
+
+        @Override
+        public void enterDeclarator(CPP14Parser.DeclaratorContext ctx) {
+            String text = ctx.getText();
+
+            // newによるインスタンス生成を検出（集約/コンポジション関係）
+            if (text.contains("new ")) {
+                String[] parts = text.split("new\\s+");
+                if (parts.length > 1) {
+                    String type = parts[1].split("[^a-zA-Z0-9_]")[0];
+                    relationships.put(type, RelationType.AGGREGATION);
+                }
+            }
+
+            // ポインタメンバを検出（コンポジション関係の可能性）
+            if (text.contains("*") && currentMethod == null) {
+                String type = text.replaceAll("[*&]", "").trim();
+                if (!isBuiltInType(type)) {
+                    relationships.put(type, RelationType.COMPOSITION);
+                }
+            }
+        }
+
+        private boolean isBuiltInType(String type) {
+            Set<String> builtInTypes = Set.of("int", "char", "bool", "float", "double", "void", "long");
+            return builtInTypes.contains(type) || type.startsWith("std::");
+        }
+
+        public Map<String, RelationType> getRelationships() {
+            return relationships;
+        }
+    }
+
+    private enum RelationType {
+        DEPENDENCY,
+        AGGREGATION,
+        COMPOSITION
+    }
+
+    private void applyRelationships(Class mainClass, Map<String, RelationType> relationships) {
+        for (Map.Entry<String, RelationType> entry : relationships.entrySet()) {
+            String targetClassName = entry.getKey();
+            RelationType relationType = entry.getValue();
+
+            switch (relationType) {
+                case DEPENDENCY:
+                    // 依存関係の追加（UMLモデルに依存関係を追加するメソッドが必要）
+                    addDependency(mainClass, targetClassName);
+                    break;
+                case AGGREGATION:
+                    // 集約関係の追加
+                    addAggregation(mainClass, targetClassName);
+                    break;
+                case COMPOSITION:
+                    // コンポジション関係の追加
+                    addComposition(mainClass, targetClassName);
+                    break;
+            }
+        }
+    }
+
+    private void addDependency(Class source, String targetClassName) {
+        // UMLモデルに依存関係を追加
+        // 実装は使用しているUMLライブラリに依存
+    }
+
+    private void addAggregation(Class source, String targetClassName) {
+        // UMLモデルに集約関係を追加
+    }
+
+    private void addComposition(Class source, String targetClassName) {
+        // UMLモデルにコンポジション関係を追加
     }
 }

@@ -17,4 +17,13 @@ public interface ICodeFile {
     void addUmlClass(Class umlClass);
 
     void removeClass(Class umlClass);
+
+    default List<? extends ICodeFile> getFiles() {
+        return Collections.singletonList(this);
+    }
+
+    // ファイルの種類を判別するためのメソッド
+    default boolean isMainFile() {
+        return true;
+    }
 }
