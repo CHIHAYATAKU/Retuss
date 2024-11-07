@@ -4,7 +4,6 @@ import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.retuss.model.CppModel;
-import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
@@ -13,50 +12,48 @@ import net.sourceforge.plantuml.SourceStringReader;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ClassDiagramDrawer {
-    private JavaModel javaModel = JavaModel.getInstance();
-    private CppModel cppModel = CppModel.getInstance();
+public class CppClassDiagramDrawer {
+    private CppModel model;
     private WebView webView;
 
-    public ClassDiagramDrawer(WebView webView) {
+    public CppClassDiagramDrawer(WebView webView) {
+        this.model = CppModel.getInstance();
         this.webView = webView;
-        cppModel.addChangeListener(() -> draw());
     }
 
     public void draw() {
-        // UML情報を集める
-        List<Class> umlClassList = new ArrayList<>();
-        umlClassList.addAll(javaModel.getUmlClassList());
-        umlClassList.addAll(cppModel.getUmlClassList());
+        List<Class> umlClassList = model.getUmlClassList();
 
-        // plantUML構文を生成する
-        StringBuilder puStrBuilder = new StringBuilder("@startuml\n");
-        puStrBuilder.append("scale 1.5\n");
-        puStrBuilder.append("skinparam style strictuml\n");
-        puStrBuilder.append("skinparam classAttributeIconSize 0\n");
-        for (Class umlClass : umlClassList) {
-            puStrBuilder.append(umlClassToPlantUml(umlClass));
+        // クラスが存在する場合のみ描画
+        if (!umlClassList.isEmpty()) {
+            StringBuilder puStrBuilder = new StringBuilder("@startuml\n");
+            puStrBuilder.append("scale 1.5\n");
+            puStrBuilder.append("skinparam style strictuml\n");
+            puStrBuilder.append("skinparam classAttributeIconSize 0\n");
+
+            // クラス図の生成
+            for (Class umlClass : umlClassList) {
+                puStrBuilder.append(umlClassToPlantUml(umlClass));
+            }
+
+            puStrBuilder.append("@enduml\n");
+
+            // デバッグ出力
+            System.out.println("C++ PlantUML Generated:\n" + puStrBuilder.toString());
+
+            // SVG生成と表示
+            try {
+                SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
+                final ByteArrayOutputStream os = new ByteArrayOutputStream();
+                reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
+                final String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
+                webView.getEngine().loadContent(svg);
+            } catch (Exception e) {
+                System.err.println("Failed to generate diagram: " + e.getMessage());
+            }
         }
-        puStrBuilder.append("@enduml\n");
-
-        // plantUMLでクラス図のSVGを生成する
-        SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        // Write the first image to "os"
-        try {
-            String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
-            os.close();
-        } catch (Exception e) {
-            System.err.println("Error drawing class diagram: " + e.getMessage());
-        }
-
-        // The XML is stored into svg
-        final String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
-
-        webView.getEngine().loadContent(svg);
     }
 
     private String umlClassToPlantUml(Class umlClass) {
@@ -117,18 +114,11 @@ public class ClassDiagramDrawer {
     }
 
     private Boolean isComposition(Type type) {
-        // Java・C++両方のクラスをチェック
-        for (Class umlClass : javaModel.getUmlClassList()) {
-            if (type.getName().getNameText().equals(umlClass.getName())) {
-                return Boolean.TRUE;
-            }
-        }
-        for (Class umlClass : cppModel.getUmlClassList()) {
+        for (Class umlClass : model.getUmlClassList()) {
             if (type.getName().getNameText().equals(umlClass.getName())) {
                 return Boolean.TRUE;
             }
         }
         return Boolean.FALSE;
     }
-
 }

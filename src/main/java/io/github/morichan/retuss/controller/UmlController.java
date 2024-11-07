@@ -2,9 +2,10 @@ package io.github.morichan.retuss.controller;
 
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.retuss.RetussWindow;
-import io.github.morichan.retuss.drawer.ClassDiagramDrawer;
-import io.github.morichan.retuss.drawer.SequenceDiagramDrawer;
+import io.github.morichan.retuss.drawer.*;
 import io.github.morichan.retuss.model.CodeFile;
+import io.github.morichan.retuss.model.CppFile;
+import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
@@ -14,6 +15,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.web.WebView;
@@ -45,9 +47,30 @@ public class UmlController {
     private Tab sequenceDiagramTab;
     @FXML
     private TabPane tabPaneInSequenceTab;
+    @FXML
+    private CheckBox javaCheckBox;
 
-    private JavaModel model = JavaModel.getInstance();
-    private ClassDiagramDrawer classDiagramDrawer;
+    @FXML
+    private CheckBox cppCheckBox;
+
+    @FXML
+    private void toggleJavaSelection() {
+        if (javaCheckBox.isSelected()) {
+            cppCheckBox.setSelected(false); // Javaを選択時にC++のチェックを外す
+        }
+    }
+
+    @FXML
+    private void toggleCppSelection() {
+        if (cppCheckBox.isSelected()) {
+            javaCheckBox.setSelected(false); // C++を選択時にJavaのチェックを外す
+        }
+    }
+
+    private JavaModel javaModel = JavaModel.getInstance();
+    private CppModel cppModel = CppModel.getInstance();
+    private JavaClassDiagramDrawer javaClassDiagramDrawer;
+    private CppClassDiagramDrawer cppClassDiagramDrawer;
     private SequenceDiagramDrawer sequenceDiagramDrawer;
     private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
 
@@ -64,8 +87,10 @@ public class UmlController {
      */
     @FXML
     private void initialize() {
-        model.setUmlController(this);
-        classDiagramDrawer = new ClassDiagramDrawer(classDiagramWebView);
+        javaModel.setUmlController(this);
+        cppModel.setUmlController(this);
+        javaClassDiagramDrawer = new JavaClassDiagramDrawer(classDiagramWebView);
+        cppClassDiagramDrawer = new CppClassDiagramDrawer(classDiagramWebView);
         sequenceDiagramDrawer = new SequenceDiagramDrawer(tabPaneInSequenceTab);
     }
 
@@ -262,8 +287,13 @@ public class UmlController {
     }
 
     public void updateDiagram(CodeFile codeFile) {
-        classDiagramDrawer.draw();
+        javaClassDiagramDrawer.draw();
         updateSequenceDiagram(codeFile);
+    }
+
+    public void updateDiagram(CppFile codeFile) {
+        cppClassDiagramDrawer.draw();
+        // C++ではシーケンス図は今回は実装しない
     }
 
     /**

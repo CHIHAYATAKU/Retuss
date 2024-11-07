@@ -3,7 +3,6 @@ package io.github.morichan.retuss.drawer;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.type.Type;
-import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import javafx.scene.web.WebView;
@@ -13,26 +12,19 @@ import net.sourceforge.plantuml.SourceStringReader;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ClassDiagramDrawer {
+public class JavaClassDiagramDrawer {
     private JavaModel javaModel = JavaModel.getInstance();
-    private CppModel cppModel = CppModel.getInstance();
     private WebView webView;
 
-    public ClassDiagramDrawer(WebView webView) {
+    public JavaClassDiagramDrawer(WebView webView) {
         this.webView = webView;
-        cppModel.addChangeListener(() -> draw());
     }
 
     public void draw() {
-        // UML情報を集める
-        List<Class> umlClassList = new ArrayList<>();
-        umlClassList.addAll(javaModel.getUmlClassList());
-        umlClassList.addAll(cppModel.getUmlClassList());
+        List<Class> umlClassList = javaModel.getUmlClassList();
 
-        // plantUML構文を生成する
         StringBuilder puStrBuilder = new StringBuilder("@startuml\n");
         puStrBuilder.append("scale 1.5\n");
         puStrBuilder.append("skinparam style strictuml\n");
@@ -42,20 +34,16 @@ public class ClassDiagramDrawer {
         }
         puStrBuilder.append("@enduml\n");
 
-        // plantUMLでクラス図のSVGを生成する
         SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        // Write the first image to "os"
         try {
-            String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
+            reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
             os.close();
         } catch (Exception e) {
-            System.err.println("Error drawing class diagram: " + e.getMessage());
+            System.err.println("Error drawing Java class diagram: " + e.getMessage());
         }
 
-        // The XML is stored into svg
         final String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
-
         webView.getEngine().loadContent(svg);
     }
 
@@ -117,18 +105,11 @@ public class ClassDiagramDrawer {
     }
 
     private Boolean isComposition(Type type) {
-        // Java・C++両方のクラスをチェック
         for (Class umlClass : javaModel.getUmlClassList()) {
-            if (type.getName().getNameText().equals(umlClass.getName())) {
-                return Boolean.TRUE;
-            }
-        }
-        for (Class umlClass : cppModel.getUmlClassList()) {
             if (type.getName().getNameText().equals(umlClass.getName())) {
                 return Boolean.TRUE;
             }
         }
         return Boolean.FALSE;
     }
-
 }
