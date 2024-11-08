@@ -20,6 +20,7 @@ public class CppSequenceDiagramDrawer {
     }
 
     public void draw(CppFile headerFile, CppFile implFile, String methodName, WebView webView) {
+        System.out.println("シーケンスドロー！");
         StringBuilder puStrBuilder = new StringBuilder();
         puStrBuilder.append("@startuml\n");
         puStrBuilder.append("scale 1.5\n");
@@ -32,6 +33,7 @@ public class CppSequenceDiagramDrawer {
 
         if (!sequenceDiagram.isEmpty()) {
             puStrBuilder.append(sequenceDiagram);
+            System.out.println("シーケンスからっぽ！");
         } else {
             // 空の場合はデフォルトの表示
             String className = headerFile.getFileName().replace(".hpp", "");

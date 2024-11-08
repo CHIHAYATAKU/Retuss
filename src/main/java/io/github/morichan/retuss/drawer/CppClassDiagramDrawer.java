@@ -2,6 +2,7 @@ package io.github.morichan.retuss.drawer;
 
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.fescue.feature.parameter.Parameter;
 import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.CppModel;
@@ -14,6 +15,7 @@ import net.sourceforge.plantuml.SourceStringReader;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -31,36 +33,97 @@ public class CppClassDiagramDrawer {
         List<Class> umlClassList = model.getUmlClassList();
         System.out.println("Drawing C++ classes: " + umlClassList.size());
 
-        StringBuilder puml = new StringBuilder();
-        puml.append("@startuml\n");
-        puml.append("scale 1.5\n");
-        puml.append("skinparam style strictuml\n");
-        puml.append("skinparam classAttributeIconSize 0\n");
+        StringBuilder pumlBuilder = new StringBuilder();
+        pumlBuilder.append("@startuml\n");
+        pumlBuilder.append("scale 1.5\n");
+        pumlBuilder.append("skinparam style strictuml\n");
+        pumlBuilder.append("skinparam classAttributeIconSize 0\n");
 
-        // クラス定義の生成
-        for (Class umlClass : umlClassList) {
-            puml.append(umlClassToPlantUml(umlClass));
+        // クラスの定義
+        for (Class cls : umlClassList) {
+            if (cls.getAbstruct()) {
+                pumlBuilder.append("abstract ");
+            }
+            pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
+
+            // 属性の追加
+            for (Attribute attr : cls.getAttributeList()) {
+                pumlBuilder.append("  ")
+                        .append(getVisibilitySymbol(attr.getVisibility()))
+                        .append(" ")
+                        .append(attr.getType())
+                        .append(" ")
+                        .append(attr.getName())
+                        .append("\n");
+            }
+
+            // 操作の追加
+            for (Operation op : cls.getOperationList()) {
+                pumlBuilder.append("  ")
+                        .append(getVisibilitySymbol(op.getVisibility()))
+                        .append(" ")
+                        .append(op.getReturnType())
+                        .append(" ")
+                        .append(op.getName())
+                        .append("(");
+
+                // パラメータの追加
+                List<String> params = new ArrayList<>();
+                for (Parameter param : op.getParameters()) {
+                    params.add(param.getType() + " " + param.getName());
+                }
+                pumlBuilder.append(String.join(", ", params));
+                pumlBuilder.append(")\n");
+            }
+
+            pumlBuilder.append("}\n\n");
         }
 
-        // 関係性の生成（クラス定義の後に配置）
-        for (Class umlClass : umlClassList) {
-            puml.append(generateRelationships(umlClass));
+        // 継承関係の追加
+        for (Class cls : umlClassList) {
+            if (cls.getSuperClass().isPresent()) {
+                pumlBuilder.append(cls.getSuperClass().get().getName())
+                        .append(" <|-- ")
+                        .append(cls.getName())
+                        .append("\n");
+            }
         }
 
-        puml.append("@enduml\n");
+        pumlBuilder.append("@enduml");
 
-        // デバッグ出力
+        String puml = pumlBuilder.toString();
         System.out.println("Generated PlantUML:\n" + puml);
-        SourceStringReader reader = new SourceStringReader(puml.toString());
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
+            SourceStringReader reader = new SourceStringReader(puml);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            // SVGの生成
             reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
-            String svg = new String(os.toByteArray(), StandardCharsets.UTF_8);
-            webView.getEngine().loadContent(svg);
+            String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
+
+            // WebViewに表示
+            if (svg != null && !svg.isEmpty()) {
+                System.out.println("Loading SVG to WebView");
+                webView.getEngine().loadContent(svg);
+            } else {
+                System.err.println("Generated SVG is empty");
+            }
         } catch (Exception e) {
-            System.err.println("Error generating diagram: " + e.getMessage());
+            System.err.println("Error generating class diagram: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private String getVisibilitySymbol(Visibility visibility) {
+        switch (visibility) {
+            case Public:
+                return "+";
+            case Protected:
+                return "#";
+            case Private:
+                return "-";
+            default:
+                return "~";
         }
     }
 

@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.model;
 
+import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
@@ -15,11 +16,17 @@ public class CppFile implements ICodeFile {
     private final boolean isHeader;
     private final List<FileChangeListener> listeners = new ArrayList<>();
 
+    private UmlController umlController;
+
     public CppFile(String fileName, boolean isHeader) {
         this.fileName = fileName;
         this.isHeader = isHeader;
         this.translator = new CppTranslator();
         initializeFile();
+    }
+
+    public void setUmlController(UmlController controller) {
+        this.umlController = controller;
     }
 
     private void initializeFile() {
@@ -88,6 +95,13 @@ public class CppFile implements ICodeFile {
             String oldName = this.fileName;
             this.fileName = newName;
             System.out.println("DEBUG: CppFile updating filename from " + oldName + " to " + newName);
+
+            if (umlController != null) {
+                umlController.updateFileName(oldName, newName);
+            } else {
+                System.out.println("DEBUG: UmlController is not set");
+            }
+
             notifyFileNameChanged(oldName, newName);
         }
     }

@@ -1,17 +1,29 @@
 package io.github.morichan.retuss.translator.cpp;
 
-import io.github.morichan.retuss.translator.common.*;
+import io.github.morichan.retuss.model.uml.*;
+import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.parser.cpp.*;
+import io.github.morichan.retuss.translator.common.AbstractLanguageTranslator;
+import io.github.morichan.retuss.translator.common.CodeToUmlTranslator;
+import io.github.morichan.retuss.translator.common.UmlToCodeTranslator;
 import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
 import io.github.morichan.retuss.translator.cpp.util.*;
 import io.github.morichan.retuss.translator.model.MethodCall;
-import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.parser.cpp.*;
-import io.github.morichan.fescue.feature.*;
+import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.fescue.feature.Attribute;
+import io.github.morichan.fescue.feature.parameter.Parameter;
+import io.github.morichan.fescue.feature.name.Name;
 import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
+import io.github.morichan.fescue.feature.value.DefaultValue;
+import io.github.morichan.fescue.feature.value.expression.OneIdentifier;
 import java.util.*;
+
+import org.antlr.runtime.*;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class CppTranslator extends AbstractLanguageTranslator {
     private final CppTypeMapper typeMapper;
@@ -167,54 +179,225 @@ public class CppTranslator extends AbstractLanguageTranslator {
     }
 
     @Override
-    public String generateSequenceDiagram(
-            String headerCode,
-            String implCode,
-            String methodName) {
+    public String generateSequenceDiagram(String headerCode, String implCode, String methodName) {
         StringBuilder sb = new StringBuilder();
-        sb.append("@startuml\n\n");
+        sb.append("@startuml\n");
+        sb.append("skinparam style strictuml\n\n");
 
         try {
-            // ヘッダーファイルの解析でクラス構造を取得
             List<Class> classes = translateCodeToUml(headerCode);
+            if (!classes.isEmpty()) {
+                Class mainClass = classes.get(0);
+                String className = mainClass.getName();
 
-            // 実装ファイルの解析でメソッド呼び出しを取得
-            List<MethodCall> methodCalls = analyzeMethodCalls(implCode, methodName);
-            Set<String> participants = new HashSet<>();
+                sb.append("participant \"").append(className).append("\"\n\n");
+                sb.append("[-> \"").append(className).append("\" : ").append(methodName).append("()\n");
+                sb.append("activate \"").append(className).append("\"\n");
 
-            // クラス情報とメソッド呼び出しを関連付け
-            for (MethodCall call : methodCalls) {
-                if (!call.getCaller().isEmpty())
-                    participants.add(call.getCaller());
-                if (!call.getCallee().isEmpty())
-                    participants.add(call.getCallee());
+                // 実装ファイルの解析
+                CharStream input = CharStreams.fromString(implCode);
+                CPP14Lexer lexer = new CPP14Lexer(input);
+                CommonTokenStream tokens = new CommonTokenStream(lexer);
+                CPP14Parser parser = new CPP14Parser(tokens);
 
-                // クラスの存在確認と型情報の補完
-                for (Class cls : classes) {
-                    if (cls.getName().equals(call.getCaller()) ||
-                            cls.getName().equals(call.getCallee())) {
-                        participants.add(cls.getName());
-                    }
+                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(mainClass);
+                ParseTreeWalker walker = new ParseTreeWalker();
+                walker.walk(analyzer, parser.translationUnit());
+
+                // メソッド呼び出しを追加
+                List<MethodCall> calls = analyzer.getMethodCalls();
+                for (MethodCall call : calls) {
+                    sb.append(call.toString()).append("\n");
                 }
+
+                sb.append("[<-- \"").append(className).append("\"\n");
+                sb.append("deactivate \"").append(className).append("\"\n");
             }
-
-            // 参加者の定義
-            for (String participant : participants) {
-                sb.append("participant ").append(participant).append("\n");
-            }
-
-            sb.append("\n");
-
-            // メソッド呼び出しシーケンスの生成
-            generateMethodCallSequence(sb, methodCalls);
-
         } catch (Exception e) {
-            System.err.println("Failed to generate sequence diagram: " + e.getMessage());
+            System.err.println("Error generating sequence diagram: " + e.getMessage());
             e.printStackTrace();
         }
 
-        sb.append("@enduml");
+        sb.append("@enduml\n");
+        System.out.println("Generated PlantUML:\n" + sb.toString());
         return sb.toString();
+    }
+
+    private String generateSequenceDiagramPlantUML(Interaction interaction) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("@startuml\n");
+        sb.append("skinparam style strictuml\n\n");
+
+        // 参加者の収集と出力
+        Set<String> participants = collectParticipants(interaction);
+        for (String participant : participants) {
+            sb.append("participant \"").append(participant).append("\"\n");
+        }
+        sb.append("\n");
+
+        // メインのシーケンス
+        generateInteractionSequence(sb, interaction.getInteractionFragmentList(), 0);
+
+        sb.append("@enduml\n");
+        return sb.toString();
+    }
+
+    private Set<String> collectParticipants(Interaction interaction) {
+        Set<String> participants = new HashSet<>();
+        for (InteractionFragment fragment : interaction.getInteractionFragmentList()) {
+            if (fragment instanceof OccurenceSpecification) {
+                OccurenceSpecification occurence = (OccurenceSpecification) fragment;
+                participants.add(occurence.getLifeline().getSignature());
+                if (occurence.getMessage() != null) {
+                    participants.add(occurence.getMessage().getMessageEnd().getLifeline().getSignature());
+                }
+            } else if (fragment instanceof CombinedFragment) {
+                CombinedFragment combined = (CombinedFragment) fragment;
+                participants.add(combined.getLifeline().getSignature());
+            }
+        }
+        return participants;
+    }
+
+    private void generateInteractionSequence(
+            StringBuilder sb,
+            List<InteractionFragment> fragments,
+            int indent) {
+        String indentation = "  ".repeat(indent);
+
+        for (InteractionFragment fragment : fragments) {
+            if (fragment instanceof OccurenceSpecification) {
+                generateOccurenceSpecification(sb, (OccurenceSpecification) fragment, indentation);
+            } else if (fragment instanceof CombinedFragment) {
+                generateCombinedFragment(sb, (CombinedFragment) fragment, indent);
+            }
+        }
+    }
+
+    private void generateOccurenceSpecification(
+            StringBuilder sb,
+            OccurenceSpecification occurence,
+            String indent) {
+        Message message = occurence.getMessage();
+        if (message != null) {
+            sb.append(indent)
+                    .append("\"").append(occurence.getLifeline().getSignature()).append("\"")
+                    .append(" -> ")
+                    .append("\"").append(message.getMessageEnd().getLifeline().getSignature()).append("\"")
+                    .append(" : ")
+                    .append(message.getName());
+
+            // パラメータの追加
+            if (!message.getParameterList().isEmpty()) {
+                sb.append("(");
+                List<String> params = new ArrayList<>();
+                for (Parameter param : message.getParameterList()) {
+                    params.add(param.getName().getNameText());
+                }
+                sb.append(String.join(", ", params));
+                sb.append(")");
+            } else {
+                sb.append("()");
+            }
+            sb.append("\n");
+
+            // アクティベーションバーの追加
+            if (message.getMessageSort() == MessageSort.synchCall) {
+                sb.append(indent)
+                        .append("activate \"")
+                        .append(message.getMessageEnd().getLifeline().getSignature())
+                        .append("\"\n");
+            }
+        }
+    }
+
+    private void generateCombinedFragment(
+            StringBuilder sb,
+            CombinedFragment fragment,
+            int indent) {
+        String indentation = "  ".repeat(indent);
+
+        // フラグメントの種類に応じた開始部分の生成
+        switch (fragment.getKind()) {
+            case opt:
+                sb.append(indentation).append("opt ");
+                if (!fragment.getInteractionOperandList().isEmpty()) {
+                    sb.append(fragment.getInteractionOperandList().get(0).getGuard());
+                }
+                sb.append("\n");
+                break;
+
+            case alt:
+                boolean isFirst = true;
+                for (InteractionOperand operand : fragment.getInteractionOperandList()) {
+                    if (isFirst) {
+                        sb.append(indentation).append("alt ").append(operand.getGuard()).append("\n");
+                        isFirst = false;
+                    } else {
+                        sb.append(indentation).append("else ");
+                        if (!operand.getGuard().equals("else")) {
+                            sb.append(operand.getGuard());
+                        }
+                        sb.append("\n");
+                    }
+                    generateInteractionSequence(
+                            sb,
+                            operand.getInteractionFragmentList(),
+                            indent + 1);
+                }
+                break;
+
+            case loop:
+                sb.append(indentation).append("loop ");
+                if (!fragment.getInteractionOperandList().isEmpty()) {
+                    sb.append(fragment.getInteractionOperandList().get(0).getGuard());
+                }
+                sb.append("\n");
+                break;
+
+            case BREAK:
+                sb.append(indentation).append("break ");
+                if (!fragment.getInteractionOperandList().isEmpty()) {
+                    sb.append(fragment.getInteractionOperandList().get(0).getGuard());
+                }
+                sb.append("\n");
+                break;
+        }
+
+        // フラグメント内のシーケンスを生成
+        for (InteractionOperand operand : fragment.getInteractionOperandList()) {
+            generateInteractionSequence(
+                    sb,
+                    operand.getInteractionFragmentList(),
+                    indent + 1);
+        }
+
+        // フラグメントの終了
+        sb.append(indentation).append("end\n");
+    }
+
+    /**
+     * 実装ファイルの特定のメソッドを解析
+     */
+    private void analyzeMethodImplementation(
+            Class umlClass,
+            String implCode,
+            String methodName) {
+        try {
+            CharStream input = CharStreams.fromString(implCode);
+            CPP14Lexer lexer = new CPP14Lexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            CPP14Parser parser = new CPP14Parser(tokens);
+
+            // コンストラクタに引数を渡す
+            CppMethodAnalyzer methodAnalyzer = new CppMethodAnalyzer(umlClass);
+            ParseTreeWalker walker = new ParseTreeWalker();
+            walker.walk(methodAnalyzer, parser.translationUnit());
+
+        } catch (Exception e) {
+            System.err.println("Error analyzing method implementation: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private List<MethodCall> analyzeMethodCalls(String code, String methodName) {
@@ -224,7 +407,12 @@ public class CppTranslator extends AbstractLanguageTranslator {
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             CPP14Parser parser = new CPP14Parser(tokens);
 
-            CppMethodAnalyzer analyzer = new CppMethodAnalyzer();
+            // 空のクラスを作成して渡す（一時的なもの）
+            io.github.morichan.retuss.model.uml.Class tempClass = new io.github.morichan.retuss.model.uml.Class(
+                    methodName);
+
+            // コンストラクタに引数を渡す
+            CppMethodAnalyzer analyzer = new CppMethodAnalyzer(tempClass);
             ParseTreeWalker walker = new ParseTreeWalker();
             walker.walk(analyzer, parser.translationUnit());
 

@@ -38,6 +38,7 @@ public class CppModel {
 
     public void setUmlController(UmlController controller) {
         this.umlController = controller;
+        System.out.println("UmlController set in CppModel");
     }
 
     public void addNewFile(String fileName) {
@@ -54,6 +55,11 @@ public class CppModel {
         // ファイルの作成
         final CppFile headerFile = new CppFile(baseName + ".hpp", true);
         final CppFile implFile = new CppFile(baseName + ".cpp", false);
+
+        if (umlController != null) {
+            headerFile.setUmlController(umlController);
+            implFile.setUmlController(umlController);
+        }
 
         // ヘッダーファイルの変更監視
         headerFile.addChangeListener(new CppFile.FileChangeListener() {
@@ -363,6 +369,10 @@ public class CppModel {
         System.out.println("CppModel classes: " + allClasses.size());
         for (Class cls : allClasses) {
             System.out.println("  Class: " + cls.getName());
+            System.out.println("  Attri: " + cls.getAttributeList().toString());
+            System.out.println("  Opera: " + cls.getOperationList().toString());
+            System.out.println("  Inter: " + cls.getInteractionList().toString());
+            System.out.println("  Inter: " + cls.getInteractionList().toString());
         }
         return Collections.unmodifiableList(allClasses);
     }
@@ -513,21 +523,30 @@ public class CppModel {
      * 指定されたクラスのメソッドのシーケンス図を生成
      */
     public String generateSequenceDiagram(String className, String methodName) {
-        CppFile headerFile = headerFiles.get(className);
-        CppFile implFile = implFiles.get(className);
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        Optional<CppFile> implFileOpt = Optional.ofNullable(findImplFile(className));
 
-        if (headerFile != null && implFile != null) {
+        if (headerFileOpt.isPresent() && implFileOpt.isPresent()) {
+            CppFile headerFile = headerFileOpt.get();
+            CppFile implFile = implFileOpt.get();
+
+            System.out.println("Generating sequence diagram for " + className + "::" + methodName);
+            System.out.println("Header file: " + headerFile.getFileName());
+            System.out.println("Implementation file: " + implFile.getFileName());
+
             return translator.generateSequenceDiagram(
                     headerFile.getCode(),
                     implFile.getCode(),
                     methodName);
         }
+
+        System.err.println("Could not find necessary files for " + className);
         return "";
     }
 
     /**
      * 実装ファイルを取得する
-     * 
+     *
      * @param baseName 拡張子を除いたファイル名
      * @return 実装ファイル、存在しない場合はnull
      */
@@ -537,7 +556,7 @@ public class CppModel {
 
     /**
      * ヘッダーファイルを取得する
-     * 
+     *
      * @param baseName 拡張子を除いたファイル名
      * @return ヘッダーファイル、存在しない場合はnull
      */
