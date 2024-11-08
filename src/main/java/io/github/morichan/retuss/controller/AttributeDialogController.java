@@ -33,6 +33,7 @@ public class AttributeDialogController {
     @FXML
     private void createAttribute() {
         Class selectedClass = model.findClass(classNameComboBox.getValue().toString()).get();
+        System.out.println("attribute : class = " + model.findClass(classNameComboBox.getValue().toString()).get());
         AttributeSculptor sculptor = new AttributeSculptor();
         try {
             sculptor.parse(attributeTextField.getText());

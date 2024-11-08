@@ -14,19 +14,19 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 
-public class ClassDiagramDrawer {
-    private JavaModel model = JavaModel.getInstance();
+public class JavaClassDiagramDrawer {
+    private JavaModel javaModel = JavaModel.getInstance();
     private WebView webView;
 
-    public ClassDiagramDrawer(WebView webView) {
+    public JavaClassDiagramDrawer(WebView webView) {
         this.webView = webView;
     }
 
     public void draw() {
-        // UML情報を集める
-        List<Class> umlClassList = model.getUmlClassList();
+        List<Class> umlClassList = javaModel.getUmlClassList();
 
-        // plantUML構文を生成する
+        System.err.println("classList : " + umlClassList.toString());
+
         StringBuilder puStrBuilder = new StringBuilder("@startuml\n");
         puStrBuilder.append("scale 1.5\n");
         puStrBuilder.append("skinparam style strictuml\n");
@@ -36,20 +36,16 @@ public class ClassDiagramDrawer {
         }
         puStrBuilder.append("@enduml\n");
 
-        // plantUMLでクラス図のSVGを生成する
         SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        // Write the first image to "os"
         try {
             String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
             os.close();
         } catch (Exception e) {
-            return;
+            System.err.println("Error drawing Java class diagram: " + e.getMessage());
         }
 
-        // The XML is stored into svg
         final String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
-
         webView.getEngine().loadContent(svg);
     }
 
@@ -111,14 +107,11 @@ public class ClassDiagramDrawer {
     }
 
     private Boolean isComposition(Type type) {
-        // typeがユーザ定義のクラス名と同一ならば、そのクラスとコンポジション関係とする
-        // 同一名のクラスが存在することは考慮しない
-        for (Class umlClass : model.getUmlClassList()) {
+        for (Class umlClass : javaModel.getUmlClassList()) {
             if (type.getName().getNameText().equals(umlClass.getName())) {
                 return Boolean.TRUE;
             }
         }
         return Boolean.FALSE;
     }
-
 }

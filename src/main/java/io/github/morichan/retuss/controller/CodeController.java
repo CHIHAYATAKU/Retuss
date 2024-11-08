@@ -1,14 +1,21 @@
 package io.github.morichan.retuss.controller;
 
 import io.github.morichan.retuss.model.CodeFile;
-import io.github.morichan.retuss.model.CodeFile.FileNameChangeListener;
+import io.github.morichan.retuss.model.CppFile;
 import io.github.morichan.retuss.model.JavaModel;
+import io.github.morichan.retuss.model.common.FileChangeListener;
+import io.github.morichan.retuss.model.common.ICodeFile;
+import io.github.morichan.retuss.model.CppModel;
+import io.github.morichan.retuss.model.CppPairFile;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -18,17 +25,29 @@ import org.fxmisc.richtext.LineNumberFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CodeController {
     @FXML
     private TabPane codeTabPane;
-    private JavaModel model = JavaModel.getInstance();
-    private List<Pair<CodeFile, Tab>> fileTabList = new ArrayList<>();
+    private JavaModel javaModel = JavaModel.getInstance();
+    private CppModel cppModel = CppModel.getInstance();
+    private List<Pair<CodeFile, Tab>> javaFileTabList = new ArrayList<>();
+    private List<Pair<CppFile, Tab>> cppFileTabList = new ArrayList<>();
+    private UmlController umlController;
+
+    public void setUmlController(UmlController controller) {
+        this.umlController = controller;
+        // 双方向の参照を設定
+        controller.setCodeController(this);
+        System.out.println("UmlController set in CodeController"); // デバッグ用
+    }
 
     @FXML
     private void initialize() {
-        model.setCodeController(this);
+        javaModel.setCodeController(this);
+        cppModel.setCodeController(this);
     }
 
     @FXML
@@ -36,6 +55,14 @@ public class CodeController {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/newFileDialog.fxml"));
             Parent parent = fxmlLoader.load();
+            NewFileDialogController controller = fxmlLoader.getController();
+
+            if (umlController == null) {
+                System.err.println("Warning: UmlController is not set!");
+                return;
+            }
+
+            controller.setUmlController(umlController);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("New File Dialog");
@@ -43,65 +70,118 @@ public class CodeController {
             stage.setScene(scene);
             stage.showAndWait();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    /**
-     * <p>
-     * ソースコードを更新する。AST-&gt;コードタブ
-     * </p>
-     */
+    public void updateCodeTab(ICodeFile file) {
+        if (file instanceof CodeFile) {
+            // 既存のJavaファイル処理
+            updateCodeTab((CodeFile) file);
+        } else if (file instanceof CppFile) {
+            // C++ファイルの処理
+            updateCodeTab((CppFile) file);
+        }
+    }
 
+    // 既存のJava用メソッド
     public void updateCodeTab(CodeFile changedCodeFile) {
         UUID changedFileId = changedCodeFile.getID();
 
-        // ファイル名変更リスナーを追加
-        changedCodeFile.addFileNameChangeListener(new FileNameChangeListener() {
+        changedCodeFile.addChangeListener(new FileChangeListener() {
+            @Override
+            public void onFileChanged(ICodeFile file) {
+                // ファイル内容の変更時の処理は必要に応じて実装
+            }
+
             @Override
             public void onFileNameChanged(String oldName, String newName) {
-                // タブのタイトルを更新
-                for (Pair<CodeFile, Tab> fileTabPair : fileTabList) {
-                    if (fileTabPair.getKey().getID().equals(changedFileId)) {
-                        Tab targetTab = fileTabPair.getValue();
-                        targetTab.setText(newName); // タブのタイトルを更新
-                        break;
+                Platform.runLater(() -> {
+                    for (Pair<CodeFile, Tab> fileTabPair : javaFileTabList) {
+                        if (fileTabPair.getKey().getID().equals(changedFileId)) {
+                            fileTabPair.getValue().setText(newName);
+                            break;
+                        }
                     }
-                }
+                });
             }
         });
 
-        // 更新対象のタブを探索
-        for (Pair<CodeFile, Tab> fileTabPair : fileTabList) {
+        for (Pair<CodeFile, Tab> fileTabPair : javaFileTabList) {
             if (changedFileId.equals(fileTabPair.getKey().getID())) {
                 Tab targetTab = fileTabPair.getValue();
-
-                // コードタブを更新する。
                 AnchorPane anchorPane = (AnchorPane) targetTab.getContent();
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
                 codeArea.replaceText(changedCodeFile.getCode());
-
-                // タブを選択状態にする
                 codeTabPane.getSelectionModel().select(targetTab);
                 return;
             }
         }
 
-        // 対応するコードタブが存在しない場合は新たに生成する
         Tab targetTab = createCodeTab(changedCodeFile);
-        codeTabPane.getSelectionModel().select(targetTab); // 新しいタブを選択状態にする
+        codeTabPane.getSelectionModel().select(targetTab);
     }
 
-    /**
-     * <p>
-     * コードファイルに対応するコードタブを生成する。
-     * </p>
-     *
-     * @param codeFile
-     * @return
-     */
+    // C++用の新しいメソッド
+    public void updateCodeTab(CppFile file) {
+        try {
+            Optional<Tab> existingTab = findTab(file.getID());
+
+            if (existingTab.isPresent()) {
+                Tab targetTab = existingTab.get();
+                updateTabTitle(targetTab, file);
+
+                AnchorPane anchorPane = (AnchorPane) targetTab.getContent();
+                CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+                int caretPosition = codeArea.getCaretPosition();
+
+                if (!codeArea.getText().equals(file.getCode())) {
+                    codeArea.replaceText(file.getCode());
+                    Platform.runLater(() -> {
+                        int newPosition = Math.min(caretPosition, codeArea.getLength());
+                        codeArea.moveTo(newPosition);
+                        codeArea.requestFollowCaret();
+                    });
+                }
+            } else {
+                Tab newTab = createCppCodeTab(file);
+                codeTabPane.getTabs().add(newTab);
+                codeTabPane.getSelectionModel().select(newTab);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to update code tab: " + e.getMessage());
+        }
+    }
+
+    private void updateTabTitle(Tab tab, CppFile file) {
+        String fileName = file.getFileName();
+        String extension = file.isHeader() ? ".hpp" : ".cpp";
+        String baseName = fileName.replace(extension, "");
+        tab.setText(fileName);
+
+        // ツールチップにフルパスやファイルタイプの情報を表示
+        tab.setTooltip(new Tooltip("Class: " + baseName + "\nType: " +
+                (file.isHeader() ? "Header File" : "Implementation File")));
+    }
+
+    private Optional<Tab> findTab(UUID fileId) {
+        // C++ファイル用のタブを探す
+        Optional<Pair<CppFile, Tab>> cppPair = cppFileTabList.stream()
+                .filter(pair -> pair.getKey().getID().equals(fileId))
+                .findFirst();
+        if (cppPair.isPresent()) {
+            return Optional.of(cppPair.get().getValue());
+        }
+
+        // Javaファイル用のタブを探す
+        return javaFileTabList.stream()
+                .filter(pair -> pair.getKey().getID().equals(fileId))
+                .map(Pair::getValue)
+                .findFirst();
+    }
+
+    // 既存のJava用タブ作成メソッド
     private Tab createCodeTab(CodeFile codeFile) {
-        // TabPane > Tab > AnchorPane > CodeArea の構造
         CodeArea codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.setOnKeyTyped(event -> updateCodeFile());
@@ -118,45 +198,115 @@ public class CodeController {
         codeTab.setText(codeFile.getFileName());
         codeTab.setClosable(false);
 
-        codeFile.addFileNameChangeListener(new FileNameChangeListener() {
+        // 新しい共通インターフェースを使用
+        codeFile.addChangeListener(new FileChangeListener() {
+            @Override
+            public void onFileChanged(ICodeFile file) {
+                Platform.runLater(() -> {
+                    CodeArea area = (CodeArea) ((AnchorPane) codeTab.getContent()).getChildren().get(0);
+                    area.replaceText(file.getCode());
+                });
+            }
+
             @Override
             public void onFileNameChanged(String oldName, String newName) {
-                System.out.println("ファイル名が変更されました: " + oldName + " -> " + newName);
-                codeTab.setText(newName); // タブのタイトルを更新
+                Platform.runLater(() -> {
+                    System.out.println("ファイル名が変更されました: " + oldName + " -> " + newName);
+                    codeTab.setText(newName);
+                });
             }
         });
 
         codeTabPane.getTabs().add(codeTab);
-        fileTabList.add(new Pair<>(codeFile, codeTab));
+        javaFileTabList.add(new Pair<>(codeFile, codeTab));
 
         return codeTab;
     }
 
-    /**
-     * <p>
-     * コードタブに記述されたソースコードを、コードファイルに反映する。
-     * </p>
-     */
-    private void updateCodeFile() {
-        // 選択しているコードタブの探索
-        Tab selectedTab = new Tab();
-        for (Tab codeTab : codeTabPane.getTabs()) {
-            if (codeTab.isSelected()) {
-                selectedTab = codeTab;
-                break;
-            }
-        }
+    // C++用の新しいタブ作成メソッド
+    private Tab createCppCodeTab(CppFile cppFile) {
+        CodeArea codeArea = new CodeArea();
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
 
-        // 選択しているコードタブに対応するコードファイルを探索し、更新する
-        for (Pair<CodeFile, Tab> fileTabPair : fileTabList) {
+        // キー入力時の処理
+        codeArea.setOnKeyTyped(event -> {
+            int caretPosition = codeArea.getCaretPosition();
+            updateCppCodeFile();
+            Platform.runLater(() -> {
+                int newPosition = Math.min(caretPosition, codeArea.getLength());
+                codeArea.moveTo(newPosition);
+                codeArea.requestFollowCaret();
+            });
+        });
+
+        codeArea.replaceText(cppFile.getCode());
+
+        AnchorPane codeAnchor = new AnchorPane(codeArea);
+        AnchorPane.setBottomAnchor(codeArea, 0.0);
+        AnchorPane.setTopAnchor(codeArea, 0.0);
+        AnchorPane.setLeftAnchor(codeArea, 0.0);
+        AnchorPane.setRightAnchor(codeArea, 0.0);
+
+        Tab codeTab = new Tab();
+        codeTab.setContent(codeAnchor);
+        updateTabTitle(codeTab, cppFile);
+        codeTab.setClosable(false);
+
+        cppFileTabList.add(new Pair<>(cppFile, codeTab));
+
+        return codeTab;
+    }
+
+    private void updateCodeFile(ICodeFile file, String code) {
+        if (file instanceof CodeFile) {
+            javaModel.updateCodeFile((CodeFile) file, code);
+        } else if (file instanceof CppFile) {
+            cppModel.updateCode((CppFile) file, code);
+        }
+    }
+
+    // 既存のJava用コード更新メソッド
+    private void updateCodeFile() {
+        Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null)
+            return;
+
+        for (Pair<CodeFile, Tab> fileTabPair : javaFileTabList) {
             if (fileTabPair.getValue().equals(selectedTab)) {
                 CodeFile targetCodeFile = fileTabPair.getKey();
-                // コードタブからソースコードを取得する
                 AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
                 String code = codeArea.getText();
-                // コードファイルを更新する
-                model.updateCodeFile(targetCodeFile, code);
+                javaModel.updateCodeFile(targetCodeFile, code);
+                return;
+            }
+        }
+    }
+
+    // C++用の新しいコード更新メソッド
+    private void updateCppCodeFile() {
+        Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null) {
+            return;
+        }
+
+        for (Pair<CppFile, Tab> fileTabPair : cppFileTabList) {
+            System.out.println("fo-！！");
+            if (fileTabPair.getValue().equals(selectedTab)) {
+                CppFile targetCodeFile = fileTabPair.getKey();
+                System.out.println(" target C++" + fileTabPair.getKey().getCode());
+                AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
+                CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+
+                int caretPosition = codeArea.getCaretPosition();
+                String code = codeArea.getText();
+                System.out.println("code area" + code);
+                cppModel.updateCodeFile(targetCodeFile, code);
+
+                Platform.runLater(() -> {
+                    codeArea.moveTo(caretPosition);
+                    codeArea.requestFollowCaret();
+                });
                 return;
             }
         }

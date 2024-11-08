@@ -11,3 +11,5 @@
 /src/main/gen/
 build.publish.gradle
 .DS_Store
+*.tokens
+*.interp

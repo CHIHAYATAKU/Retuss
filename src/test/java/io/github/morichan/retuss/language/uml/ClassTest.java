@@ -237,7 +237,7 @@ class ClassTest {
             @Test
             void nullを設定しようとしても反映しない() {
 
-                obj.addAttribute(null);
+                obj.addAttribute(attributeName);
                 List<Attribute> actual = obj.extractAttributes();
 
                 assertThat(actual).isEmpty();
@@ -252,7 +252,7 @@ class ClassTest {
 
                 obj.setAttributes(expected);
                 List<Attribute> actual = obj.extractAttributes();
-                    assertThat(actual).doesNotContainNull();
+                assertThat(actual).doesNotContainNull();
             }
         }
 

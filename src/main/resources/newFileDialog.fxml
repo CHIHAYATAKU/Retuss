@@ -5,16 +5,27 @@
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
 
-
-<AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.controller.NewFileDialogController">
+<AnchorPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="400.0"
+            xmlns="http://javafx.com/javafx/11.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="io.github.morichan.retuss.controller.NewFileDialogController">
    <children>
-      <VBox prefHeight="372.0" prefWidth="598.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox prefHeight="372.0" prefWidth="598.0" spacing="10.0"
+            AnchorPane.bottomAnchor="0.0"
+            AnchorPane.leftAnchor="0.0"
+            AnchorPane.rightAnchor="0.0"
+            AnchorPane.topAnchor="0.0">
          <children>
             <Label fx:id="messageLabel" textAlignment="CENTER" textFill="#f20404" />
+
+            <!-- File Name -->
             <HBox spacing="5.0">
                <children>
                   <Label text="File Name">
@@ -23,13 +34,14 @@
                      </HBox.margin>
                   </Label>
                   <TextField fx:id="fileNameTextField" maxWidth="200.0" minWidth="-Infinity" prefWidth="200.0" />
-                  <Label text=".java">
+                  <Label fx:id="extensionLabel" text=".java">
                      <HBox.margin>
                         <Insets top="3.0" />
                      </HBox.margin>
                   </Label>
                </children>
             </HBox>
+
             <ButtonBar prefHeight="40.0" prefWidth="200.0">
               <buttons>
                 <Button fx:id="createBtn" mnemonicParsing="false" onAction="#createFile" text="Create" />

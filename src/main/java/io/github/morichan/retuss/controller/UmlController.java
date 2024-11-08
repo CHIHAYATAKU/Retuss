@@ -2,10 +2,13 @@ package io.github.morichan.retuss.controller;
 
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.retuss.RetussWindow;
-import io.github.morichan.retuss.drawer.ClassDiagramDrawer;
-import io.github.morichan.retuss.drawer.SequenceDiagramDrawer;
+import io.github.morichan.retuss.drawer.*;
 import io.github.morichan.retuss.model.CodeFile;
+import io.github.morichan.retuss.model.CppFile;
+import io.github.morichan.retuss.model.CppModel;
+import io.github.morichan.retuss.model.CppPairFile;
 import io.github.morichan.retuss.model.JavaModel;
+import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
 import javafx.collections.ObservableList;
@@ -14,6 +17,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.web.WebView;
@@ -21,11 +25,14 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class UmlController {
+    private CodeController codeController;
+
     @FXML
     private Tab classDiagramTab;
     @FXML
@@ -45,9 +52,30 @@ public class UmlController {
     private Tab sequenceDiagramTab;
     @FXML
     private TabPane tabPaneInSequenceTab;
+    @FXML
+    private CheckBox javaCheckBox;
 
-    private JavaModel model = JavaModel.getInstance();
-    private ClassDiagramDrawer classDiagramDrawer;
+    @FXML
+    private CheckBox cppCheckBox;
+
+    @FXML
+    private void toggleJavaSelection() {
+        if (javaCheckBox.isSelected()) {
+            cppCheckBox.setSelected(false); // Javaを選択時にC++のチェックを外す
+        }
+    }
+
+    @FXML
+    private void toggleCppSelection() {
+        if (cppCheckBox.isSelected()) {
+            javaCheckBox.setSelected(false); // C++を選択時にJavaのチェックを外す
+        }
+    }
+
+    private JavaModel javaModel = JavaModel.getInstance();
+    private CppModel cppModel = CppModel.getInstance();
+    private JavaClassDiagramDrawer javaClassDiagramDrawer;
+    private CppClassDiagramDrawer cppClassDiagramDrawer;
     private SequenceDiagramDrawer sequenceDiagramDrawer;
     private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
 
@@ -64,9 +92,29 @@ public class UmlController {
      */
     @FXML
     private void initialize() {
-        model.setUmlController(this);
-        classDiagramDrawer = new ClassDiagramDrawer(classDiagramWebView);
+        javaModel.setUmlController(this);
+        cppModel.setUmlController(this);
+        javaClassDiagramDrawer = new JavaClassDiagramDrawer(classDiagramWebView);
+        cppClassDiagramDrawer = new CppClassDiagramDrawer(classDiagramWebView);
         sequenceDiagramDrawer = new SequenceDiagramDrawer(tabPaneInSequenceTab);
+
+        // チェックボックスにカスタムスタイルを適用
+        javaCheckBox.getStyleClass().add("custom-radio-check-box");
+        cppCheckBox.getStyleClass().add("custom-radio-check-box");
+    }
+
+    public void setCodeController(CodeController controller) {
+        this.codeController = controller;
+        System.out.println("CodeController set in UmlController"); // デバッグ用
+    }
+
+    // getterメソッドの追加
+    public CheckBox getJavaCheckBox() {
+        return javaCheckBox;
+    }
+
+    public CheckBox getCppCheckBox() {
+        return cppCheckBox;
     }
 
     @FXML
@@ -182,19 +230,41 @@ public class UmlController {
     }
 
     @FXML
-    private void showClassDialog() {
+    public void showClassDialog() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/classDialog.fxml"));
             Parent parent = fxmlLoader.load();
+            ClassDialogController dialogController = fxmlLoader.getController();
+
+            // UmlControllerの参照を設定
+            dialogController.setUmlController(this);
+
+            // デバッグ出力
+            System.out.println("Opening Class Dialog");
+            System.out.println("Java checkbox state: " + isJavaSelected());
+            System.out.println("C++ checkbox state: " + isCppSelected());
+
             Scene scene = new Scene(parent);
+            scene.getStylesheets().add(getClass().getResource("/custom-radio.css").toExternalForm());
+
             Stage stage = new Stage();
             stage.setTitle("New Class Dialog");
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setScene(scene);
             stage.showAndWait();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println("Error showing class dialog: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    // チェックボックスの状態を取得するメソッド
+    public boolean isJavaSelected() {
+        return javaCheckBox.isSelected();
+    }
+
+    public boolean isCppSelected() {
+        return cppCheckBox.isSelected();
     }
 
     @FXML
@@ -261,9 +331,23 @@ public class UmlController {
         }
     }
 
-    public void updateDiagram(CodeFile codeFile) {
-        classDiagramDrawer.draw();
-        updateSequenceDiagram(codeFile);
+    public void updateDiagram(ICodeFile codeFile) {
+        System.err.println("codeFile : " + codeFile.getCode());
+        if (codeFile instanceof CodeFile) {
+            // Javaファイルの場合
+            System.out.println("Updating diagram for Java file: " + codeFile.getFileName());
+            javaClassDiagramDrawer.draw();
+            System.err.println("codeFile : " + codeFile.getCode());
+            updateSequenceDiagram((CodeFile) codeFile);
+        } else if (codeFile instanceof CppFile) {
+            // C++ファイルの場合
+            CppFile cppFile = (CppFile) codeFile;
+            if (cppFile.isHeader()) { // ヘッダーファイルの場合のみUML図を更新
+                System.out.println("Updating diagram for C++ header file: " + cppFile.getFileName());
+                System.out.println("UML classes: " + cppFile.getUmlClassList().size());
+                cppClassDiagramDrawer.draw();
+            }
+        }
     }
 
     /**
@@ -290,7 +374,6 @@ public class UmlController {
 
         Class umlClass = codeFile.getUmlClassList().get(0);
 
-        // タブのタイトルをファイル名からクラス名に変更
         fileTab.setText(umlClass.getName() + ".java");
 
         // SDタブの更新

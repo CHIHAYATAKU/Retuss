@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.translator;
 
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
@@ -20,19 +21,28 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.*;
+import io.github.morichan.retuss.translator.common.AbstractTranslator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
-public class Translator {
+public class Translator extends AbstractTranslator {
     /**
      * <p>
      * ソースコードのASTをUMLデータに変換する。
      * </p>
      */
-    public List<Class> translateCodeToUml(CompilationUnit compilationUnit) {
+    @Override
+    public List<Class> translateCodeToUml(String code) {
+        CompilationUnit compilationUnit = StaticJavaParser.parse(code);
+        return translateCodeToUml(compilationUnit);
+    }
+
+    private List<Class> translateCodeToUml(CompilationUnit compilationUnit) {
 
         List<Class> umlClassList = new ArrayList<>();
 
@@ -105,95 +115,114 @@ public class Translator {
      * UMLデータをソースコードのASTに変換する。
      * </p>
      */
+    @Override
     public CompilationUnit translateUmlToCode(List<Class> classList) {
         System.out.println("\n=== Starting UML to Code Translation ===");
         CompilationUnit newCU = new CompilationUnit();
 
         System.out.println("Number of classes to process: " + classList.size());
+
+        // 既存のクラスをクリア
+        newCU.getTypes().clear();
+
+        // 重複チェック用のSet
+        Set<String> processedClassNames = new HashSet<>();
+
         for (Class umlClass : classList) {
-            System.out.println("\nProcessing class: " + umlClass.getName());
+            String className = umlClass.getName();
+
+            // 重複チェック
+            if (processedClassNames.contains(className)) {
+                System.out.println("Skipping duplicate class: " + className);
+                continue;
+            }
+
+            System.out.println("\nProcessing class: " + className);
+            processedClassNames.add(className);
 
             // クラス宣言の作成
-            ClassOrInterfaceDeclaration classDeclaration = newCU.addClass(umlClass.getName());
+            ClassOrInterfaceDeclaration classDeclaration = newCU.addClass(className);
 
             // 操作の追加
-            List<Operation> operations = umlClass.getOperationList();
-            System.out.println("Number of operations: " + operations.size());
-
-            for (Operation operation : operations) {
-                System.out.println("\nProcessing operation: " + operation.toString());
-                MethodDeclaration methodDecl = translateOperation(operation);
-
-                // メソッド本体の生成
-                BlockStmt body = new BlockStmt();
-
-                // Interactionからメソッド本体を生成
-                Optional<Interaction> interactionOpt = umlClass.findInteraction(operation);
-                System.out.println("Found interaction: " + interactionOpt.isPresent());
-
-                if (interactionOpt.isPresent()) {
-                    Interaction interaction = interactionOpt.get();
-                    List<InteractionFragment> fragments = interaction.getInteractionFragmentList();
-                    System.out.println("Number of interaction fragments: " + fragments.size());
-
-                    for (InteractionFragment fragment : fragments) {
-                        System.out.println("\nProcessing fragment type: " + fragment.getClass().getSimpleName());
-
-                        if (fragment instanceof OccurenceSpecification) {
-                            OccurenceSpecification occurence = (OccurenceSpecification) fragment;
-                            Message message = occurence.getMessage();
-                            System.out.println("Message type: " + message.getMessageSort());
-                            System.out.println("Message name: " + message.getName());
-
-                            try {
-                                if (message.getMessageSort() == MessageSort.synchCall) {
-                                    MethodCallExpr methodCall = new MethodCallExpr();
-                                    methodCall.setName(message.getName());
-
-                                    System.out.println("Parameters: " + message.getParameterList().size());
-                                    NodeList<Expression> arguments = new NodeList<>();
-                                    for (io.github.morichan.fescue.feature.parameter.Parameter param : message
-                                            .getParameterList()) {
-                                        System.out.println("Adding parameter: " + param.getName().getNameText());
-                                        arguments.add(new NameExpr(param.getName().getNameText()));
-                                    }
-                                    methodCall.setArguments(arguments);
-
-                                    body.addStatement(new ExpressionStmt(methodCall));
-                                    System.out.println("Added method call statement");
-                                }
-                            } catch (Exception e) {
-                                System.out.println("Error processing message: " + e.getMessage());
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-
-                methodDecl.setBody(body);
-                classDeclaration.addMember(methodDecl);
-                System.out.println("Added method to class declaration");
-            }
+            addOperationsToClass(umlClass, classDeclaration);
 
             // 継承関係の設定
-            if (umlClass.getSuperClass().isPresent()) {
-                System.out.println("Adding superclass: " + umlClass.getSuperClass().get().getName());
-                ClassOrInterfaceType superClassType = new ClassOrInterfaceType();
-                superClassType.setName(umlClass.getSuperClass().get().getName());
-                classDeclaration.addExtendedType(superClassType);
-            }
+            setInheritance(umlClass, classDeclaration);
         }
 
         System.out.println("\n=== Completed UML to Code Translation ===");
         return newCU;
     }
 
+    private void addOperationsToClass(Class umlClass, ClassOrInterfaceDeclaration classDeclaration) {
+        List<Operation> operations = umlClass.getOperationList();
+        System.out.println("Adding " + operations.size() + " operations");
+
+        for (Operation operation : operations) {
+            System.out.println("Processing operation: " + operation.toString());
+            MethodDeclaration methodDecl = translateOperation(operation);
+
+            // メソッド本体の生成
+            BlockStmt body = new BlockStmt();
+
+            // Interactionからメソッド本体を生成
+            Optional<Interaction> interactionOpt = umlClass.findInteraction(operation);
+            if (interactionOpt.isPresent()) {
+                addInteractionToMethod(interactionOpt.get(), body);
+            }
+
+            methodDecl.setBody(body);
+            classDeclaration.addMember(methodDecl);
+        }
+    }
+
+    private void addInteractionToMethod(Interaction interaction, BlockStmt body) {
+        List<InteractionFragment> fragments = interaction.getInteractionFragmentList();
+        System.out.println("Processing " + fragments.size() + " interaction fragments");
+
+        for (InteractionFragment fragment : fragments) {
+            if (fragment instanceof OccurenceSpecification) {
+                addOccurrenceToBody((OccurenceSpecification) fragment, body);
+            }
+        }
+    }
+
+    private void addOccurrenceToBody(OccurenceSpecification occurrence, BlockStmt body) {
+        Message message = occurrence.getMessage();
+        if (message.getMessageSort() == MessageSort.synchCall) {
+            try {
+                MethodCallExpr methodCall = new MethodCallExpr();
+                methodCall.setName(message.getName());
+
+                NodeList<Expression> arguments = new NodeList<>();
+                for (io.github.morichan.fescue.feature.parameter.Parameter param : message.getParameterList()) {
+                    arguments.add(new NameExpr(param.getName().getNameText()));
+                }
+                methodCall.setArguments(arguments);
+
+                body.addStatement(new ExpressionStmt(methodCall));
+            } catch (Exception e) {
+                System.err.println("Error processing message: " + e.getMessage());
+            }
+        }
+    }
+
+    private void setInheritance(Class umlClass, ClassOrInterfaceDeclaration classDeclaration) {
+        if (umlClass.getSuperClass().isPresent()) {
+            System.out.println("Setting superclass: " + umlClass.getSuperClass().get().getName());
+            ClassOrInterfaceType superClassType = new ClassOrInterfaceType();
+            superClassType.setName(umlClass.getSuperClass().get().getName());
+            classDeclaration.addExtendedType(superClassType);
+        }
+    }
+
+    @Override
     public FieldDeclaration translateAttribute(Attribute attribute) {
         NodeList<Modifier> modifiers = new NodeList<>();
         toModifierKeyword(attribute.getVisibility())
                 .ifPresent(modifierKeyword -> modifiers.add(new Modifier(modifierKeyword)));
 
-        com.github.javaparser.ast.type.Type type = toJavaType(attribute.getType());
+        com.github.javaparser.ast.type.Type type = toSourceCodeType(attribute.getType());
         String name = attribute.getName().getNameText();
         // 初期値を持つFieldDeclarationの作り方がわからず、現状は初期値も変数名が持っている
         try {
@@ -204,6 +233,7 @@ public class Translator {
         return new FieldDeclaration(modifiers, type, name);
     }
 
+    @Override
     public MethodDeclaration translateOperation(Operation operation) {
         NodeList<Modifier> modifiers = new NodeList<>();
         toModifierKeyword(operation.getVisibility())
@@ -211,12 +241,12 @@ public class Translator {
 
         String name = operation.getName().getNameText();
 
-        com.github.javaparser.ast.type.Type type = toJavaType(operation.getReturnType());
+        com.github.javaparser.ast.type.Type type = toSourceCodeType(operation.getReturnType());
 
         NodeList<Parameter> parameters = new NodeList<>();
         try {
             for (io.github.morichan.fescue.feature.parameter.Parameter umlParameter : operation.getParameters()) {
-                Parameter javaParameter = new Parameter(toJavaType(umlParameter.getType()),
+                Parameter javaParameter = new Parameter(toSourceCodeType(umlParameter.getType()),
                         umlParameter.getName().getNameText());
                 parameters.add(javaParameter);
             }
@@ -225,6 +255,36 @@ public class Translator {
         }
 
         return new MethodDeclaration(modifiers, name, type, parameters);
+    }
+
+    @Override
+    protected Optional<Modifier.Keyword> toSourceCodeVisibility(Visibility visibility) {
+        if (visibility == Visibility.Public) {
+            return Optional.of(Modifier.Keyword.PUBLIC);
+        } else if (visibility == Visibility.Protected) {
+            return Optional.of(Modifier.Keyword.PROTECTED);
+        } else if (visibility == Visibility.Private) {
+            return Optional.of(Modifier.Keyword.PRIVATE);
+        } else {
+            // (独自仕様) UMLのPackageは、Javaでアクセス修飾子なしとして扱う
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    protected com.github.javaparser.ast.type.Type toSourceCodeType(Type umlType) {
+        String typeName = umlType.getName().getNameText();
+        if (typeName.equals("void")) {
+            return new VoidType();
+        }
+
+        try {
+            return new PrimitiveType(PrimitiveType.Primitive.valueOf(typeName));
+        } catch (IllegalArgumentException e) {
+            ClassOrInterfaceType classOrInterfaceType = new ClassOrInterfaceType();
+            classOrInterfaceType.setName(new SimpleName(typeName));
+            return classOrInterfaceType;
+        }
     }
 
     public ExpressionStmt occurenceSpeccificationToExpressionStmt(OccurenceSpecification occurenceSpecification) {
@@ -628,21 +688,6 @@ public class Translator {
         } else {
             // (独自仕様) UMLのPackageは、Javaでアクセス修飾子なしとして扱う
             return Optional.empty();
-        }
-    }
-
-    private com.github.javaparser.ast.type.Type toJavaType(Type umlType) {
-        String typeName = umlType.getName().getNameText();
-        if (typeName.equals("void")) {
-            return new VoidType();
-        }
-
-        try {
-            return new PrimitiveType(PrimitiveType.Primitive.valueOf(typeName));
-        } catch (IllegalArgumentException e) {
-            ClassOrInterfaceType classOrInterfaceType = new ClassOrInterfaceType();
-            classOrInterfaceType.setName(new SimpleName(typeName));
-            return classOrInterfaceType;
         }
     }
 
