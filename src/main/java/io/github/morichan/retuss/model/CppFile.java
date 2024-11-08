@@ -3,7 +3,7 @@ package io.github.morichan.retuss.model;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.translator.CppTranslator;
+import io.github.morichan.retuss.translator.cpp.CppTranslator;
 import java.util.*;
 
 public class CppFile implements ICodeFile {
@@ -11,13 +11,14 @@ public class CppFile implements ICodeFile {
     private String fileName = "";
     private String sourceCode;
     private List<Class> umlClassList = new ArrayList<>();
-    private CppTranslator translator = new CppTranslator();
+    private CppTranslator translator;
     private final boolean isHeader;
     private final List<FileChangeListener> listeners = new ArrayList<>();
 
     public CppFile(String fileName, boolean isHeader) {
         this.fileName = fileName;
         this.isHeader = isHeader;
+        this.translator = new CppTranslator();
         initializeFile();
     }
 
@@ -136,6 +137,9 @@ public class CppFile implements ICodeFile {
             return;
 
         umlClassList.add(umlClass);
+        // 修正前: String newCode =
+        // translator.translateUmlToCode(Collections.singletonList(umlClass));
+        // 修正後:
         String newCode = translator.translateUmlToCode(Collections.singletonList(umlClass));
         updateCode(newCode);
     }

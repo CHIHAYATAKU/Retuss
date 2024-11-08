@@ -76,6 +76,7 @@ public class UmlController {
     private JavaClassDiagramDrawer javaClassDiagramDrawer;
     private CppClassDiagramDrawer cppClassDiagramDrawer;
     private SequenceDiagramDrawer sequenceDiagramDrawer;
+    private CppSequenceDiagramDrawer cppSequenceDiagramDrawer;
     private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
 
     /**
@@ -96,6 +97,7 @@ public class UmlController {
         javaClassDiagramDrawer = new JavaClassDiagramDrawer(classDiagramWebView);
         cppClassDiagramDrawer = new CppClassDiagramDrawer(classDiagramWebView);
         sequenceDiagramDrawer = new SequenceDiagramDrawer(tabPaneInSequenceTab);
+        cppSequenceDiagramDrawer = new CppSequenceDiagramDrawer(tabPaneInSequenceTab);
 
         // チェックボックスにカスタムスタイルを適用
         javaCheckBox.getStyleClass().add("custom-radio-check-box");
@@ -345,8 +347,62 @@ public class UmlController {
                 System.out.println("Updating diagram for C++ header file: " + cppFile.getFileName());
                 System.out.println("UML classes: " + cppFile.getUmlClassList().size());
                 cppClassDiagramDrawer.draw();
+                updateCppSequenceDiagram(cppFile);
             }
         }
+    }
+
+    private void updateCppSequenceDiagram(CppFile headerFile) {
+        String baseName = headerFile.getFileName().replace(".hpp", "");
+
+        // ペアになる実装ファイルを探す
+        CppFile implFile = cppModel.findImplFile(baseName);
+
+        if (implFile == null) {
+            System.err.println("No implementation file found for " + headerFile.getFileName());
+            return;
+        }
+
+        // ファイルタブの探索または作成
+        Tab fileTab = findOrCreateCppFileTab(headerFile);
+        TabPane methodTabPane = new TabPane();
+        fileTab.setContent(methodTabPane);
+
+        // クラス情報の取得
+        if (headerFile.getUmlClassList().isEmpty()) {
+            return;
+        }
+
+        Class umlClass = headerFile.getUmlClassList().get(0);
+        fileTab.setText(umlClass.getName() + ".cpp");
+
+        // メソッドごとにタブを作成
+        for (Operation operation : umlClass.getOperationList()) {
+            Tab methodTab = new Tab(operation.getName().getNameText());
+            WebView webView = new WebView();
+            methodTab.setContent(webView);
+            methodTabPane.getTabs().add(methodTab);
+
+            // シーケンス図の生成と表示
+            cppSequenceDiagramDrawer.draw(
+                    headerFile,
+                    implFile,
+                    operation.getName().getNameText(),
+                    webView);
+        }
+    }
+
+    private Tab findOrCreateCppFileTab(CppFile headerFile) {
+        String fileName = headerFile.getFileName();
+        for (Tab tab : tabPaneInSequenceTab.getTabs()) {
+            if (tab.getText().equals(fileName)) {
+                return tab;
+            }
+        }
+
+        Tab newTab = new Tab(fileName);
+        tabPaneInSequenceTab.getTabs().add(newTab);
+        return newTab;
     }
 
     /**

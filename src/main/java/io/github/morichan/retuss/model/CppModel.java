@@ -8,19 +8,24 @@ import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.translator.CppTranslator;
+import io.github.morichan.retuss.translator.cpp.CppTranslator;
 import java.util.*;
 
 public class CppModel {
     private static final CppModel model = new CppModel();
     private final Map<String, CppFile> headerFiles = new HashMap<>();
     private final Map<String, CppFile> implFiles = new HashMap<>();
-    private final CppTranslator translator = new CppTranslator();
+    private final CppTranslator translator;
     private CodeController codeController;
     private UmlController umlController;
     private final List<ModelChangeListener> changeListeners = new ArrayList<>();
 
     private CppModel() {
+        this.translator = createTranslator();
+    }
+
+    private CppTranslator createTranslator() {
+        return new CppTranslator();
     }
 
     public static CppModel getInstance() {
@@ -115,6 +120,8 @@ public class CppModel {
         CppFile implFile = new CppFile(baseName + ".cpp", false);
 
         // UMLクラスからコードを生成
+        // 修正前: String headerCode =
+        // translator.translateUmlToCode(Collections.singletonList(umlClass));
         String headerCode = translator.translateUmlToCode(Collections.singletonList(umlClass));
         headerFile.updateCode(headerCode);
 
@@ -460,13 +467,7 @@ public class CppModel {
     }
 
     private String toSourceCodeType(Type type) {
-        String typeName = type.toString();
-        Map<String, String> typeMap = Map.of(
-                "string", "std::string",
-                "vector", "std::vector",
-                "map", "std::map",
-                "set", "std::set");
-        return typeMap.getOrDefault(typeName, typeName);
+        return translator.translateType(type);
     }
 
     public void updateCodeFile(ICodeFile changedCodeFile, String code) {
@@ -506,6 +507,42 @@ public class CppModel {
 
     private String getBaseName(String fileName) {
         return fileName.replaceAll("\\.(hpp|cpp)$", "");
+    }
+
+    /**
+     * 指定されたクラスのメソッドのシーケンス図を生成
+     */
+    public String generateSequenceDiagram(String className, String methodName) {
+        CppFile headerFile = headerFiles.get(className);
+        CppFile implFile = implFiles.get(className);
+
+        if (headerFile != null && implFile != null) {
+            return translator.generateSequenceDiagram(
+                    headerFile.getCode(),
+                    implFile.getCode(),
+                    methodName);
+        }
+        return "";
+    }
+
+    /**
+     * 実装ファイルを取得する
+     * 
+     * @param baseName 拡張子を除いたファイル名
+     * @return 実装ファイル、存在しない場合はnull
+     */
+    public CppFile findImplFile(String baseName) {
+        return implFiles.get(baseName);
+    }
+
+    /**
+     * ヘッダーファイルを取得する
+     * 
+     * @param baseName 拡張子を除いたファイル名
+     * @return ヘッダーファイル、存在しない場合はnull
+     */
+    public CppFile findHeaderFile(String baseName) {
+        return headerFiles.get(baseName);
     }
 
 }

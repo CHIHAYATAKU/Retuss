@@ -6,7 +6,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.translator.Translator;
+import io.github.morichan.retuss.translator.JavaTranslator;
 
 import java.util.*;
 
@@ -15,7 +15,7 @@ public class CodeFile implements ICodeFile {
     private String fileName = "";
     private CompilationUnit compilationUnit;
     private List<Class> umlClassList = new ArrayList<>();
-    private Translator translator = new Translator();
+    private JavaTranslator translator = new JavaTranslator();
     private final List<FileChangeListener> listeners = new ArrayList<>();
 
     public CodeFile(String fileName) {
