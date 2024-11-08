@@ -59,6 +59,7 @@ public class JavaModel extends AbstractJavaModel {
     public void addNewUmlClass(Class umlClass) {
         CodeFile codeFile = new CodeFile(String.format("%s.java", umlClass.getName()));
         codeFileList.add(codeFile);
+        codeFile.addUmlClass(umlClass);
         umlController.updateDiagram(codeFile);
         codeController.updateCodeTab(codeFile);
     }

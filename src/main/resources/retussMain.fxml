@@ -37,8 +37,12 @@
                         <!-- 言語選択ツールバー -->
                         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                             <items>
-                                <CheckBox fx:id="javaCheckBox" text="Java" selected="true" onAction="#toggleJavaSelection" />
-                                <CheckBox fx:id="cppCheckBox" text="C++" onAction="#toggleCppSelection" />
+                                <CheckBox fx:id="javaCheckBox" text="Java" selected="true"
+                                          onAction="#toggleJavaSelection"
+                                          styleClass="custom-radio-check-box"/>
+                                <CheckBox fx:id="cppCheckBox" text="C++"
+                                          onAction="#toggleCppSelection"
+                                          styleClass="custom-radio-check-box"/>
                             </items>
                         </ToolBar>
                     </center>

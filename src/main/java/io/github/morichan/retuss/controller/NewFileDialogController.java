@@ -24,33 +24,33 @@ public class NewFileDialogController {
 
     private JavaModel javaModel = JavaModel.getInstance();
     private CppModel cppModel = CppModel.getInstance();
+    private UmlController umlController;
 
-    @FXML
-    private void initialize() {
-        // 言語選択時の拡張子更新
-        languageComboBox.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> {
-                    if (newValue.equals("Java")) {
-                        extensionLabel.setText(".java");
-                    } else if (newValue.equals("C++")) {
-                        extensionLabel.setText(".hpp");
-                    }
-                });
+    public void setUmlController(UmlController controller) {
+        this.umlController = controller;
+        updateExtensionLabel();
+    }
 
-        // デフォルトでJavaを選択
-        languageComboBox.getSelectionModel().selectFirst();
+    private void updateExtensionLabel() {
+        if (umlController.isJavaSelected() && !umlController.isCppSelected()) {
+            extensionLabel.setText(".java");
+        } else if (!umlController.isJavaSelected() && umlController.isCppSelected()) {
+            extensionLabel.setText(".hpp");
+        } else {
+            extensionLabel.setText("");
+        }
     }
 
     @FXML
     private void createFile() {
         if (validateClassName()) {
             String fileName = fileNameTextField.getText();
-            String language = languageComboBox.getValue();
 
             try {
-                if (language.equals("Java")) {
+                if (umlController.isJavaSelected()) {
                     javaModel.addNewCodeFile(fileName + ".java");
-                } else if (language.equals("C++")) {
+                }
+                if (umlController.isCppSelected()) {
                     cppModel.addNewFile(fileName + ".hpp");
                 }
 
@@ -70,23 +70,30 @@ public class NewFileDialogController {
         }
 
         String fileName = fileNameTextField.getText();
-        String language = languageComboBox.getValue();
 
         // 言語に応じたバリデーション
-        if (language.equals("Java")) {
+        if (umlController.isJavaSelected()) {
             if (javaModel.findClass(fileName).isPresent()) {
-                messageLabel
-                        .setText(String.format("The \"%s.java\" file already exists. Please set a different file name.",
+                messageLabel.setText(
+                        String.format("The \"%s.java\" file already exists. Please set a different file name.",
                                 fileName));
                 return Boolean.FALSE;
             }
-        } else if (language.equals("C++")) {
+        }
+
+        if (umlController.isCppSelected()) {
             if (cppModel.findClass(fileName).isPresent()) {
-                messageLabel
-                        .setText(String.format("The \"%s.hpp\" file already exists. Please set a different file name.",
+                messageLabel.setText(
+                        String.format("The \"%s.hpp\" file already exists. Please set a different file name.",
                                 fileName));
                 return Boolean.FALSE;
             }
+        }
+
+        // どちらの言語も選択されていない場合
+        if (!umlController.isJavaSelected() && !umlController.isCppSelected()) {
+            messageLabel.setText("Please select at least one language.");
+            return Boolean.FALSE;
         }
 
         return Boolean.TRUE;

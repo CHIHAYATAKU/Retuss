@@ -24,9 +24,11 @@ import io.github.morichan.retuss.model.uml.*;
 import io.github.morichan.retuss.translator.common.AbstractTranslator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 public class Translator extends AbstractTranslator {
     /**
@@ -119,82 +121,99 @@ public class Translator extends AbstractTranslator {
         CompilationUnit newCU = new CompilationUnit();
 
         System.out.println("Number of classes to process: " + classList.size());
+
+        // 既存のクラスをクリア
+        newCU.getTypes().clear();
+
+        // 重複チェック用のSet
+        Set<String> processedClassNames = new HashSet<>();
+
         for (Class umlClass : classList) {
-            System.out.println("\nProcessing class: " + umlClass.getName());
+            String className = umlClass.getName();
+
+            // 重複チェック
+            if (processedClassNames.contains(className)) {
+                System.out.println("Skipping duplicate class: " + className);
+                continue;
+            }
+
+            System.out.println("\nProcessing class: " + className);
+            processedClassNames.add(className);
 
             // クラス宣言の作成
-            ClassOrInterfaceDeclaration classDeclaration = newCU.addClass(umlClass.getName());
+            ClassOrInterfaceDeclaration classDeclaration = newCU.addClass(className);
 
             // 操作の追加
-            List<Operation> operations = umlClass.getOperationList();
-            System.out.println("Number of operations: " + operations.size());
-
-            for (Operation operation : operations) {
-                System.out.println("\nProcessing operation: " + operation.toString());
-                MethodDeclaration methodDecl = translateOperation(operation);
-
-                // メソッド本体の生成
-                BlockStmt body = new BlockStmt();
-
-                // Interactionからメソッド本体を生成
-                Optional<Interaction> interactionOpt = umlClass.findInteraction(operation);
-                System.out.println("Found interaction: " + interactionOpt.isPresent());
-
-                if (interactionOpt.isPresent()) {
-                    Interaction interaction = interactionOpt.get();
-                    List<InteractionFragment> fragments = interaction.getInteractionFragmentList();
-                    System.out.println("Number of interaction fragments: " + fragments.size());
-
-                    for (InteractionFragment fragment : fragments) {
-                        System.out.println("\nProcessing fragment type: " + fragment.getClass().getSimpleName());
-
-                        if (fragment instanceof OccurenceSpecification) {
-                            OccurenceSpecification occurence = (OccurenceSpecification) fragment;
-                            Message message = occurence.getMessage();
-                            System.out.println("Message type: " + message.getMessageSort());
-                            System.out.println("Message name: " + message.getName());
-
-                            try {
-                                if (message.getMessageSort() == MessageSort.synchCall) {
-                                    MethodCallExpr methodCall = new MethodCallExpr();
-                                    methodCall.setName(message.getName());
-
-                                    System.out.println("Parameters: " + message.getParameterList().size());
-                                    NodeList<Expression> arguments = new NodeList<>();
-                                    for (io.github.morichan.fescue.feature.parameter.Parameter param : message
-                                            .getParameterList()) {
-                                        System.out.println("Adding parameter: " + param.getName().getNameText());
-                                        arguments.add(new NameExpr(param.getName().getNameText()));
-                                    }
-                                    methodCall.setArguments(arguments);
-
-                                    body.addStatement(new ExpressionStmt(methodCall));
-                                    System.out.println("Added method call statement");
-                                }
-                            } catch (Exception e) {
-                                System.out.println("Error processing message: " + e.getMessage());
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-
-                methodDecl.setBody(body);
-                classDeclaration.addMember(methodDecl);
-                System.out.println("Added method to class declaration");
-            }
+            addOperationsToClass(umlClass, classDeclaration);
 
             // 継承関係の設定
-            if (umlClass.getSuperClass().isPresent()) {
-                System.out.println("Adding superclass: " + umlClass.getSuperClass().get().getName());
-                ClassOrInterfaceType superClassType = new ClassOrInterfaceType();
-                superClassType.setName(umlClass.getSuperClass().get().getName());
-                classDeclaration.addExtendedType(superClassType);
-            }
+            setInheritance(umlClass, classDeclaration);
         }
 
         System.out.println("\n=== Completed UML to Code Translation ===");
         return newCU;
+    }
+
+    private void addOperationsToClass(Class umlClass, ClassOrInterfaceDeclaration classDeclaration) {
+        List<Operation> operations = umlClass.getOperationList();
+        System.out.println("Adding " + operations.size() + " operations");
+
+        for (Operation operation : operations) {
+            System.out.println("Processing operation: " + operation.toString());
+            MethodDeclaration methodDecl = translateOperation(operation);
+
+            // メソッド本体の生成
+            BlockStmt body = new BlockStmt();
+
+            // Interactionからメソッド本体を生成
+            Optional<Interaction> interactionOpt = umlClass.findInteraction(operation);
+            if (interactionOpt.isPresent()) {
+                addInteractionToMethod(interactionOpt.get(), body);
+            }
+
+            methodDecl.setBody(body);
+            classDeclaration.addMember(methodDecl);
+        }
+    }
+
+    private void addInteractionToMethod(Interaction interaction, BlockStmt body) {
+        List<InteractionFragment> fragments = interaction.getInteractionFragmentList();
+        System.out.println("Processing " + fragments.size() + " interaction fragments");
+
+        for (InteractionFragment fragment : fragments) {
+            if (fragment instanceof OccurenceSpecification) {
+                addOccurrenceToBody((OccurenceSpecification) fragment, body);
+            }
+        }
+    }
+
+    private void addOccurrenceToBody(OccurenceSpecification occurrence, BlockStmt body) {
+        Message message = occurrence.getMessage();
+        if (message.getMessageSort() == MessageSort.synchCall) {
+            try {
+                MethodCallExpr methodCall = new MethodCallExpr();
+                methodCall.setName(message.getName());
+
+                NodeList<Expression> arguments = new NodeList<>();
+                for (io.github.morichan.fescue.feature.parameter.Parameter param : message.getParameterList()) {
+                    arguments.add(new NameExpr(param.getName().getNameText()));
+                }
+                methodCall.setArguments(arguments);
+
+                body.addStatement(new ExpressionStmt(methodCall));
+            } catch (Exception e) {
+                System.err.println("Error processing message: " + e.getMessage());
+            }
+        }
+    }
+
+    private void setInheritance(Class umlClass, ClassOrInterfaceDeclaration classDeclaration) {
+        if (umlClass.getSuperClass().isPresent()) {
+            System.out.println("Setting superclass: " + umlClass.getSuperClass().get().getName());
+            ClassOrInterfaceType superClassType = new ClassOrInterfaceType();
+            superClassType.setName(umlClass.getSuperClass().get().getName());
+            classDeclaration.addExtendedType(superClassType);
+        }
     }
 
     @Override

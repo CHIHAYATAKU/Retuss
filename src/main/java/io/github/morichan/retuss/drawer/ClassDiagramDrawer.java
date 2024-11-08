@@ -23,7 +23,6 @@ public class ClassDiagramDrawer {
 
     public ClassDiagramDrawer(WebView webView) {
         this.webView = webView;
-        cppModel.addChangeListener(() -> draw());
     }
 
     public void draw() {

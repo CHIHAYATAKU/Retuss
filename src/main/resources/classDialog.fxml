@@ -24,26 +24,6 @@
             AnchorPane.topAnchor="0.0">
          <children>
             <Label fx:id="messageLabel" textAlignment="CENTER" textFill="#f20404" />
-
-            <!-- Language Selection -->
-            <HBox spacing="5.0">
-               <children>
-                  <Label text="Language">
-                     <HBox.margin>
-                        <Insets right="50.0" top="3.0" />
-                     </HBox.margin>
-                  </Label>
-                  <ComboBox fx:id="languageComboBox" prefWidth="150.0">
-                     <items>
-                        <FXCollections fx:factory="observableArrayList">
-                           <String fx:value="Java"/>
-                           <String fx:value="C++"/>
-                        </FXCollections>
-                     </items>
-                  </ComboBox>
-               </children>
-            </HBox>
-
             <!-- Class Name -->
             <HBox spacing="5.0">
                <children>

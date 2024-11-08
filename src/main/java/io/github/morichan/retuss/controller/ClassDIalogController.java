@@ -18,28 +18,37 @@ public class ClassDialogController {
     private Button createBtn;
     @FXML
     private Label messageLabel;
-    @FXML
-    private ComboBox<String> languageComboBox;
 
     private JavaModel javaModel = JavaModel.getInstance();
     private CppModel cppModel = CppModel.getInstance();
+    private UmlController umlController;
 
-    @FXML
-    private void initialize() {
-        // デフォルトでJavaを選択
-        languageComboBox.getSelectionModel().selectFirst();
+    public void setUmlController(UmlController controller) {
+        this.umlController = controller;
+        System.out.println("UmlController set in ClassDialogController"); // デバッグ用
     }
 
     @FXML
     private void createClass() {
-        if (validateClassName()) {
-            Class umlClass = new Class(classNameTextField.getText());
-            String language = languageComboBox.getValue();
+        if (umlController == null) {
+            messageLabel.setText("Error: UmlController is not set");
+            return;
+        }
 
+        System.out.println("Java selected: " + umlController.isJavaSelected());
+        System.out.println("C++ selected: " + umlController.isCppSelected());
+
+        if (validateClassName()) {
             try {
-                if (language.equals("Java")) {
+                Class umlClass = new Class(classNameTextField.getText());
+
+                if (umlController.isJavaSelected()) {
+                    System.out.println("Creating Java class: " + classNameTextField.getText());
                     javaModel.addNewUmlClass(umlClass);
-                } else if (language.equals("C++")) {
+                }
+
+                if (umlController.isCppSelected()) {
+                    System.out.println("Creating C++ class: " + classNameTextField.getText());
                     cppModel.addNewUmlClass(umlClass);
                 }
 
@@ -48,6 +57,7 @@ public class ClassDialogController {
                 stage.close();
             } catch (Exception e) {
                 messageLabel.setText("Failed to create class: " + e.getMessage());
+                e.printStackTrace(); // デバッグ用にスタックトレースを出力
             }
         }
     }
@@ -59,21 +69,26 @@ public class ClassDialogController {
         }
 
         String className = classNameTextField.getText();
-        String language = languageComboBox.getValue();
 
         // 言語に応じた存在チェック
-        if (language.equals("Java")) {
+        if (umlController.isJavaSelected()) {
             if (javaModel.findClass(className).isPresent()) {
                 messageLabel.setText(
                         String.format("The \"%s\" class already exists in Java. Please set a different class name.",
                                 className));
                 return Boolean.FALSE;
             }
-        } else if (language.equals("C++")) {
+        } else if (umlController.isCppSelected()) {
             if (cppModel.findClass(className).isPresent()) {
                 messageLabel.setText(
                         String.format("The \"%s\" class already exists in C++. Please set a different class name.",
                                 className));
+                return Boolean.FALSE;
+            }
+        } else {
+            // どちらの言語も選択されていない場合
+            if (!umlController.isJavaSelected() && !umlController.isCppSelected()) {
+                messageLabel.setText("Please select at least one language.");
                 return Boolean.FALSE;
             }
         }

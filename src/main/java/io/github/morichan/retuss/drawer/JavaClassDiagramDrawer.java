@@ -25,6 +25,8 @@ public class JavaClassDiagramDrawer {
     public void draw() {
         List<Class> umlClassList = javaModel.getUmlClassList();
 
+        System.err.println("classList : " + umlClassList.toString());
+
         StringBuilder puStrBuilder = new StringBuilder("@startuml\n");
         puStrBuilder.append("scale 1.5\n");
         puStrBuilder.append("skinparam style strictuml\n");
@@ -37,7 +39,7 @@ public class JavaClassDiagramDrawer {
         SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
-            reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
+            String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
             os.close();
         } catch (Exception e) {
             System.err.println("Error drawing Java class diagram: " + e.getMessage());

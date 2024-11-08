@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.model;
 
+import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -15,14 +16,14 @@ public class CodeFile implements ICodeFile {
     private CompilationUnit compilationUnit;
     private List<Class> umlClassList = new ArrayList<>();
     private Translator translator = new Translator();
+    private final List<FileChangeListener> listeners = new ArrayList<>();
 
     public CodeFile(String fileName) {
-        final String extension = ".java";
         this.fileName = fileName;
+        String className = fileName.replace(".java", "");
         this.compilationUnit = new CompilationUnit();
-        String className = fileName.substring(0, this.fileName.length() - extension.length());
         this.compilationUnit.addClass(className);
-        this.umlClassList = translator.translateCodeToUml(this.compilationUnit.toString());
+        updateUmlClasses(this.compilationUnit);
     }
 
     @Override
@@ -55,40 +56,58 @@ public class CodeFile implements ICodeFile {
     @Override
     public void updateCode(String code) {
         try {
-            CompilationUnit compilationUnit = StaticJavaParser.parse(code);
-            Optional<ClassOrInterfaceDeclaration> mainClass = compilationUnit
-                    .findFirst(ClassOrInterfaceDeclaration.class);
-            if (mainClass.isPresent()) {
-                String expectedFileName = mainClass.get().getNameAsString() + ".java";
-                if (!expectedFileName.equals(this.fileName)) {
-                    String oldFileName = this.fileName; // 古いファイル名を保存
-                    this.fileName = expectedFileName;
-                    notifyFileNameChanged(oldFileName, this.fileName); // ファイル名変更を通知
-                }
-            }
+            System.out.println("DEBUG: Updating Java code:\n" + code);
 
-            this.compilationUnit = compilationUnit;
-            this.umlClassList = translator.translateCodeToUml(compilationUnit.toString());
-            System.out.println(code);
+            // コードのパース
+            CompilationUnit newUnit = StaticJavaParser.parse(code);
+            Optional<ClassOrInterfaceDeclaration> mainClass = newUnit.findFirst(ClassOrInterfaceDeclaration.class);
+
+            mainClass.ifPresent(cls -> {
+                String expectedFileName = cls.getNameAsString() + ".java";
+                if (!expectedFileName.equals(this.fileName)) {
+                    String oldFileName = this.fileName;
+                    this.fileName = expectedFileName;
+                    notifyFileNameChanged(oldFileName, expectedFileName);
+                }
+            });
+
+            this.compilationUnit = newUnit;
+            updateUmlClasses(newUnit);
+            System.out.println("DEBUG: Updated UML classes: " + umlClassList.size());
+            for (Class cls : umlClassList) {
+                System.out.println("DEBUG: Class: " + cls.getName());
+                System.out.println("DEBUG: Attributes: " + cls.getAttributeList().size());
+                System.out.println("DEBUG: Operations: " + cls.getOperationList().size());
+            }
         } catch (Exception e) {
-            System.out.println("Cannot parse.");
-            System.out.println(e.getMessage());
+            System.err.println("Error updating Java code: " + e.getMessage());
+            e.printStackTrace();
             throw e;
         }
+    }
+
+    private void updateUmlClasses(CompilationUnit unit) {
+        List<Class> newClasses = translator.translateCodeToUml(unit.toString());
+        umlClassList.clear();
+        umlClassList.addAll(newClasses);
     }
 
     public interface FileNameChangeListener {
         void onFileNameChanged(String oldName, String newName);
     }
 
-    private List<FileNameChangeListener> listeners = new ArrayList<>();
-
-    public void addFileNameChangeListener(FileNameChangeListener listener) {
+    public void addChangeListener(FileChangeListener listener) {
         listeners.add(listener);
     }
 
+    private void notifyFileChanged() {
+        for (FileChangeListener listener : listeners) {
+            listener.onFileChanged(this);
+        }
+    }
+
     private void notifyFileNameChanged(String oldName, String newName) {
-        for (FileNameChangeListener listener : listeners) {
+        for (FileChangeListener listener : listeners) {
             listener.onFileNameChanged(oldName, newName);
         }
     }

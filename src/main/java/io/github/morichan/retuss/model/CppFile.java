@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.model;
 
+import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.translator.CppTranslator;
@@ -12,7 +13,7 @@ public class CppFile implements ICodeFile {
     private List<Class> umlClassList = new ArrayList<>();
     private CppTranslator translator = new CppTranslator();
     private final boolean isHeader;
-    private List<FileChangeListener> listeners = new ArrayList<>();
+    private final List<FileChangeListener> listeners = new ArrayList<>();
 
     public CppFile(String fileName, boolean isHeader) {
         this.fileName = fileName;
@@ -81,36 +82,51 @@ public class CppFile implements ICodeFile {
         return isHeader ? Collections.unmodifiableList(umlClassList) : Collections.emptyList();
     }
 
+    public void updateFileName(String newName) {
+        if (!this.fileName.equals(newName)) {
+            String oldName = this.fileName;
+            this.fileName = newName;
+            System.out.println("DEBUG: CppFile updating filename from " + oldName + " to " + newName);
+            notifyFileNameChanged(oldName, newName);
+        }
+    }
+
     @Override
     public void updateCode(String code) {
-        if (code.equals(this.sourceCode))
-            return;
-
         try {
-            if (isHeader) {
-                // ヘッダーファイルの場合のみUMLクラスリストを更新
-                List<Class> newUmlClassList = translator.translateCodeToUml(code);
-                if (!newUmlClassList.isEmpty()) {
-                    this.umlClassList = newUmlClassList;
+            if (!code.equals(this.sourceCode)) {
+                this.sourceCode = code;
+
+                if (isHeader) {
+                    List<Class> newUmlClassList = translator.translateCodeToUml(code);
+                    if (!newUmlClassList.isEmpty()) {
+                        System.out.println("DEBUG: New UML classes found: " + newUmlClassList.size());
+                        this.umlClassList = newUmlClassList;
+                    }
 
                     // クラス名の変更を検出
                     Optional<String> newClassName = translator.extractClassName(code);
-                    newClassName.ifPresent(className -> {
+                    if (newClassName.isPresent()) {
+                        String className = newClassName.get();
                         String expectedFileName = className + ".hpp";
+                        System.out.println("DEBUG: Detected class name: " + className +
+                                ", current file: " + this.fileName);
+
                         if (!expectedFileName.equals(this.fileName)) {
                             String oldFileName = this.fileName;
                             this.fileName = expectedFileName;
+                            System.out.println("DEBUG: File name changing from " +
+                                    oldFileName + " to " + expectedFileName);
                             notifyFileNameChanged(oldFileName, expectedFileName);
                         }
-                    });
+                    }
                 }
-            }
 
-            this.sourceCode = code;
-            notifyFileChanged();
+                notifyFileChanged();
+            }
         } catch (Exception e) {
             System.err.println("Failed to update code: " + e.getMessage());
-            throw e;
+            e.printStackTrace();
         }
     }
 
@@ -140,6 +156,10 @@ public class CppFile implements ICodeFile {
         return isHeader;
     }
 
+    public void addChangeListener(FileChangeListener listener) {
+        listeners.add(listener);
+    }
+
     // 拡張したファイル変更リスナー
     public interface FileChangeListener {
         void onFileChanged(CppFile file);
@@ -147,28 +167,26 @@ public class CppFile implements ICodeFile {
         void onFileNameChanged(String oldName, String newName);
     }
 
-    public void addChangeListener(FileChangeListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
-    }
-
     private void notifyFileChanged() {
+        System.out.println("DEBUG: Notifying file change for " + fileName);
         for (FileChangeListener listener : listeners) {
             try {
                 listener.onFileChanged(this);
             } catch (Exception e) {
-                System.err.println("Error notifying file change: " + e.getMessage());
+                System.err.println("Error in file change notification: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     private void notifyFileNameChanged(String oldName, String newName) {
+        System.out.println("DEBUG: Notifying file name change: " + oldName + " -> " + newName);
         for (FileChangeListener listener : listeners) {
             try {
                 listener.onFileNameChanged(oldName, newName);
             } catch (Exception e) {
-                System.err.println("Error notifying filename change: " + e.getMessage());
+                System.err.println("Error in file name change notification: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

@@ -5,6 +5,7 @@ import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
+import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.translator.CppTranslator;
@@ -37,32 +38,40 @@ public class CppModel {
     public void addNewFile(String fileName) {
         String baseName = fileName.replaceAll("\\.(hpp|cpp)$", "");
 
-        // ヘッダーファイルの作成
-        CppFile headerFile = new CppFile(baseName + ".hpp", true);
+        // 既存のファイルチェック
+        if (headerFiles.containsKey(baseName) || implFiles.containsKey(baseName)) {
+            System.out.println("DEBUG: Files for " + baseName + " already exist");
+            return;
+        }
+
+        System.out.println("DEBUG: Creating new files for " + baseName);
+
+        // ファイルの作成
+        final CppFile headerFile = new CppFile(baseName + ".hpp", true);
+        final CppFile implFile = new CppFile(baseName + ".cpp", false);
+
+        // ヘッダーファイルの変更監視
         headerFile.addChangeListener(new CppFile.FileChangeListener() {
             @Override
             public void onFileChanged(CppFile file) {
-                updateImplFile(file);
+                System.out.println("DEBUG: Header file changed: " + file.getFileName());
+                updateImplFileForHeaderChange(file);
                 notifyModelChanged();
-                if (umlController != null) {
-                    umlController.updateDiagram(file);
-                }
             }
 
             @Override
             public void onFileNameChanged(String oldName, String newName) {
-                String oldBaseName = oldName.replace(".hpp", "");
-                String newBaseName = newName.replace(".hpp", "");
-                updateImplFileName(oldBaseName, newBaseName);
+                // ... 名前変更の処理 ...
             }
         });
-
-        // 実装ファイルの作成
-        CppFile implFile = new CppFile(baseName + ".cpp", false);
 
         // ファイルの登録
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
+
+        // 初期化
+        headerFile.updateCode(generateHeaderTemplate(baseName));
+        implFile.updateCode(generateImplTemplate(baseName));
 
         // コントローラーに通知
         if (codeController != null) {
@@ -72,6 +81,32 @@ public class CppModel {
         if (umlController != null) {
             umlController.updateDiagram(headerFile);
         }
+    }
+
+    private String generateHeaderTemplate(String className) {
+        StringBuilder sb = new StringBuilder();
+        String guardName = className.toUpperCase() + "_HPP";
+
+        sb.append("#ifndef ").append(guardName).append("\n");
+        sb.append("#define ").append(guardName).append("\n\n");
+        sb.append("class ").append(className).append(" {\n");
+        sb.append("public:\n");
+        sb.append("    ").append(className).append("();\n");
+        sb.append("    virtual ~").append(className).append("();\n");
+        sb.append("\nprotected:\n");
+        sb.append("\nprivate:\n");
+        sb.append("};\n\n");
+        sb.append("#endif // ").append(guardName).append("\n");
+
+        return sb.toString();
+    }
+
+    private String generateImplTemplate(String className) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("#include \"").append(className).append(".hpp\"\n\n");
+        sb.append(className).append("::").append(className).append("() {\n}\n\n");
+        sb.append(className).append("::~").append(className).append("() {\n}\n");
+        return sb.toString();
     }
 
     public void addNewUmlClass(Class umlClass) {
@@ -99,23 +134,86 @@ public class CppModel {
         }
     }
 
-    public void updateCode(CppFile file, String code) {
-        String baseName = getBaseName(file.getFileName());
+    public void updateCode(ICodeFile file, String code) {
+        if (file instanceof CppFile) {
+            CppFile cppFile = (CppFile) file;
+            String baseName = getBaseName(cppFile.getFileName());
+            System.out.println("DEBUG: Updating code for: " + cppFile.getFileName());
 
-        if (file.isHeader()) {
-            CppFile headerFile = headerFiles.get(baseName);
-            if (headerFile != null) {
-                headerFile.updateCode(code);
-                updateImplFile(headerFile);
+            if (cppFile.isHeader()) {
+                // ヘッダーファイルの更新
+                updateHeaderFile(cppFile, code, baseName);
+            } else {
+                // 実装ファイルの更新
+                updateImplFileContent(cppFile, code);
             }
-        } else {
-            CppFile implFile = implFiles.get(baseName);
-            if (implFile != null) {
-                implFile.updateCode(code);
+
+            notifyModelChanged();
+        }
+    }
+
+    private void updateHeaderFile(CppFile headerFile, String code, String baseName) {
+        // 古いクラス名を保存
+        String oldClassName = headerFile.getFileName().replace(".hpp", "");
+
+        // コードを更新
+        headerFile.updateCode(code);
+
+        // 新しいクラス名を取得
+        Optional<String> newClassName = translator.extractClassName(code);
+        if (newClassName.isPresent()) {
+            String newName = newClassName.get();
+            System.out.println("DEBUG: Class name change detected: " + oldClassName +
+                    " -> " + newName);
+
+            if (!newName.equals(oldClassName)) {
+                // ヘッダーファイルのマップ更新
+                headerFiles.remove(oldClassName);
+                headerFiles.put(newName, headerFile);
+
+                // 実装ファイルの更新
+                CppFile implFile = implFiles.remove(oldClassName);
+                if (implFile != null) {
+                    String newImplName = newName + ".cpp";
+                    updateImplFileName(implFile, newImplName);
+                    implFiles.put(newName, implFile);
+
+                    // コントローラーに通知
+                    if (codeController != null) {
+                        System.out.println("DEBUG: Updating implementation file tab");
+                        codeController.updateCodeTab(implFile);
+                    }
+                }
+
+                // コントローラーに通知
+                if (codeController != null) {
+                    System.out.println("DEBUG: Updating header file tab");
+                    codeController.updateCodeTab(headerFile);
+                }
+
+                // UMLの更新
+                if (umlController != null) {
+                    System.out.println("DEBUG: Updating UML diagram");
+                    umlController.updateDiagram(headerFile);
+                }
             }
         }
+    }
 
-        notifyModelChanged();
+    private void updateImplFileName(CppFile implFile, String newName) {
+        System.out.println("DEBUG: Updating implementation file name to " + newName);
+        String currentCode = implFile.getCode();
+        String oldHeaderName = implFile.getFileName().replace(".cpp", ".hpp");
+        String newHeaderName = newName.replace(".cpp", ".hpp");
+
+        // インクルード文の更新
+        String oldInclude = "#include \"" + oldHeaderName + "\"";
+        String newInclude = "#include \"" + newHeaderName + "\"";
+        String newCode = currentCode.replace(oldInclude, newInclude);
+
+        // ファイル名も更新
+        implFile.updateFileName(newName);
+        implFile.updateCode(newCode);
     }
 
     public void addAttribute(String className, Attribute attribute) {
@@ -202,29 +300,51 @@ public class CppModel {
         }
     }
 
-    private void updateImplFile(CppFile headerFile) {
+    private void updateImplFileForHeaderChange(CppFile headerFile) {
         String baseName = getBaseName(headerFile.getFileName());
         CppFile implFile = implFiles.get(baseName);
         if (implFile != null) {
+            System.out.println("DEBUG: Updating implementation file for header change: " +
+                    headerFile.getFileName());
+
             String currentCode = implFile.getCode();
-            String includeStatement = "#include \"" + headerFile.getFileName() + "\"";
-            if (!currentCode.contains(includeStatement)) {
-                String newCode = includeStatement + "\n\n" +
-                        (currentCode.startsWith("#include") ? currentCode.substring(currentCode.indexOf("\n\n") + 2)
-                                : currentCode);
+            String expectedInclude = "#include \"" + headerFile.getFileName() + "\"";
+            String oldIncludePattern = "#include \".*?.hpp\"";
+            String newCode = currentCode;
+
+            if (!currentCode.contains(expectedInclude)) {
+                if (currentCode.matches("(?s).*" + oldIncludePattern + ".*")) {
+                    newCode = currentCode.replaceFirst(oldIncludePattern, expectedInclude);
+                } else {
+                    newCode = expectedInclude + "\n\n" + currentCode;
+                }
                 implFile.updateCode(newCode);
             }
         }
     }
 
-    private void updateImplFileName(String oldBaseName, String newBaseName) {
-        CppFile implFile = implFiles.remove(oldBaseName);
-        if (implFile != null) {
-            String newImplName = newBaseName + ".cpp";
-            implFile.updateCode(implFile.getCode().replace(
-                    oldBaseName + ".hpp",
-                    newBaseName + ".hpp"));
-            implFiles.put(newBaseName, implFile);
+    private void updateImplFileContent(CppFile implFile, String newCode) {
+        String baseName = getBaseName(implFile.getFileName());
+        CppFile existingImpl = implFiles.get(baseName);
+        if (existingImpl != null) {
+            System.out.println("DEBUG: Updating implementation file content for: " +
+                    implFile.getFileName());
+
+            // ヘッダーファイルのインクルードを保持
+            String headerInclude = "";
+            String currentCode = existingImpl.getCode();
+            String includePattern = "#include \".*?.hpp\"";
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(includePattern).matcher(currentCode);
+            if (matcher.find()) {
+                headerInclude = matcher.group() + "\n\n";
+            }
+
+            // 新しいコードの先頭にインクルード文を追加
+            if (!newCode.contains(headerInclude.trim())) {
+                newCode = headerInclude + newCode;
+            }
+
+            existingImpl.updateCode(newCode);
         }
     }
 
@@ -326,9 +446,7 @@ public class CppModel {
     }
 
     public void addChangeListener(ModelChangeListener listener) {
-        if (!changeListeners.contains(listener)) {
-            changeListeners.add(listener);
-        }
+        changeListeners.add(listener);
     }
 
     private void notifyModelChanged() {
@@ -389,4 +507,5 @@ public class CppModel {
     private String getBaseName(String fileName) {
         return fileName.replaceAll("\\.(hpp|cpp)$", "");
     }
+
 }

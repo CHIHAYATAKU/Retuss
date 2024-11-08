@@ -3,6 +3,7 @@ package io.github.morichan.retuss.controller;
 import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.CppFile;
 import io.github.morichan.retuss.model.JavaModel;
+import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.CppPairFile;
@@ -34,6 +35,14 @@ public class CodeController {
     private CppModel cppModel = CppModel.getInstance();
     private List<Pair<CodeFile, Tab>> javaFileTabList = new ArrayList<>();
     private List<Pair<CppFile, Tab>> cppFileTabList = new ArrayList<>();
+    private UmlController umlController;
+
+    public void setUmlController(UmlController controller) {
+        this.umlController = controller;
+        // 双方向の参照を設定
+        controller.setCodeController(this);
+        System.out.println("UmlController set in CodeController"); // デバッグ用
+    }
 
     @FXML
     private void initialize() {
@@ -46,6 +55,14 @@ public class CodeController {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/newFileDialog.fxml"));
             Parent parent = fxmlLoader.load();
+            NewFileDialogController controller = fxmlLoader.getController();
+
+            if (umlController == null) {
+                System.err.println("Warning: UmlController is not set!");
+                return;
+            }
+
+            controller.setUmlController(umlController);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("New File Dialog");
@@ -53,23 +70,7 @@ public class CodeController {
             stage.setScene(scene);
             stage.showAndWait();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    @FXML
-    private void showNewCppFileDialog() {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/newCppFileDialog.fxml"));
-            Parent parent = fxmlLoader.load();
-            Scene scene = new Scene(parent);
-            Stage stage = new Stage();
-            stage.setTitle("New C++ File");
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setScene(scene);
-            stage.showAndWait();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -87,12 +88,22 @@ public class CodeController {
     public void updateCodeTab(CodeFile changedCodeFile) {
         UUID changedFileId = changedCodeFile.getID();
 
-        changedCodeFile.addFileNameChangeListener((oldName, newName) -> {
-            for (Pair<CodeFile, Tab> fileTabPair : javaFileTabList) {
-                if (fileTabPair.getKey().getID().equals(changedFileId)) {
-                    fileTabPair.getValue().setText(newName);
-                    break;
-                }
+        changedCodeFile.addChangeListener(new FileChangeListener() {
+            @Override
+            public void onFileChanged(ICodeFile file) {
+                // ファイル内容の変更時の処理は必要に応じて実装
+            }
+
+            @Override
+            public void onFileNameChanged(String oldName, String newName) {
+                Platform.runLater(() -> {
+                    for (Pair<CodeFile, Tab> fileTabPair : javaFileTabList) {
+                        if (fileTabPair.getKey().getID().equals(changedFileId)) {
+                            fileTabPair.getValue().setText(newName);
+                            break;
+                        }
+                    }
+                });
             }
         });
 
@@ -118,17 +129,14 @@ public class CodeController {
 
             if (existingTab.isPresent()) {
                 Tab targetTab = existingTab.get();
-                // タブ名の更新
                 updateTabTitle(targetTab, file);
 
-                // コードの更新
                 AnchorPane anchorPane = (AnchorPane) targetTab.getContent();
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
                 int caretPosition = codeArea.getCaretPosition();
 
                 if (!codeArea.getText().equals(file.getCode())) {
                     codeArea.replaceText(file.getCode());
-                    // カーソル位置の復元
                     Platform.runLater(() -> {
                         int newPosition = Math.min(caretPosition, codeArea.getLength());
                         codeArea.moveTo(newPosition);
@@ -138,7 +146,6 @@ public class CodeController {
             } else {
                 Tab newTab = createCppCodeTab(file);
                 codeTabPane.getTabs().add(newTab);
-                // 新規タブの場合のみ選択
                 codeTabPane.getSelectionModel().select(newTab);
             }
         } catch (Exception e) {
@@ -175,7 +182,6 @@ public class CodeController {
 
     // 既存のJava用タブ作成メソッド
     private Tab createCodeTab(CodeFile codeFile) {
-        // 既存の実装をそのまま維持
         CodeArea codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.setOnKeyTyped(event -> updateCodeFile());
@@ -192,12 +198,27 @@ public class CodeController {
         codeTab.setText(codeFile.getFileName());
         codeTab.setClosable(false);
 
-        codeFile.addFileNameChangeListener((oldName, newName) -> {
-            System.out.println("ファイル名が変更されました: " + oldName + " -> " + newName);
-            codeTab.setText(newName);
+        // 新しい共通インターフェースを使用
+        codeFile.addChangeListener(new FileChangeListener() {
+            @Override
+            public void onFileChanged(ICodeFile file) {
+                Platform.runLater(() -> {
+                    CodeArea area = (CodeArea) ((AnchorPane) codeTab.getContent()).getChildren().get(0);
+                    area.replaceText(file.getCode());
+                });
+            }
+
+            @Override
+            public void onFileNameChanged(String oldName, String newName) {
+                Platform.runLater(() -> {
+                    System.out.println("ファイル名が変更されました: " + oldName + " -> " + newName);
+                    codeTab.setText(newName);
+                });
+            }
         });
 
         codeTabPane.getTabs().add(codeTab);
+        javaFileTabList.add(new Pair<>(codeFile, codeTab));
 
         return codeTab;
     }
