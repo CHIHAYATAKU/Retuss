@@ -6,7 +6,6 @@ import io.github.morichan.retuss.drawer.*;
 import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.CppFile;
 import io.github.morichan.retuss.model.CppModel;
-import io.github.morichan.retuss.model.CppPairFile;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;

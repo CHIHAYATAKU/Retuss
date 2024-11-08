@@ -6,7 +6,6 @@ import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.CppModel;
-import io.github.morichan.retuss.model.CppPairFile;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
