@@ -30,17 +30,18 @@ public class CppClassDiagramDrawer {
     }
 
     public void draw() {
-        List<Class> umlClassList = model.getUmlClassList();
-        System.out.println("Drawing C++ classes: " + umlClassList.size());
-
         StringBuilder pumlBuilder = new StringBuilder();
         pumlBuilder.append("@startuml\n");
-        pumlBuilder.append("scale 1.5\n");
         pumlBuilder.append("skinparam style strictuml\n");
         pumlBuilder.append("skinparam classAttributeIconSize 0\n");
+        // pumlBuilder.append("hide circle\n"); // これを追加することでCを消せます
+
+        List<Class> classes = model.getUmlClassList();
+        System.out.println("Drawing class diagram for " + classes.size() + " classes");
 
         // クラスの定義
-        for (Class cls : umlClassList) {
+        for (Class cls : classes) {
+            System.out.println("Processing class: " + cls.getName());
             if (cls.getAbstruct()) {
                 pumlBuilder.append("abstract ");
             }
@@ -80,7 +81,7 @@ public class CppClassDiagramDrawer {
         }
 
         // 継承関係の追加
-        for (Class cls : umlClassList) {
+        for (Class cls : classes) {
             if (cls.getSuperClass().isPresent()) {
                 pumlBuilder.append(cls.getSuperClass().get().getName())
                         .append(" <|-- ")
@@ -102,13 +103,11 @@ public class CppClassDiagramDrawer {
             String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
 
             // WebViewに表示
-            if (svg != null && !svg.isEmpty()) {
-                System.out.println("Loading SVG to WebView");
-                webView.getEngine().loadContent(svg);
-            } else {
-                System.err.println("Generated SVG is empty");
-            }
-        } catch (Exception e) {
+            webView.getEngine().loadContent(svg);
+            System.out.println("Class diagram loaded to WebView");
+        } catch (
+
+        Exception e) {
             System.err.println("Error generating class diagram: " + e.getMessage());
             e.printStackTrace();
         }

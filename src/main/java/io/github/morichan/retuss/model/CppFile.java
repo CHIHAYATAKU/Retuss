@@ -96,6 +96,7 @@ public class CppFile implements ICodeFile {
             this.fileName = newName;
             System.out.println("DEBUG: CppFile updating filename from " + oldName + " to " + newName);
 
+            // UmlControllerに通知（null チェック付き）
             if (umlController != null) {
                 umlController.updateFileName(oldName, newName);
             } else {

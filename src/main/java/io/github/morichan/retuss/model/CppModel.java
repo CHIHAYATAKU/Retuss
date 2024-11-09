@@ -38,7 +38,12 @@ public class CppModel {
 
     public void setUmlController(UmlController controller) {
         this.umlController = controller;
-        System.out.println("UmlController set in CppModel");
+        for (CppFile file : headerFiles.values()) {
+            file.setUmlController(controller);
+        }
+        for (CppFile file : implFiles.values()) {
+            file.setUmlController(controller);
+        }
     }
 
     public void addNewFile(String fileName) {
@@ -530,6 +535,7 @@ public class CppModel {
             CppFile headerFile = headerFileOpt.get();
             CppFile implFile = implFileOpt.get();
 
+            // デバッグ出力
             System.out.println("Generating sequence diagram for " + className + "::" + methodName);
             System.out.println("Header file: " + headerFile.getFileName());
             System.out.println("Implementation file: " + implFile.getFileName());

@@ -28,6 +28,7 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         this.visibilityMapper = visibilityMapper;
     }
 
+    // ここが肝
     @Override
     public void enterClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
         if (ctx.classHead() != null &&

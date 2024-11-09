@@ -180,34 +180,49 @@ public class CppTranslator extends AbstractLanguageTranslator {
 
     @Override
     public String generateSequenceDiagram(String headerCode, String implCode, String methodName) {
+        System.out.println("Generating sequence diagram for method: " + methodName);
         StringBuilder sb = new StringBuilder();
         sb.append("@startuml\n");
         sb.append("skinparam style strictuml\n\n");
 
         try {
+            // ヘッダーファイルの解析
             List<Class> classes = translateCodeToUml(headerCode);
+            System.out.println("Found classes: " + classes.size());
+
             if (!classes.isEmpty()) {
                 Class mainClass = classes.get(0);
                 String className = mainClass.getName();
 
-                sb.append("participant \"").append(className).append("\"\n\n");
+                // 対象のメソッドを探す
+                boolean methodFound = mainClass.getOperationList().stream()
+                        .anyMatch(op -> op.getName().getNameText().equals(methodName));
+
+                System.out.println("Class: " + className + ", Method found: " + methodFound);
+
+                // 基本的なシーケンス図の構造
+                sb.append("participant \"").append(className).append("\"\n");
+                sb.append("\n");
                 sb.append("[-> \"").append(className).append("\" : ").append(methodName).append("()\n");
                 sb.append("activate \"").append(className).append("\"\n");
 
-                // 実装ファイルの解析
-                CharStream input = CharStreams.fromString(implCode);
-                CPP14Lexer lexer = new CPP14Lexer(input);
-                CommonTokenStream tokens = new CommonTokenStream(lexer);
-                CPP14Parser parser = new CPP14Parser(tokens);
+                // メソッド本体の解析（実装ファイルから）
+                if (implCode != null && !implCode.isEmpty()) {
+                    CharStream input = CharStreams.fromString(implCode);
+                    CPP14Lexer lexer = new CPP14Lexer(input);
+                    CommonTokenStream tokens = new CommonTokenStream(lexer);
+                    CPP14Parser parser = new CPP14Parser(tokens);
 
-                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(mainClass);
-                ParseTreeWalker walker = new ParseTreeWalker();
-                walker.walk(analyzer, parser.translationUnit());
+                    CppMethodAnalyzer analyzer = new CppMethodAnalyzer(mainClass);
+                    ParseTreeWalker walker = new ParseTreeWalker();
+                    walker.walk(analyzer, parser.translationUnit());
 
-                // メソッド呼び出しを追加
-                List<MethodCall> calls = analyzer.getMethodCalls();
-                for (MethodCall call : calls) {
-                    sb.append(call.toString()).append("\n");
+                    List<MethodCall> methodCalls = analyzer.getMethodCalls();
+                    System.out.println("Found method calls: " + methodCalls.size());
+
+                    for (MethodCall call : methodCalls) {
+                        addMethodCallToSequence(sb, call, className);
+                    }
                 }
 
                 sb.append("[<-- \"").append(className).append("\"\n");
@@ -219,8 +234,33 @@ public class CppTranslator extends AbstractLanguageTranslator {
         }
 
         sb.append("@enduml\n");
-        System.out.println("Generated PlantUML:\n" + sb.toString());
-        return sb.toString();
+        String result = sb.toString();
+        System.out.println("Generated PlantUML:\n" + result);
+        return result;
+    }
+
+    private void addMethodCallToSequence(StringBuilder sb, MethodCall call, String className) {
+        String caller = className;
+        String callee = call.getCallee().isEmpty() ? className : call.getCallee();
+
+        sb.append("\"").append(caller).append("\" -> \"")
+                .append(callee).append("\" : ")
+                .append(call.getMethodName());
+
+        // 引数の追加
+        sb.append("(");
+        if (!call.getArguments().isEmpty()) {
+            sb.append(String.join(", ", call.getArguments()));
+        }
+        sb.append(")\n");
+
+        // 活性化とメッセージの戻り
+        if (!caller.equals(callee)) {
+            sb.append("activate \"").append(callee).append("\"\n");
+            sb.append("\"").append(callee).append("\" --> \"")
+                    .append(caller).append("\"\n");
+            sb.append("deactivate \"").append(callee).append("\"\n");
+        }
     }
 
     private String generateSequenceDiagramPlantUML(Interaction interaction) {
@@ -400,7 +440,7 @@ public class CppTranslator extends AbstractLanguageTranslator {
         }
     }
 
-    private List<MethodCall> analyzeMethodCalls(String code, String methodName) {
+    public List<MethodCall> analyzeMethodCalls(String code, String methodName) {
         try {
             CharStream input = CharStreams.fromString(code);
             CPP14Lexer lexer = new CPP14Lexer(input);
