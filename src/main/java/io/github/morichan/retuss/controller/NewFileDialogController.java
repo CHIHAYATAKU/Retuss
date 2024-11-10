@@ -35,7 +35,7 @@ public class NewFileDialogController {
         if (umlController.isJavaSelected() && !umlController.isCppSelected()) {
             extensionLabel.setText(".java");
         } else if (!umlController.isJavaSelected() && umlController.isCppSelected()) {
-            extensionLabel.setText(".hpp");
+            extensionLabel.setText(".h");
         } else {
             extensionLabel.setText("");
         }
@@ -51,7 +51,7 @@ public class NewFileDialogController {
                     javaModel.addNewCodeFile(fileName + ".java");
                 }
                 if (umlController.isCppSelected()) {
-                    cppModel.addNewFile(fileName + ".hpp");
+                    cppModel.addNewFile(fileName + ".h");
                 }
 
                 // ダイアログを閉じる
@@ -84,7 +84,7 @@ public class NewFileDialogController {
         if (umlController.isCppSelected()) {
             if (cppModel.findClass(fileName).isPresent()) {
                 messageLabel.setText(
-                        String.format("The \"%s.hpp\" file already exists. Please set a different file name.",
+                        String.format("The \"%s.h\" file already exists. Please set a different file name.",
                                 fileName));
                 return Boolean.FALSE;
             }

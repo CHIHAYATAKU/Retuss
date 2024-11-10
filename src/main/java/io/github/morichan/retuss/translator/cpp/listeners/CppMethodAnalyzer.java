@@ -16,8 +16,42 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import java.util.*;
 
 public class CppMethodAnalyzer extends CPP14ParserBaseListener {
+    public enum StandardLifeline {
+        COUT("std::cout", "ConsoleOutput"),
+        CIN("std::cin", "ConsoleInput"),
+        PRINTF("printf", "COutput");
+
+        private final String identifier;
+        private final String displayName;
+
+        StandardLifeline(String identifier, String displayName) {
+            this.identifier = identifier;
+            this.displayName = displayName;
+        }
+
+        public String getIdentifier() {
+            return identifier;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public static StandardLifeline fromCode(String code) {
+            if (code.contains("cout"))
+                return COUT;
+            if (code.contains("cin"))
+                return CIN;
+            if (code.contains("printf"))
+                return PRINTF;
+            return null;
+        }
+    }
+
     private final io.github.morichan.retuss.model.uml.Class currentClass; // 明示的に指定
     private Operation currentMethod;
+    private List<MethodCall> methodCalls = new ArrayList<>();
+    private Set<StandardLifeline> usedLifelines = new HashSet<>();
     private String currentVisibility = "private";
     private Interaction currentInteraction;
     private Stack<InteractionOperand> operandStack = new Stack<>();
@@ -107,17 +141,10 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
 
     @Override
     public void enterFunctionDefinition(CPP14Parser.FunctionDefinitionContext ctx) {
-        if (currentClass == null)
-            return;
-
         String methodName = extractMethodName(ctx.declarator().getText());
         currentMethod = findMethodInClass(methodName);
-
-        if (currentMethod != null) {
-            currentInteraction = new Interaction(currentMethod, currentMethod.toString());
-            nestingLevel = 0;
-            System.out.println("Starting method analysis: " + methodName);
-        }
+        nestingLevel = 0;
+        System.out.println("Analyzing method: " + methodName);
     }
 
     @Override
@@ -159,6 +186,20 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         operandStack.push(operand);
         fragment.getInteractionOperandList().add(operand);
         currentInteraction.getInteractionFragmentList().add(fragment);
+    }
+
+    @Override
+    public void enterStatement(CPP14Parser.StatementContext ctx) {
+        if (currentMethod == null)
+            return;
+
+        String statementText = ctx.getText();
+        StandardLifeline lifeline = StandardLifeline.fromCode(statementText);
+
+        if (lifeline != null) {
+            usedLifelines.add(lifeline);
+            handleStandardOperation(ctx, lifeline);
+        }
     }
 
     @Override
@@ -211,6 +252,76 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         }
     }
 
+    private void handleStandardOperation(CPP14Parser.StatementContext ctx, StandardLifeline lifeline) {
+        String caller = currentClass.getName();
+        String callee = lifeline.getDisplayName();
+        String methodName;
+        List<String> arguments;
+
+        switch (lifeline) {
+            case COUT:
+                methodName = "output";
+                arguments = List.of(extractStreamContent(ctx));
+                break;
+            case CIN:
+                methodName = "input";
+                arguments = List.of(extractCinTarget(ctx));
+                break;
+            case PRINTF:
+                methodName = "printf";
+                arguments = extractPrintfArguments(ctx);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported lifeline type: " + lifeline);
+        }
+
+        // MethodCall オブジェクトを生成
+        MethodCall call = new MethodCall(caller, callee, methodName, arguments, nestingLevel);
+        methodCalls.add(call);
+    }
+
+    private String extractStreamContent(CPP14Parser.StatementContext ctx) {
+        String text = ctx.getText();
+        StringBuilder content = new StringBuilder();
+        String[] parts = text.split("<<");
+
+        for (int i = 1; i < parts.length; i++) {
+            String part = parts[i].trim();
+            if (!part.equals("endl;") && !part.equals("endl")) {
+                if (part.startsWith("\"") && part.endsWith("\"")) {
+                    content.append(part.substring(1, part.length() - 1));
+                } else {
+                    content.append(part);
+                }
+                content.append(" ");
+            }
+        }
+
+        return content.toString().trim();
+    }
+
+    private String extractCinTarget(CPP14Parser.StatementContext ctx) {
+        String text = ctx.getText();
+        String[] parts = text.split(">>");
+        if (parts.length > 1) {
+            return parts[1].trim().replace(";", "");
+        }
+        return "";
+    }
+
+    private List<String> extractPrintfArguments(CPP14Parser.StatementContext ctx) {
+        List<String> args = new ArrayList<>();
+        // printf の引数解析（必要に応じて実装）
+        return args;
+    }
+
+    private Operation findMethodInClass(String methodName) {
+        return currentClass.getOperationList().stream()
+                .filter(op -> op.getName().getNameText().equals(methodName))
+                .findFirst()
+                .orElse(null);
+    }
+
     private boolean isMethodCall(CPP14Parser.PostfixExpressionContext ctx) {
         return ctx.LeftParen() != null;
     }
@@ -251,9 +362,11 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
     }
 
     public List<MethodCall> getMethodCalls() {
-        // このメソッドは必要に応じて実装
-        // 現在のInteractionから必要な情報を抽出して返す
-        return new ArrayList<>();
+        return methodCalls;
+    }
+
+    public Set<StandardLifeline> getUsedLifelines() {
+        return usedLifelines;
     }
 
     private String extractCalleeName(CPP14Parser.PostfixExpressionContext ctx) {
@@ -309,13 +422,6 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
             default:
                 return Visibility.Private;
         }
-    }
-
-    private Operation findMethodInClass(String methodName) {
-        return currentClass.getOperationList().stream()
-                .filter(op -> op.getName().getNameText().equals(methodName))
-                .findFirst()
-                .orElse(null);
     }
 
     @Override

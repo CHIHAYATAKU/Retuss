@@ -33,10 +33,6 @@ public class CppToUmlTranslator implements CodeToUmlTranslator {
         }
     }
 
-    private String preprocessCode(String code) {
-        return code.replaceAll("#.*\\n", "\n");
-    }
-
     private ParseTree parseCode(String code) {
         CharStream input = CharStreams.fromString(code);
         CPP14Lexer lexer = new CPP14Lexer(input);
@@ -49,6 +45,14 @@ public class CppToUmlTranslator implements CodeToUmlTranslator {
         ClassExtractorListener extractor = new ClassExtractorListener(typeMapper, visibilityMapper);
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(extractor, tree);
-        return extractor.getExtractedClasses();
+
+        // CppClassのリストをClassのリストに変換
+        List<Class> classes = new ArrayList<>();
+        classes.addAll(extractor.getExtractedClasses());
+        return classes;
+    }
+
+    private String preprocessCode(String code) {
+        return code.replaceAll("#.*\\n", "\n");
     }
 }

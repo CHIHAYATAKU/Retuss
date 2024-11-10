@@ -154,7 +154,7 @@ public class CodeController {
 
     private void updateTabTitle(Tab tab, CppFile file) {
         String fileName = file.getFileName();
-        String extension = file.isHeader() ? ".hpp" : ".cpp";
+        String extension = file.isHeader() ? ".h" : ".cpp";
         String baseName = fileName.replace(extension, "");
         tab.setText(fileName);
 
@@ -282,7 +282,7 @@ public class CodeController {
         }
     }
 
-    // C++用の新しいコード更新メソッド
+    // C++用のコード更新メソッド
     private void updateCppCodeFile() {
         Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
         if (selectedTab == null) {
@@ -290,7 +290,6 @@ public class CodeController {
         }
 
         for (Pair<CppFile, Tab> fileTabPair : cppFileTabList) {
-            System.out.println("fo-！！");
             if (fileTabPair.getValue().equals(selectedTab)) {
                 CppFile targetCodeFile = fileTabPair.getKey();
                 System.out.println(" target C++" + fileTabPair.getKey().getCode());

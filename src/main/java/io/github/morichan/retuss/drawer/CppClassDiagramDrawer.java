@@ -7,6 +7,7 @@ import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.CppClass;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
@@ -29,11 +30,47 @@ public class CppClassDiagramDrawer {
         System.out.println("CppClassDiagramDrawer initialized");
     }
 
+    private void drawClass(StringBuilder pumlBuilder, Class cls) {
+        // 抽象クラスの場合
+        if (cls.getAbstruct()) {
+            pumlBuilder.append("abstract ");
+        }
+        pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
+
+        // 属性の描画
+        for (Attribute attr : cls.getAttributeList()) {
+            pumlBuilder.append("  ")
+                    .append(getVisibilitySymbol(attr.getVisibility()))
+                    .append(" ")
+                    .append(attr.getName())
+                    .append(" : ")
+                    .append(attr.getType())
+                    .append("\n");
+        }
+
+        // メソッドの描画
+        for (Operation op : cls.getOperationList()) {
+            pumlBuilder.append("  ")
+                    .append(getVisibilitySymbol(op.getVisibility()))
+                    .append(" ")
+                    .append(op.getName())
+                    .append("()");
+
+            if (!op.getReturnType().toString().equals("void")) {
+                pumlBuilder.append(" : ")
+                        .append(op.getReturnType());
+            }
+            pumlBuilder.append("\n");
+        }
+
+        pumlBuilder.append("}\n\n");
+    }
+
     public void draw() {
         StringBuilder pumlBuilder = new StringBuilder();
         pumlBuilder.append("@startuml\n");
         pumlBuilder.append("skinparam style strictuml\n");
-        pumlBuilder.append("skinparam classAttributeIconSize 0\n");
+        // pumlBuilder.append("skinparam classAttributeIconSize 0\n");
         // pumlBuilder.append("hide circle\n"); // これを追加することでCを消せます
 
         List<Class> classes = model.getUmlClassList();
@@ -41,43 +78,11 @@ public class CppClassDiagramDrawer {
 
         // クラスの定義
         for (Class cls : classes) {
-            System.out.println("Processing class: " + cls.getName());
-            if (cls.getAbstruct()) {
-                pumlBuilder.append("abstract ");
+            if (cls instanceof CppClass) {
+                drawCppClass(pumlBuilder, (CppClass) cls);
+            } else {
+                drawClass(pumlBuilder, cls);
             }
-            pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
-
-            // 属性の追加
-            for (Attribute attr : cls.getAttributeList()) {
-                pumlBuilder.append("  ")
-                        .append(getVisibilitySymbol(attr.getVisibility()))
-                        .append(" ")
-                        .append(attr.getType())
-                        .append(" ")
-                        .append(attr.getName())
-                        .append("\n");
-            }
-
-            // 操作の追加
-            for (Operation op : cls.getOperationList()) {
-                pumlBuilder.append("  ")
-                        .append(getVisibilitySymbol(op.getVisibility()))
-                        .append(" ")
-                        .append(op.getReturnType())
-                        .append(" ")
-                        .append(op.getName())
-                        .append("(");
-
-                // パラメータの追加
-                List<String> params = new ArrayList<>();
-                for (Parameter param : op.getParameters()) {
-                    params.add(param.getType() + " " + param.getName());
-                }
-                pumlBuilder.append(String.join(", ", params));
-                pumlBuilder.append(")\n");
-            }
-
-            pumlBuilder.append("}\n\n");
         }
 
         // 継承関係の追加
@@ -111,6 +116,59 @@ public class CppClassDiagramDrawer {
             System.err.println("Error generating class diagram: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void drawCppClass(StringBuilder pumlBuilder, CppClass cls) {
+        if (cls.getAbstruct()) {
+            pumlBuilder.append("abstract ");
+        }
+        pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
+
+        // 属性の描画
+        for (Attribute attr : cls.getAttributeList()) {
+            pumlBuilder.append("  ")
+                    .append(getVisibilitySymbol(attr.getVisibility()))
+                    .append(" ");
+
+            // 修飾子の追加
+            List<String> modifiers = cls.getModifiers(attr.getName().getNameText());
+            if (!modifiers.isEmpty()) {
+                pumlBuilder.append("≪")
+                        .append(String.join(", ", modifiers))
+                        .append("≫ ");
+            }
+
+            pumlBuilder.append(attr.getName())
+                    .append(" : ")
+                    .append(attr.getType())
+                    .append("\n");
+        }
+
+        // メソッドの描画
+        for (Operation op : cls.getOperationList()) {
+            pumlBuilder.append("  ")
+                    .append(getVisibilitySymbol(op.getVisibility()))
+                    .append(" ");
+
+            // 修飾子の追加
+            List<String> modifiers = cls.getModifiers(op.getName().getNameText());
+            if (!modifiers.isEmpty()) {
+                pumlBuilder.append("≪")
+                        .append(String.join(", ", modifiers))
+                        .append("≫ ");
+            }
+
+            pumlBuilder.append(op.getName())
+                    .append("()");
+
+            if (!op.getReturnType().toString().equals("void")) {
+                pumlBuilder.append(" : ")
+                        .append(op.getReturnType());
+            }
+            pumlBuilder.append("\n");
+        }
+
+        pumlBuilder.append("}\n\n");
     }
 
     private String getVisibilitySymbol(Visibility visibility) {

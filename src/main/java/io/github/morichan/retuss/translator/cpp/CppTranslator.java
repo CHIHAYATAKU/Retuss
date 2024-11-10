@@ -7,6 +7,7 @@ import io.github.morichan.retuss.translator.common.AbstractLanguageTranslator;
 import io.github.morichan.retuss.translator.common.CodeToUmlTranslator;
 import io.github.morichan.retuss.translator.common.UmlToCodeTranslator;
 import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
+import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer.StandardLifeline;
 import io.github.morichan.retuss.translator.cpp.util.*;
 import io.github.morichan.retuss.translator.model.MethodCall;
 import io.github.morichan.fescue.feature.Operation;
@@ -180,63 +181,76 @@ public class CppTranslator extends AbstractLanguageTranslator {
 
     @Override
     public String generateSequenceDiagram(String headerCode, String implCode, String methodName) {
-        System.out.println("Generating sequence diagram for method: " + methodName);
         StringBuilder sb = new StringBuilder();
         sb.append("@startuml\n");
         sb.append("skinparam style strictuml\n\n");
 
         try {
-            // ヘッダーファイルの解析
             List<Class> classes = translateCodeToUml(headerCode);
-            System.out.println("Found classes: " + classes.size());
-
             if (!classes.isEmpty()) {
                 Class mainClass = classes.get(0);
-                String className = mainClass.getName();
+                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(mainClass);
 
-                // 対象のメソッドを探す
-                boolean methodFound = mainClass.getOperationList().stream()
-                        .anyMatch(op -> op.getName().getNameText().equals(methodName));
+                // 実装コードの解析
+                CharStream input = CharStreams.fromString(implCode);
+                CPP14Lexer lexer = new CPP14Lexer(input);
+                CommonTokenStream tokens = new CommonTokenStream(lexer);
+                CPP14Parser parser = new CPP14Parser(tokens);
+                ParseTreeWalker walker = new ParseTreeWalker();
+                walker.walk(analyzer, parser.translationUnit());
 
-                System.out.println("Class: " + className + ", Method found: " + methodFound);
+                sb.append("mainframe ").append(methodName + "\n");
+                // メインクラスのライフライン
+                sb.append("participant ").append("\"").append(mainClass.getName()).append("\"")
+                        .append(" as Main\n");
 
-                // 基本的なシーケンス図の構造
-                sb.append("participant \"").append(className).append("\"\n");
+                // 標準ライブラリのライフライン
+                for (StandardLifeline lifeline : analyzer.getUsedLifelines()) {
+                    sb.append("participant ").append(lifeline.getDisplayName())
+                            .append(" as ").append("\"").append(lifeline.getIdentifier()).append("\"")
+                            .append(" #99FF99\n");
+                }
                 sb.append("\n");
-                sb.append("[-> \"").append(className).append("\" : ").append(methodName).append("()\n");
-                sb.append("activate \"").append(className).append("\"\n");
 
-                // メソッド本体の解析（実装ファイルから）
-                if (implCode != null && !implCode.isEmpty()) {
-                    CharStream input = CharStreams.fromString(implCode);
-                    CPP14Lexer lexer = new CPP14Lexer(input);
-                    CommonTokenStream tokens = new CommonTokenStream(lexer);
-                    CPP14Parser parser = new CPP14Parser(tokens);
+                // メソッド開始
+                sb.append("[-> Main : ").append(methodName).append("()\n");
+                sb.append("activate Main\n\n");
 
-                    CppMethodAnalyzer analyzer = new CppMethodAnalyzer(mainClass);
-                    ParseTreeWalker walker = new ParseTreeWalker();
-                    walker.walk(analyzer, parser.translationUnit());
+                // メソッド呼び出し
+                for (MethodCall call : analyzer.getMethodCalls()) {
+                    String caller = call.getCaller().equals(mainClass.getName()) ? "Main" : call.getCaller();
+                    String callee = call.getCallee();
 
-                    List<MethodCall> methodCalls = analyzer.getMethodCalls();
-                    System.out.println("Found method calls: " + methodCalls.size());
+                    sb.append(caller).append("-> ").append(callee).append(": ");
 
-                    for (MethodCall call : methodCalls) {
-                        addMethodCallToSequence(sb, call, className);
+                    if (call.getMethodName().equals("output") ||
+                            call.getMethodName().equals("input")) {
+                        sb.append(call.getArguments().get(0));
+                    } else {
+                        sb.append(call.getMethodName())
+                                .append("(")
+                                .append(String.join(", ", call.getArguments()))
+                                .append(")");
                     }
+                    sb.append("\n");
+
+                    // アクティベーション処理
+                    sb.append("activate ").append(callee).append("\n");
+                    sb.append(callee).append("--> ").append(caller).append("\n");
+                    sb.append("deactivate ").append(callee).append("\n");
                 }
 
-                sb.append("[<-- \"").append(className).append("\"\n");
-                sb.append("deactivate \"").append(className).append("\"\n");
+                // メソッド終了
+                sb.append("\n[<-- Main\n");
+                sb.append("deactivate Main\n");
             }
         } catch (Exception e) {
             System.err.println("Error generating sequence diagram: " + e.getMessage());
             e.printStackTrace();
         }
 
-        sb.append("@enduml\n");
-        String result = sb.toString();
-        System.out.println("Generated PlantUML:\n" + result);
-        return result;
+        sb.append("@enduml");
+        return sb.toString();
     }
 
     private void addMethodCallToSequence(StringBuilder sb, MethodCall call, String className) {

@@ -4,8 +4,15 @@ import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
+import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
+import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
+
 import java.util.*;
+
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.*;
 
 public class CppFile implements ICodeFile {
     private final UUID ID = UUID.randomUUID();
@@ -44,8 +51,8 @@ public class CppFile implements ICodeFile {
 
     // ファイルの種類に応じた初期化の改善
     private void initializeHeaderFile() {
-        String className = fileName.replace(".hpp", "");
-        String guardName = className.toUpperCase() + "_HPP";
+        String className = fileName.replace(".h", "");
+        String guardName = className.toUpperCase() + "_H";
 
         StringBuilder sb = new StringBuilder();
         sb.append("#ifndef ").append(guardName).append("\n");
@@ -63,7 +70,7 @@ public class CppFile implements ICodeFile {
     private void initializeImplementationFile() {
         String className = fileName.replace(".cpp", "");
         StringBuilder sb = new StringBuilder();
-        sb.append("#include \"").append(className).append(".hpp\"\n\n");
+        sb.append("#include \"").append(className).append(".h\"\n\n");
         sb.append(className).append("::").append(className).append("() {\n}\n\n");
         sb.append(className).append("::~").append(className).append("() {\n}\n");
 
@@ -124,7 +131,7 @@ public class CppFile implements ICodeFile {
                     Optional<String> newClassName = translator.extractClassName(code);
                     if (newClassName.isPresent()) {
                         String className = newClassName.get();
-                        String expectedFileName = className + ".hpp";
+                        String expectedFileName = className + ".h";
                         System.out.println("DEBUG: Detected class name: " + className +
                                 ", current file: " + this.fileName);
 
@@ -136,12 +143,44 @@ public class CppFile implements ICodeFile {
                             notifyFileNameChanged(oldFileName, expectedFileName);
                         }
                     }
+                } else {
+                    updateMethodImplementations(code);
                 }
 
                 notifyFileChanged();
             }
         } catch (Exception e) {
             System.err.println("Failed to update code: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void updateMethodImplementations(String code) {
+        try {
+            // 対応するヘッダーファイルのクラスを取得
+            String baseName = getFileName().replace(".cpp", "");
+            CppFile headerFile = CppModel.getInstance().findHeaderFile(baseName);
+
+            if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+                Class umlClass = headerFile.getUmlClassList().get(0);
+
+                // メソッドの実装を解析
+                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
+                CharStream input = CharStreams.fromString(code);
+                CPP14Lexer lexer = new CPP14Lexer(input);
+                CommonTokenStream tokens = new CommonTokenStream(lexer);
+                CPP14Parser parser = new CPP14Parser(tokens);
+
+                ParseTreeWalker walker = new ParseTreeWalker();
+                walker.walk(analyzer, parser.translationUnit());
+
+                // シーケンス図の更新をトリガー
+                if (umlController != null) {
+                    umlController.updateDiagram(this);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to update method implementations: " + e.getMessage());
             e.printStackTrace();
         }
     }

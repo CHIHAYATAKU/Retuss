@@ -453,7 +453,7 @@ public class UmlController {
     }
 
     private void generateMethodTabs(Class umlClass, TabPane methodTabPane, String fileName) {
-        String baseName = fileName.replace(".hpp", "");
+        String baseName = fileName.replace(".h", "");
         for (Operation operation : umlClass.getOperationList()) {
             Tab methodTab = new Tab(operation.getName().getNameText());
             WebView webView = new WebView();
@@ -486,13 +486,13 @@ public class UmlController {
 
     private void removeOldSequenceTab(String oldClassName) {
         tabPaneInSequenceTab.getTabs().removeIf(tab -> tab.getText().equals(oldClassName + ".cpp") ||
-                tab.getText().equals(oldClassName + ".hpp"));
+                tab.getText().equals(oldClassName + ".h"));
     }
 
     public void updateFileName(String oldName, String newName) {
         // クラス名が変更された場合の処理
         if (oldName != null && newName != null && !oldName.equals(newName)) {
-            removeOldSequenceTab(oldName.replace(".hpp", "").replace(".cpp", ""));
+            removeOldSequenceTab(oldName.replace(".h", "").replace(".cpp", ""));
         }
     }
 
@@ -517,7 +517,7 @@ public class UmlController {
     private void updateCppSequenceDiagram(CppFile headerFile) {
         System.out.println("Starting sequence diagram update for: " + headerFile.getFileName());
 
-        String baseName = headerFile.getFileName().replace(".hpp", "");
+        String baseName = headerFile.getFileName().replace(".h", "");
         CppFile implFile = cppModel.findImplFile(baseName);
 
         if (implFile == null) {
@@ -549,7 +549,6 @@ public class UmlController {
             Class umlClass = headerFile.getUmlClassList().get(0);
             System.out.println("Processing methods for class: " + umlClass.getName());
 
-            // ToDo : メソッドが属性に格納されてしまっている
             for (Operation operation : umlClass.getOperationList()) {
                 String methodName = operation.getName().getNameText();
                 System.out.println("Processing methods for class: " + methodName);
@@ -577,7 +576,7 @@ public class UmlController {
     }
 
     private Optional<Tab> findOrCreateSequenceTab(CppFile headerFile) {
-        String baseName = headerFile.getFileName().replace(".hpp", "");
+        String baseName = headerFile.getFileName().replace(".h", "");
 
         // 既存のタブを探す
         Optional<Tab> existingTab = tabPaneInSequenceTab.getTabs().stream()
