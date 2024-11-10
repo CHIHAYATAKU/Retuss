@@ -18,7 +18,7 @@ import io.github.morichan.retuss.model.common.AbstractJavaModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.*;
-import io.github.morichan.retuss.translator.Translator;
+import io.github.morichan.retuss.translator.JavaTranslator;
 
 import java.util.*;
 
@@ -33,7 +33,7 @@ import java.util.*;
 public class JavaModel extends AbstractJavaModel {
     private static JavaModel model = new JavaModel();
     private List<CodeFile> codeFileList = new ArrayList<>();
-    private Translator translator = new Translator();
+    private JavaTranslator translator = new JavaTranslator();
 
     private JavaModel() {
     }

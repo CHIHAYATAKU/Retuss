@@ -30,7 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public class Translator extends AbstractTranslator {
+public class JavaTranslator extends AbstractTranslator {
     /**
      * <p>
      * ソースコードのASTをUMLデータに変換する。

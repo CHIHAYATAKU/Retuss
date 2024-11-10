@@ -8,19 +8,24 @@ import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.translator.CppTranslator;
+import io.github.morichan.retuss.translator.cpp.CppTranslator;
 import java.util.*;
 
 public class CppModel {
     private static final CppModel model = new CppModel();
     private final Map<String, CppFile> headerFiles = new HashMap<>();
     private final Map<String, CppFile> implFiles = new HashMap<>();
-    private final CppTranslator translator = new CppTranslator();
+    private final CppTranslator translator;
     private CodeController codeController;
     private UmlController umlController;
     private final List<ModelChangeListener> changeListeners = new ArrayList<>();
 
     private CppModel() {
+        this.translator = createTranslator();
+    }
+
+    private CppTranslator createTranslator() {
+        return new CppTranslator();
     }
 
     public static CppModel getInstance() {
@@ -33,10 +38,16 @@ public class CppModel {
 
     public void setUmlController(UmlController controller) {
         this.umlController = controller;
+        for (CppFile file : headerFiles.values()) {
+            file.setUmlController(controller);
+        }
+        for (CppFile file : implFiles.values()) {
+            file.setUmlController(controller);
+        }
     }
 
     public void addNewFile(String fileName) {
-        String baseName = fileName.replaceAll("\\.(hpp|cpp)$", "");
+        String baseName = fileName.replaceAll("\\.(h|hpp|cpp)$", "");
 
         // 既存のファイルチェック
         if (headerFiles.containsKey(baseName) || implFiles.containsKey(baseName)) {
@@ -47,8 +58,13 @@ public class CppModel {
         System.out.println("DEBUG: Creating new files for " + baseName);
 
         // ファイルの作成
-        final CppFile headerFile = new CppFile(baseName + ".hpp", true);
+        final CppFile headerFile = new CppFile(baseName + ".h", true);
         final CppFile implFile = new CppFile(baseName + ".cpp", false);
+
+        if (umlController != null) {
+            headerFile.setUmlController(umlController);
+            implFile.setUmlController(umlController);
+        }
 
         // ヘッダーファイルの変更監視
         headerFile.addChangeListener(new CppFile.FileChangeListener() {
@@ -85,7 +101,7 @@ public class CppModel {
 
     private String generateHeaderTemplate(String className) {
         StringBuilder sb = new StringBuilder();
-        String guardName = className.toUpperCase() + "_HPP";
+        String guardName = className.toUpperCase() + "_H";
 
         sb.append("#ifndef ").append(guardName).append("\n");
         sb.append("#define ").append(guardName).append("\n\n");
@@ -103,7 +119,7 @@ public class CppModel {
 
     private String generateImplTemplate(String className) {
         StringBuilder sb = new StringBuilder();
-        sb.append("#include \"").append(className).append(".hpp\"\n\n");
+        sb.append("#include \"").append(className).append(".h\"\n\n");
         sb.append(className).append("::").append(className).append("() {\n}\n\n");
         sb.append(className).append("::~").append(className).append("() {\n}\n");
         return sb.toString();
@@ -111,10 +127,12 @@ public class CppModel {
 
     public void addNewUmlClass(Class umlClass) {
         String baseName = umlClass.getName();
-        CppFile headerFile = new CppFile(baseName + ".hpp", true);
+        CppFile headerFile = new CppFile(baseName + ".h", true);
         CppFile implFile = new CppFile(baseName + ".cpp", false);
 
         // UMLクラスからコードを生成
+        // 修正前: String headerCode =
+        // translator.translateUmlToCode(Collections.singletonList(umlClass));
         String headerCode = translator.translateUmlToCode(Collections.singletonList(umlClass));
         headerFile.updateCode(headerCode);
 
@@ -154,7 +172,7 @@ public class CppModel {
 
     private void updateHeaderFile(CppFile headerFile, String code, String baseName) {
         // 古いクラス名を保存
-        String oldClassName = headerFile.getFileName().replace(".hpp", "");
+        String oldClassName = headerFile.getFileName().replace(".h", "");
 
         // コードを更新
         headerFile.updateCode(code);
@@ -203,8 +221,8 @@ public class CppModel {
     private void updateImplFileName(CppFile implFile, String newName) {
         System.out.println("DEBUG: Updating implementation file name to " + newName);
         String currentCode = implFile.getCode();
-        String oldHeaderName = implFile.getFileName().replace(".cpp", ".hpp");
-        String newHeaderName = newName.replace(".cpp", ".hpp");
+        String oldHeaderName = implFile.getFileName().replace(".cpp", ".h");
+        String newHeaderName = newName.replace(".cpp", ".h");
 
         // インクルード文の更新
         String oldInclude = "#include \"" + oldHeaderName + "\"";
@@ -309,7 +327,7 @@ public class CppModel {
 
             String currentCode = implFile.getCode();
             String expectedInclude = "#include \"" + headerFile.getFileName() + "\"";
-            String oldIncludePattern = "#include \".*?.hpp\"";
+            String oldIncludePattern = "#include \".*?.h\"";
             String newCode = currentCode;
 
             if (!currentCode.contains(expectedInclude)) {
@@ -333,7 +351,7 @@ public class CppModel {
             // ヘッダーファイルのインクルードを保持
             String headerInclude = "";
             String currentCode = existingImpl.getCode();
-            String includePattern = "#include \".*?.hpp\"";
+            String includePattern = "#include \".*?.h\"";
             java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(includePattern).matcher(currentCode);
             if (matcher.find()) {
                 headerInclude = matcher.group() + "\n\n";
@@ -356,6 +374,10 @@ public class CppModel {
         System.out.println("CppModel classes: " + allClasses.size());
         for (Class cls : allClasses) {
             System.out.println("  Class: " + cls.getName());
+            System.out.println("  Attri: " + cls.getAttributeList().toString());
+            System.out.println("  Opera: " + cls.getOperationList().toString());
+            System.out.println("  Inter: " + cls.getInteractionList().toString());
+            System.out.println("  Inter: " + cls.getInteractionList().toString());
         }
         return Collections.unmodifiableList(allClasses);
     }
@@ -376,7 +398,7 @@ public class CppModel {
                 childClass.setSuperClass(parentClasses.get(0));
 
                 // 親クラスのヘッダーをインクルード
-                String includeStatement = "#include \"" + superClassName + ".hpp\"";
+                String includeStatement = "#include \"" + superClassName + ".h\"";
                 String currentCode = childFile.getCode();
                 if (!currentCode.contains(includeStatement)) {
                     int insertPos = currentCode.indexOf("\n\nclass");
@@ -460,13 +482,7 @@ public class CppModel {
     }
 
     private String toSourceCodeType(Type type) {
-        String typeName = type.toString();
-        Map<String, String> typeMap = Map.of(
-                "string", "std::string",
-                "vector", "std::vector",
-                "map", "std::map",
-                "set", "std::set");
-        return typeMap.getOrDefault(typeName, typeName);
+        return translator.translateType(type);
     }
 
     public void updateCodeFile(ICodeFile changedCodeFile, String code) {
@@ -505,7 +521,53 @@ public class CppModel {
     }
 
     private String getBaseName(String fileName) {
-        return fileName.replaceAll("\\.(hpp|cpp)$", "");
+        return fileName.replaceAll("\\.(h|hpp|cpp)$", "");
+    }
+
+    /**
+     * 指定されたクラスのメソッドのシーケンス図を生成
+     */
+    public String generateSequenceDiagram(String className, String methodName) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        Optional<CppFile> implFileOpt = Optional.ofNullable(findImplFile(className));
+
+        if (headerFileOpt.isPresent() && implFileOpt.isPresent()) {
+            CppFile headerFile = headerFileOpt.get();
+            CppFile implFile = implFileOpt.get();
+
+            // デバッグ出力
+            System.out.println("Generating sequence diagram for " + className + "::" + methodName);
+            System.out.println("Header file: " + headerFile.getFileName());
+            System.out.println("Implementation file: " + implFile.getFileName());
+
+            return translator.generateSequenceDiagram(
+                    headerFile.getCode(),
+                    implFile.getCode(),
+                    methodName);
+        }
+
+        System.err.println("Could not find necessary files for " + className);
+        return "";
+    }
+
+    /**
+     * 実装ファイルを取得する
+     *
+     * @param baseName 拡張子を除いたファイル名
+     * @return 実装ファイル、存在しない場合はnull
+     */
+    public CppFile findImplFile(String baseName) {
+        return implFiles.get(baseName);
+    }
+
+    /**
+     * ヘッダーファイルを取得する
+     *
+     * @param baseName 拡張子を除いたファイル名
+     * @return ヘッダーファイル、存在しない場合はnull
+     */
+    public CppFile findHeaderFile(String baseName) {
+        return headerFiles.get(baseName);
     }
 
 }

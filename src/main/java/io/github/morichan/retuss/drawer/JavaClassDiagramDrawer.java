@@ -23,7 +23,9 @@ public class JavaClassDiagramDrawer {
     }
 
     public void draw() {
-        List<Class> umlClassList = javaModel.getUmlClassList();
+        System.out.println("DEBUG: Starting to draw Java class diagram");
+        List<Class> umlClassList = JavaModel.getInstance().getUmlClassList();
+        System.out.println("DEBUG: Found " + umlClassList.size() + " classes to draw");
 
         System.err.println("classList : " + umlClassList.toString());
 
