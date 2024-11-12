@@ -199,16 +199,21 @@ public class CppTranslator extends AbstractLanguageTranslator {
                 ParseTreeWalker walker = new ParseTreeWalker();
                 walker.walk(analyzer, parser.translationUnit());
 
-                sb.append("mainframe ").append(methodName + "\n");
-                // メインクラスのライフライン
-                sb.append("participant ").append("\"").append(mainClass.getName()).append("\"")
-                        .append(" as Main\n");
+                // シーケンス図のヘッダー
+                sb.append("title ").append(mainClass.getName())
+                        .append("::").append(methodName).append("\n\n");
 
-                // 標準ライブラリのライフライン
+                // 参加者の定義（改行を入れて整理）
+                sb.append("participant \"").append(mainClass.getName())
+                        .append("\" as Main\n");
+
+                // 標準ライブラリの参加者を追加
                 for (StandardLifeline lifeline : analyzer.getUsedLifelines()) {
-                    sb.append("participant ").append(lifeline.getDisplayName())
-                            .append(" as ").append("\"").append(lifeline.getIdentifier()).append("\"")
-                            .append(" #99FF99\n");
+                    sb.append("participant ")
+                            .append(lifeline.getDisplayName())
+                            .append(" as ")
+                            .append(lifeline.getIdentifier())
+                            .append("\n");
                 }
                 sb.append("\n");
 
@@ -218,10 +223,12 @@ public class CppTranslator extends AbstractLanguageTranslator {
 
                 // メソッド呼び出し
                 for (MethodCall call : analyzer.getMethodCalls()) {
-                    String caller = call.getCaller().equals(mainClass.getName()) ? "Main" : call.getCaller();
+                    String caller = "Main";
                     String callee = call.getCallee();
 
-                    sb.append(caller).append("-> ").append(callee).append(": ");
+                    sb.append("Main -> \"")
+                            .append(callee)
+                            .append("\" : ");
 
                     if (call.getMethodName().equals("output") ||
                             call.getMethodName().equals("input")) {
@@ -234,10 +241,12 @@ public class CppTranslator extends AbstractLanguageTranslator {
                     }
                     sb.append("\n");
 
-                    // アクティベーション処理
-                    sb.append("activate ").append(callee).append("\n");
-                    sb.append(callee).append("--> ").append(caller).append("\n");
-                    sb.append("deactivate ").append(callee).append("\n");
+                    // アクティベーション
+                    if (!caller.equals(callee)) {
+                        sb.append("activate \"").append(callee).append("\"\n");
+                        sb.append("\"").append(callee).append("\" --> Main\n");
+                        sb.append("deactivate \"").append(callee).append("\"\n");
+                    }
                 }
 
                 // メソッド終了
@@ -250,7 +259,36 @@ public class CppTranslator extends AbstractLanguageTranslator {
         }
 
         sb.append("@enduml");
+
+        // デバッグ出力
+        System.out.println("Generated PlantUML:\n" + sb.toString());
+
         return sb.toString();
+    }
+
+    private boolean isSpecialMethod(String methodName) {
+        return methodName.equals("output") ||
+                methodName.equals("input") ||
+                methodName.equals("cout") ||
+                methodName.equals("cin");
+    }
+
+    private void appendSpecialMethodCall(StringBuilder sb, MethodCall call) {
+        if (!call.getArguments().isEmpty()) {
+            sb.append(call.getArguments().get(0));
+        }
+    }
+
+    private void appendNormalMethodCall(StringBuilder sb, MethodCall call) {
+        sb.append(call.getMethodName())
+                .append("(")
+                .append(String.join(", ", call.getArguments()))
+                .append(")");
+    }
+
+    private String escapeCallee(String callee) {
+        // 特殊文字のエスケープ処理が必要な場合
+        return callee.replace("::", "_");
     }
 
     private void addMethodCallToSequence(StringBuilder sb, MethodCall call, String className) {

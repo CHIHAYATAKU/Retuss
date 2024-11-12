@@ -143,8 +143,10 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
     public void enterFunctionDefinition(CPP14Parser.FunctionDefinitionContext ctx) {
         String methodName = extractMethodName(ctx.declarator().getText());
         currentMethod = findMethodInClass(methodName);
-        nestingLevel = 0;
-        System.out.println("Analyzing method: " + methodName);
+        if (currentMethod != null) {
+            System.out.println("Analyzing method: " + methodName);
+            nestingLevel = 0;
+        }
     }
 
     @Override
@@ -237,10 +239,14 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         if (currentInteraction == null || !isMethodCall(ctx))
             return;
 
-        String callerName = currentClass.getName();
+        String callerName = extractCallerName(ctx);
         String calleeName = extractCalleeName(ctx);
         String methodName = extractMethodName(ctx);
         List<String> arguments = extractArguments(ctx);
+
+        System.out.println("Found method call: " + methodName);
+        System.out.println("  Caller: " + callerName);
+        System.out.println("  Arguments: " + String.join(", ", arguments));
 
         // MethodCallオブジェクトを作成
         MethodCall call = new MethodCall();
@@ -329,10 +335,8 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
 
     private String extractMethodName(CPP14Parser.PostfixExpressionContext ctx) {
         String expr = ctx.postfixExpression().getText();
-        if (expr.contains("->")) {
-            return expr.split("->")[1];
-        } else if (expr.contains(".")) {
-            return expr.split("\\.")[1];
+        if (expr.contains("::")) {
+            return expr.substring(expr.lastIndexOf("::") + 2);
         }
         return expr;
     }
@@ -370,6 +374,14 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         return usedLifelines;
     }
 
+    private String extractCallerName(CPP14Parser.PostfixExpressionContext ctx) {
+        String expr = ctx.postfixExpression().getText();
+        if (expr.contains("::")) {
+            return expr.substring(0, expr.lastIndexOf("::"));
+        }
+        return currentClass.getName(); // デフォルトは現在のクラス
+    }
+
     private String extractCalleeName(CPP14Parser.PostfixExpressionContext ctx) {
         String expr = ctx.postfixExpression().getText();
         if (expr.contains("->")) {
@@ -382,9 +394,12 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
 
     private List<String> extractArguments(CPP14Parser.PostfixExpressionContext ctx) {
         List<String> args = new ArrayList<>();
-        if (ctx.expressionList() != null) {
-            ctx.expressionList().initializerList().initializerClause()
-                    .forEach(arg -> args.add(arg.getText()));
+        if (ctx.expressionList() != null &&
+                ctx.expressionList().initializerList() != null) {
+            for (CPP14Parser.InitializerClauseContext arg : ctx.expressionList().initializerList()
+                    .initializerClause()) {
+                args.add(arg.getText());
+            }
         }
         return args;
     }

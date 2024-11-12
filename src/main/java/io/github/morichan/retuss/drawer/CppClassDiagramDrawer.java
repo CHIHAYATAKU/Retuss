@@ -43,32 +43,77 @@ public class CppClassDiagramDrawer {
     }
 
     private void drawClass(StringBuilder pumlBuilder, Class cls) {
-        if (cls.getAbstruct()) {
-            pumlBuilder.append("abstract ");
-        }
-        pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
+        try {
+            System.out.println("Drawing class: " + cls.getName());
+            System.out.println("Attributes: " + cls.getAttributeList().size());
+            System.out.println("Operations: " + cls.getOperationList().size());
 
-        // 属性
-        for (Attribute attr : cls.getAttributeList()) {
-            pumlBuilder.append("  ")
-                    .append(getVisibilitySymbol(attr.getVisibility()))
-                    .append(" ")
-                    .append(attr.getName())
-                    .append(" : ")
-                    .append(attr.getType())
-                    .append("\n");
-        }
+            if (cls.getAbstruct()) {
+                pumlBuilder.append("abstract ");
+            }
+            pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
 
-        // メソッド
-        for (Operation op : cls.getOperationList()) {
+            // 属性
+            for (Attribute attr : cls.getAttributeList()) {
+                appendAttribute(pumlBuilder, attr);
+            }
+
+            // メソッド
+            for (Operation op : cls.getOperationList()) {
+                appendOperation(pumlBuilder, op);
+                // デバッグ出力
+                System.out.println("  Operation: " + op.getName() +
+                        " Type: " + op.getReturnType());
+            }
+
+            pumlBuilder.append("}\n\n");
+        } catch (Exception e) {
+            System.err.println("Error drawing class " + cls.getName() +
+                    ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void appendAttribute(StringBuilder pumlBuilder, Attribute attr) {
+        pumlBuilder.append("  ")
+                .append(getVisibilitySymbol(attr.getVisibility()))
+                .append(" ")
+                .append(attr.getName())
+                .append(" : ")
+                .append(attr.getType())
+                .append("\n");
+    }
+
+    private void appendOperation(StringBuilder pumlBuilder, Operation op) {
+        try {
             pumlBuilder.append("  ")
                     .append(getVisibilitySymbol(op.getVisibility()))
                     .append(" ")
                     .append(op.getName().getNameText())
-                    .append("()\n");
-        }
+                    .append("(");
 
-        pumlBuilder.append("}\n\n");
+            // パラメータ処理
+            try {
+                List<String> params = new ArrayList<>();
+                for (Parameter param : op.getParameters()) {
+                    params.add(param.getType() + " " + param.getName());
+                }
+                pumlBuilder.append(String.join(", ", params));
+            } catch (IllegalStateException e) {
+                // パラメータ取得エラーは無視
+            }
+
+            pumlBuilder.append(")");
+
+            String returnType = op.getReturnType().toString();
+            pumlBuilder.append(" : ")
+                    .append(returnType);
+
+            pumlBuilder.append("\n");
+        } catch (Exception e) {
+            System.err.println("Error appending operation " + op.getName() +
+                    ": " + e.getMessage());
+        }
     }
 
     public void draw() {
@@ -95,6 +140,19 @@ public class CppClassDiagramDrawer {
                     System.out.println("Attributes: " + cls.getAttributeList().size());
                     System.out.println("Operations: " + cls.getOperationList().size());
                     drawClass(pumlBuilder, cls);
+                }
+
+                // 継承関係の追加
+                for (Class cls : classes) {
+                    if (cls.getSuperClass().isPresent()) {
+                        String superClassName = cls.getSuperClass().get().getName();
+                        System.out.println("Adding inheritance: " + cls.getName() +
+                                " extends " + superClassName);
+                        pumlBuilder.append(superClassName)
+                                .append(" <|-- ")
+                                .append(cls.getName())
+                                .append("\n");
+                    }
                 }
 
                 pumlBuilder.append("@enduml\n");
