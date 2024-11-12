@@ -242,14 +242,15 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         String methodName = extractMethodName(ctx);
         List<String> arguments = extractArguments(ctx);
 
-        OccurenceSpecification occurence = createMethodCallOccurence(
-                callerName, calleeName, methodName, arguments);
+        // MethodCallオブジェクトを作成
+        MethodCall call = new MethodCall();
+        call.setCaller(callerName);
+        call.setCallee(calleeName);
+        call.setMethodName(methodName);
+        call.getArguments().addAll(arguments);
+        call.setNestingLevel(nestingLevel);
 
-        if (!operandStack.isEmpty()) {
-            operandStack.peek().getInteractionFragmentList().add(occurence);
-        } else {
-            currentInteraction.getInteractionFragmentList().add(occurence);
-        }
+        methodCalls.add(call);
     }
 
     private void handleStandardOperation(CPP14Parser.StatementContext ctx, StandardLifeline lifeline) {

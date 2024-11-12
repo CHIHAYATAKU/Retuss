@@ -17,6 +17,8 @@ import io.github.morichan.retuss.translator.cpp.util.CppVisibilityMapper;
 
 import java.util.*;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+
 public class ClassExtractorListener extends CPP14ParserBaseListener {
     private final CppTypeMapper typeMapper;
     private final CppVisibilityMapper visibilityMapper;
@@ -92,27 +94,34 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
     private void handleMethod(CPP14Parser.DeclaratorContext declarator, String type) {
         try {
             String methodName = extractMethodName(declarator.getText());
+            System.out.println("DEBUG: Processing method: " + methodName);
+
             Operation operation = new Operation(new Name(methodName));
             operation.setReturnType(new Type(cleanTypeSpecifiers(type)));
             operation.setVisibility(convertVisibility(currentVisibility));
 
-            // 修飾子の収集
-            List<String> modifiers = new ArrayList<>();
+            // 修飾子の判定と追加
+            List<String> stereotypes = new ArrayList<>();
+            if (isStaticMethod(declarator)) {
+                stereotypes.add("static");
+            }
             if (isVirtualMethod(declarator)) {
-                modifiers.add("virtual");
+                stereotypes.add("virtual");
             }
             if (isConstMethod(declarator)) {
-                modifiers.add("const");
-            }
-            if (isStaticMethod(declarator)) {
-                modifiers.add("static");
+                stereotypes.add("const");
             }
 
-            // CppClassに修飾子情報を追加
-            currentClass.addMemberModifiers(methodName, modifiers);
+            // ステレオタイプの追加
+            if (!stereotypes.isEmpty()) {
+                String modifiedName = "≪" + String.join(", ", stereotypes) + "≫ " + methodName;
+                operation.setName(new Name(modifiedName));
+            }
 
-            // 操作の追加
             currentClass.addOperation(operation);
+            System.out.println("DEBUG: Added method: " + methodName +
+                    " with modifiers: " + String.join(", ", stereotypes));
+
         } catch (Exception e) {
             System.err.println("Error in handleMethod: " + e.getMessage());
             e.printStackTrace();
@@ -121,7 +130,6 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
 
     // 型指定子からvirtualなどの修飾子を除去
     private String cleanTypeSpecifiers(String type) {
-        // 修飾子のリスト
         List<String> modifiers = Arrays.asList(
                 "virtual", "static", "const", "volatile", "mutable");
 
@@ -130,7 +138,6 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
             cleanType = cleanType.replace(modifier, "").trim();
         }
 
-        // 空の場合はvoidを返す
         return cleanType.isEmpty() ? "void" : cleanType;
     }
 
@@ -184,19 +191,21 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
 
     // 修飾子チェック用の補助メソッド
     private boolean isConstMethod(CPP14Parser.DeclaratorContext declarator) {
-        if (declarator.parametersAndQualifiers() != null) {
-            return declarator.parametersAndQualifiers().getText().contains("const");
-        }
-        return false;
+        return declarator.parametersAndQualifiers() != null &&
+                declarator.parametersAndQualifiers().getText().contains("const");
     }
 
     private boolean isStaticMethod(CPP14Parser.DeclaratorContext declarator) {
-        if (declarator.getParent() instanceof CPP14Parser.MemberdeclarationContext) {
-            CPP14Parser.MemberdeclarationContext memberDeclaration = (CPP14Parser.MemberdeclarationContext) declarator
-                    .getParent();
-            if (memberDeclaration.declSpecifierSeq() != null) {
-                return memberDeclaration.declSpecifierSeq().getText().contains("static");
-            }
+        // 親のコンテキストを正しく取得
+        ParserRuleContext parent = declarator.getParent();
+        while (parent != null && !(parent instanceof CPP14Parser.MemberdeclarationContext)) {
+            parent = parent.getParent();
+        }
+
+        if (parent instanceof CPP14Parser.MemberdeclarationContext) {
+            CPP14Parser.MemberdeclarationContext memberCtx = (CPP14Parser.MemberdeclarationContext) parent;
+            return memberCtx.declSpecifierSeq() != null &&
+                    memberCtx.declSpecifierSeq().getText().contains("static");
         }
         return false;
     }
@@ -464,20 +473,16 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
     }
 
     private boolean isVirtualMethod(CPP14Parser.DeclaratorContext declarator) {
-        // 親のMemberDeclarationContextを取得する必要がある
-        if (declarator.getParent() instanceof CPP14Parser.MemberDeclaratorContext) {
-            CPP14Parser.MemberDeclaratorContext memberDec = (CPP14Parser.MemberDeclaratorContext) declarator
-                    .getParent();
+        // 同様の修正
+        ParserRuleContext parent = declarator.getParent();
+        while (parent != null && !(parent instanceof CPP14Parser.MemberdeclarationContext)) {
+            parent = parent.getParent();
+        }
 
-            if (memberDec.getParent() instanceof CPP14Parser.MemberdeclarationContext) {
-                CPP14Parser.MemberdeclarationContext memberDeclaration = (CPP14Parser.MemberdeclarationContext) memberDec
-                        .getParent();
-
-                if (memberDeclaration.declSpecifierSeq() != null) {
-                    return memberDeclaration.declSpecifierSeq()
-                            .getText().contains("virtual");
-                }
-            }
+        if (parent instanceof CPP14Parser.MemberdeclarationContext) {
+            CPP14Parser.MemberdeclarationContext memberCtx = (CPP14Parser.MemberdeclarationContext) parent;
+            return memberCtx.declSpecifierSeq() != null &&
+                    memberCtx.declSpecifierSeq().getText().contains("virtual");
         }
         return false;
     }

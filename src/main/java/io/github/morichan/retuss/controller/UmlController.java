@@ -10,6 +10,7 @@ import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -76,6 +77,8 @@ public class UmlController {
         }
     }
 
+    private long lastUpdateTime = 0;
+    private static final long MIN_UPDATE_INTERVAL = 100;
     private JavaModel javaModel = JavaModel.getInstance();
     private CppModel cppModel = CppModel.getInstance();
     private JavaClassDiagramDrawer javaClassDiagramDrawer;
@@ -339,33 +342,45 @@ public class UmlController {
 
     public void updateDiagram(ICodeFile codeFile) {
         System.out.println("DEBUG: Updating diagram for file: " + codeFile.getFileName());
-
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUpdateTime < MIN_UPDATE_INTERVAL) {
+            return;
+        }
+        lastUpdateTime = currentTime;
         if (codeFile instanceof CodeFile) {
             // Javaファイルの場合
             System.out.println("DEBUG: Updating Java diagrams");
             CodeFile javaFile = (CodeFile) codeFile;
 
-            // クラス図の更新
-            javaClassDiagramDrawer.draw();
+            Platform.runLater(() -> {
+                // クラス図の更新
+                javaClassDiagramDrawer.draw();
 
-            // シーケンス図の更新
-            updateJavaSequenceDiagram(javaFile);
+                // シーケンス図の更新
+                updateJavaSequenceDiagram(javaFile);
+            });
 
             System.out.println("DEBUG: Java diagrams update completed");
         } else if (codeFile instanceof CppFile) {
             // C++ファイルの場合
             CppFile cppFile = (CppFile) codeFile;
-            if (cppFile.isHeader()) {
-                System.out.println("Updating diagrams for C++ header file: " + cppFile.getFileName());
-                System.out.println("UML classes: " + cppFile.getUmlClassList().size());
+            // ヘッダーファイルの場合、またはヘッダーファイルが存在する実装ファイルの場合に更新
+            if (cppFile.isHeader() || findCorrespondingHeaderFile(cppFile) != null) {
+                System.out.println("Updating diagrams for C++ file: " + cppFile.getFileName());
+                Platform.runLater(() -> {
+                    // クラス図の更新
+                    cppClassDiagramDrawer.draw();
 
-                // クラス図の更新
-                cppClassDiagramDrawer.draw();
-
-                // シーケンス図の更新
-                updateCppSequenceDiagram(cppFile);
+                    // シーケンス図の更新
+                    updateCppSequenceDiagram(cppFile);
+                });
             }
         }
+    }
+
+    private CppFile findCorrespondingHeaderFile(CppFile implFile) {
+        String baseName = implFile.getFileName().replace(".cpp", "");
+        return CppModel.getInstance().findHeaderFile(baseName);
     }
 
     private void updateJavaSequenceDiagram(CodeFile codeFile) {

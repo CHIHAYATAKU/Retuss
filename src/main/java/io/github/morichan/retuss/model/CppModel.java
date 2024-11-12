@@ -199,14 +199,9 @@ public class CppModel {
                     // コントローラーに通知
                     if (codeController != null) {
                         System.out.println("DEBUG: Updating implementation file tab");
+                        codeController.updateCodeTab(headerFile);
                         codeController.updateCodeTab(implFile);
                     }
-                }
-
-                // コントローラーに通知
-                if (codeController != null) {
-                    System.out.println("DEBUG: Updating header file tab");
-                    codeController.updateCodeTab(headerFile);
                 }
 
                 // UMLの更新
@@ -491,11 +486,9 @@ public class CppModel {
                 CppFile file = (CppFile) changedCodeFile;
                 updateCode(file, code);
 
-                if (file.isHeader()) {
-                    System.err.println("Updating header file: " + file.getFileName());
-                    if (umlController != null) {
-                        umlController.updateDiagram(file);
-                    }
+                // ヘッダーファイルとソースファイルの両方で更新を通知
+                if (umlController != null) {
+                    umlController.updateDiagram(file);
                 }
             }
         } catch (Exception e) {

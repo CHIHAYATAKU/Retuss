@@ -1,41 +1,63 @@
 package io.github.morichan.retuss;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 
 public class RetussWindow extends Application {
+    private ExecutorService windowExecutor;
+
     /**
      * <p>
      * RETUSSを開始します
      * </p>
      *
      * @param mainStage 初期ステージ：{@link Application} クラス参照
-     * @throws IOException FXMLファイルの入力エラーの場合
      */
     @Override
-    public void start(Stage mainStage) throws IOException {
-        String mainFxmlFileName = "retussMain.fxml";
-        String codeFxmlFileName = "retussCode.fxml";
-        String resourcesPath = "/";
-        double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
-        double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
+    public void start(Stage mainStage) { // throwsを削除
+        windowExecutor = Executors.newSingleThreadExecutor();
 
-        // UMLウィンドウの読み込みと表示
-        FXMLLoader umlLoader = new FXMLLoader(getClass().getResource("/" + mainFxmlFileName));
+        try {
+            setupWindows(mainStage);
+        } catch (IOException e) {
+            showError("Error initializing windows", e);
+        }
+    }
+
+    private void setupWindows(Stage mainStage) throws IOException {
+        // UMLウィンドウの設定
+        FXMLLoader umlLoader = new FXMLLoader(getClass().getResource("/retussMain.fxml"));
         Parent umlRoot = umlLoader.load();
         UmlController umlController = umlLoader.getController();
+
         Scene mainScene = new Scene(umlRoot);
         mainScene.getStylesheets().add(getClass().getResource("/custom-radio.css").toExternalForm());
+
+        setupMainStage(mainStage, mainScene);
+
+        // コードウィンドウの設定
+        setupCodeWindow(mainStage, umlController);
+    }
+
+    private void setupMainStage(Stage mainStage, Scene mainScene) {
+        double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
+        double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
 
         mainStage.setTitle("UML Window");
         mainStage.setScene(mainScene);
@@ -46,14 +68,16 @@ public class RetussWindow extends Application {
         mainStage.setX(0.0);
         mainStage.setY(0.0);
         mainStage.show();
+    }
 
-        // ソースコードウィンドウの読み込みと表示
-        FXMLLoader codeLoader = new FXMLLoader(getClass().getResource("/" + codeFxmlFileName));
+    private void setupCodeWindow(Stage mainStage, UmlController umlController) throws IOException {
+        FXMLLoader codeLoader = new FXMLLoader(getClass().getResource("/retussCode.fxml"));
         Parent codeRoot = codeLoader.load();
         CodeController codeController = codeLoader.getController();
-
-        // コントローラー間の参照を設定
         codeController.setUmlController(umlController);
+
+        double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
+        double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
 
         Scene codeScene = new Scene(codeRoot);
         codeScene.getStylesheets().add(getClass().getResource("/custom-radio.css").toExternalForm());
@@ -69,6 +93,30 @@ public class RetussWindow extends Application {
         codeStage.setX(screenWidth / 2);
         codeStage.setY(0.0);
         codeStage.show();
+    }
+
+    private void showError(String title, Exception e) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(title);
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        });
+    }
+
+    @Override
+    public void stop() {
+        if (windowExecutor != null) {
+            windowExecutor.shutdown();
+            try {
+                if (!windowExecutor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                    windowExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                windowExecutor.shutdownNow();
+            }
+        }
     }
 
     /**

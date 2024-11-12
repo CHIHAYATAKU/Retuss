@@ -8,6 +8,7 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.CppClass;
+import javafx.application.Platform;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
@@ -19,10 +20,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class CppClassDiagramDrawer {
-    private CppModel model;
+    private final CppModel model;
     private WebView webView;
+    private final ExecutorService diagramExecutor = Executors.newSingleThreadExecutor();
+    private final AtomicReference<String> lastSvg = new AtomicReference<>();
+    private volatile boolean isUpdating = false;
 
     public CppClassDiagramDrawer(WebView webView) {
         this.model = CppModel.getInstance();
@@ -31,13 +43,12 @@ public class CppClassDiagramDrawer {
     }
 
     private void drawClass(StringBuilder pumlBuilder, Class cls) {
-        // 抽象クラスの場合
         if (cls.getAbstruct()) {
             pumlBuilder.append("abstract ");
         }
         pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
 
-        // 属性の描画
+        // 属性
         for (Attribute attr : cls.getAttributeList()) {
             pumlBuilder.append("  ")
                     .append(getVisibilitySymbol(attr.getVisibility()))
@@ -48,127 +59,159 @@ public class CppClassDiagramDrawer {
                     .append("\n");
         }
 
-        // メソッドの描画
+        // メソッド
         for (Operation op : cls.getOperationList()) {
             pumlBuilder.append("  ")
                     .append(getVisibilitySymbol(op.getVisibility()))
                     .append(" ")
-                    .append(op.getName())
-                    .append("()");
-
-            if (!op.getReturnType().toString().equals("void")) {
-                pumlBuilder.append(" : ")
-                        .append(op.getReturnType());
-            }
-            pumlBuilder.append("\n");
+                    .append(op.getName().getNameText())
+                    .append("()\n");
         }
 
         pumlBuilder.append("}\n\n");
     }
 
     public void draw() {
-        StringBuilder pumlBuilder = new StringBuilder();
-        pumlBuilder.append("@startuml\n");
-        pumlBuilder.append("skinparam style strictuml\n");
-        // pumlBuilder.append("skinparam classAttributeIconSize 0\n");
-        // pumlBuilder.append("hide circle\n"); // これを追加することでCを消せます
+        if (isUpdating)
+            return; // スキップ if already updating
+        isUpdating = true;
 
-        List<Class> classes = model.getUmlClassList();
-        System.out.println("Drawing class diagram for " + classes.size() + " classes");
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                List<Class> classes = model.getUmlClassList();
+                System.out.println("Drawing diagram for classes: " +
+                        classes.stream()
+                                .map(Class::getName)
+                                .collect(Collectors.joining(", ")));
 
-        // クラスの定義
-        for (Class cls : classes) {
-            if (cls instanceof CppClass) {
-                drawCppClass(pumlBuilder, (CppClass) cls);
-            } else {
-                drawClass(pumlBuilder, cls);
+                StringBuilder pumlBuilder = new StringBuilder();
+                pumlBuilder.append("@startuml\n")
+                        .append("skinparam style strictuml\n")
+                        .append("skinparam classAttributeIconSize 0\n")
+                        .append("skinparam stereotypePosition inside\n");
+
+                for (Class cls : classes) {
+                    System.out.println("Processing class: " + cls.getName());
+                    System.out.println("Attributes: " + cls.getAttributeList().size());
+                    System.out.println("Operations: " + cls.getOperationList().size());
+                    drawClass(pumlBuilder, cls);
+                }
+
+                pumlBuilder.append("@enduml\n");
+                String puml = pumlBuilder.toString();
+                System.out.println("Generated PlantUML:\n" + puml);
+
+                // SVG生成と表示, キャッシュと比較して変更がなければスキップ
+                String currentSvg = lastSvg.get();
+                if (currentSvg != null && puml.equals(currentSvg)) {
+                    return null;
+                }
+
+                SourceStringReader reader = new SourceStringReader(puml);
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
+                String svg = new String(os.toByteArray(), StandardCharsets.UTF_8);
+                lastSvg.set(svg);
+                return svg;
+            } catch (Exception e) {
+                System.err.println("Error generating diagram: " + e.getMessage());
+                return null;
             }
-        }
+        }, diagramExecutor)
+                .thenAcceptAsync(svg -> {
+                    try {
+                        if (svg != null) {
+                            webView.getEngine().loadContent(svg);
+                        }
+                    } finally {
+                        isUpdating = false;
+                    }
+                }, Platform::runLater);
+    }
 
-        // 継承関係の追加
-        for (Class cls : classes) {
-            if (cls.getSuperClass().isPresent()) {
-                pumlBuilder.append(cls.getSuperClass().get().getName())
-                        .append(" <|-- ")
-                        .append(cls.getName())
-                        .append("\n");
+    // SVGのキャッシュをクリア
+    public void clearCache() {
+        lastSvg.set(null);
+    }
+
+    public void shutdown() {
+        if (diagramExecutor != null) {
+            diagramExecutor.shutdown();
+            try {
+                if (!diagramExecutor.awaitTermination(800, TimeUnit.MILLISECONDS)) {
+                    diagramExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                diagramExecutor.shutdownNow();
             }
-        }
-
-        pumlBuilder.append("@enduml");
-
-        String puml = pumlBuilder.toString();
-        System.out.println("Generated PlantUML:\n" + puml);
-
-        try {
-            SourceStringReader reader = new SourceStringReader(puml);
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            // SVGの生成
-            reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
-            String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
-
-            // WebViewに表示
-            webView.getEngine().loadContent(svg);
-            System.out.println("Class diagram loaded to WebView");
-        } catch (
-
-        Exception e) {
-            System.err.println("Error generating class diagram: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
     private void drawCppClass(StringBuilder pumlBuilder, CppClass cls) {
-        if (cls.getAbstruct()) {
-            pumlBuilder.append("abstract ");
-        }
-        pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
+        try {
+            if (cls.getAbstruct()) {
+                pumlBuilder.append("abstract ");
+            }
+            pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
 
-        // 属性の描画
-        for (Attribute attr : cls.getAttributeList()) {
-            pumlBuilder.append("  ")
-                    .append(getVisibilitySymbol(attr.getVisibility()))
-                    .append(" ");
+            // 属性の描画
+            for (Attribute attr : cls.getAttributeList()) {
+                pumlBuilder.append("  ")
+                        .append(getVisibilitySymbol(attr.getVisibility()))
+                        .append(" ");
 
-            // 修飾子の追加
-            List<String> modifiers = cls.getModifiers(attr.getName().getNameText());
-            if (!modifiers.isEmpty()) {
-                pumlBuilder.append("≪")
-                        .append(String.join(", ", modifiers))
-                        .append("≫ ");
+                // 修飾子の追加
+                List<String> modifiers = cls.getModifiers(attr.getName().getNameText());
+                if (!modifiers.isEmpty()) {
+                    pumlBuilder.append("≪")
+                            .append(String.join(", ", modifiers))
+                            .append("≫ ");
+                }
+
+                pumlBuilder.append(attr.getName())
+                        .append(" : ")
+                        .append(attr.getType())
+                        .append("\n");
             }
 
-            pumlBuilder.append(attr.getName())
-                    .append(" : ")
-                    .append(attr.getType())
-                    .append("\n");
-        }
+            // メソッドの描画
+            for (Operation op : cls.getOperationList()) {
+                pumlBuilder.append("  ")
+                        .append(getVisibilitySymbol(op.getVisibility()))
+                        .append(" ");
 
-        // メソッドの描画
-        for (Operation op : cls.getOperationList()) {
-            pumlBuilder.append("  ")
-                    .append(getVisibilitySymbol(op.getVisibility()))
-                    .append(" ");
+                // 修飾子の追加
+                List<String> modifiers = cls.getModifiers(op.getName().getNameText());
+                if (!modifiers.isEmpty()) {
+                    pumlBuilder.append("≪")
+                            .append(String.join(", ", modifiers))
+                            .append("≫ ");
+                }
 
-            // 修飾子の追加
-            List<String> modifiers = cls.getModifiers(op.getName().getNameText());
-            if (!modifiers.isEmpty()) {
-                pumlBuilder.append("≪")
-                        .append(String.join(", ", modifiers))
-                        .append("≫ ");
+                // メソッド名とパラメータ
+                pumlBuilder.append(op.getName())
+                        .append("(");
+
+                // パラメータリストの追加
+                List<String> params = new ArrayList<>();
+                for (Parameter param : op.getParameters()) {
+                    params.add(param.getType() + " " + param.getName());
+                }
+                pumlBuilder.append(String.join(", ", params));
+                pumlBuilder.append(")");
+
+                if (!op.getReturnType().toString().equals("void")) {
+                    pumlBuilder.append(" : ")
+                            .append(op.getReturnType());
+                }
+                pumlBuilder.append("\n");
             }
 
-            pumlBuilder.append(op.getName())
-                    .append("()");
-
-            if (!op.getReturnType().toString().equals("void")) {
-                pumlBuilder.append(" : ")
-                        .append(op.getReturnType());
-            }
-            pumlBuilder.append("\n");
+            pumlBuilder.append("}\n\n");
+        } catch (Exception e) {
+            System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
+            e.printStackTrace();
         }
-
-        pumlBuilder.append("}\n\n");
     }
 
     private String getVisibilitySymbol(Visibility visibility) {
