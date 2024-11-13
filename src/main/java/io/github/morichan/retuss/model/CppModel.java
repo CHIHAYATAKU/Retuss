@@ -8,7 +8,10 @@ import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.CppClass;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
+import io.github.morichan.retuss.translator.cpp.listeners.CppImplementationAnalyzer;
+
 import java.util.*;
 
 public class CppModel {
@@ -163,7 +166,7 @@ public class CppModel {
                 updateHeaderFile(cppFile, code, baseName);
             } else {
                 // 実装ファイルの更新
-                updateImplFileContent(cppFile, code);
+                updateImplementationFile(cppFile, code);
             }
 
             notifyModelChanged();
@@ -209,6 +212,27 @@ public class CppModel {
                     System.out.println("DEBUG: Updating UML diagram");
                     umlController.updateDiagram(headerFile);
                 }
+            }
+        }
+    }
+
+    public void updateImplementationFile(CppFile implFile, String code) {
+        String baseName = getBaseName(implFile.getFileName());
+        CppFile headerFile = headerFiles.get(baseName);
+
+        if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+            CppClass umlClass = (CppClass) headerFile.getUmlClassList().get(0);
+
+            // 実装ファイルの解析
+            CppImplementationAnalyzer analyzer = new CppImplementationAnalyzer(
+                    headerFile.getCode(),
+                    code,
+                    umlClass.getName());
+            analyzer.analyze(umlClass);
+
+            // ヘッダーファイルを更新して図の再描画をトリガー
+            if (umlController != null) {
+                umlController.updateDiagram(headerFile);
             }
         }
     }
