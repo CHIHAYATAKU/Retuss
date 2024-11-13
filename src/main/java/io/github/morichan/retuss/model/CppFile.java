@@ -8,13 +8,25 @@ import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
 import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
+import javafx.application.Platform;
+import javafx.util.Pair;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.*;
 
 public class CppFile implements ICodeFile {
+    private final ExecutorService analysisExecutor = Executors.newSingleThreadExecutor(); // 解析用の専用スレッド
+    private final ScheduledExecutorService updateExecutor = Executors.newSingleThreadScheduledExecutor(); // 更新用のスレッド
+    private ScheduledFuture<?> pendingUpdate;
+    private static final long UPDATE_DELAY = 500;
     private final UUID ID = UUID.randomUUID();
     private String fileName = "";
     private String sourceCode;
@@ -116,43 +128,71 @@ public class CppFile implements ICodeFile {
 
     @Override
     public void updateCode(String code) {
-        try {
-            if (!code.equals(this.sourceCode)) {
-                this.sourceCode = code;
+        if (!code.equals(this.sourceCode)) {
+            this.sourceCode = code;
 
-                if (isHeader) {
-                    List<Class> newUmlClassList = translator.translateCodeToUml(code);
-                    if (!newUmlClassList.isEmpty()) {
-                        System.out.println("DEBUG: New UML classes found: " + newUmlClassList.size());
-                        this.umlClassList = newUmlClassList;
+            if (isHeader) {
+                // クラス名の更新を先に行う
+                Optional<String> newClassName = translator.extractClassName(code);
+                if (newClassName.isPresent()) {
+                    String className = newClassName.get();
+                    String expectedFileName = className + ".h";
+                    if (!expectedFileName.equals(this.fileName)) {
+                        String oldFileName = this.fileName;
+                        this.fileName = expectedFileName;
+                        notifyFileNameChanged(oldFileName, expectedFileName);
                     }
-
-                    // クラス名の変更を検出
-                    Optional<String> newClassName = translator.extractClassName(code);
-                    if (newClassName.isPresent()) {
-                        String className = newClassName.get();
-                        String expectedFileName = className + ".h";
-                        System.out.println("DEBUG: Detected class name: " + className +
-                                ", current file: " + this.fileName);
-
-                        if (!expectedFileName.equals(this.fileName)) {
-                            String oldFileName = this.fileName;
-                            this.fileName = expectedFileName;
-                            System.out.println("DEBUG: File name changing from " +
-                                    oldFileName + " to " + expectedFileName);
-                            notifyFileNameChanged(oldFileName, expectedFileName);
-                        }
-                    }
-                } else {
-                    updateMethodImplementations(code);
                 }
 
-                notifyFileChanged();
+                // UMLクラスリストの更新
+                List<Class> newUmlClassList = translator.translateCodeToUml(code);
+                if (!newUmlClassList.isEmpty()) {
+                    this.umlClassList = newUmlClassList;
+                }
             }
-        } catch (Exception e) {
-            System.err.println("Failed to update code: " + e.getMessage());
-            e.printStackTrace();
+
+            // UMLコントローラーに通知
+            if (umlController != null) {
+                umlController.updateDiagram(this);
+            }
+
+            notifyFileChanged();
         }
+    }
+
+    private void handleClassNameChange(Optional<String> newClassName) {
+        if (newClassName.isPresent()) {
+            String className = newClassName.get();
+            String expectedFileName = className + ".h";
+
+            if (!expectedFileName.equals(this.fileName)) {
+                String oldFileName = this.fileName;
+                this.fileName = expectedFileName;
+                System.out.println("DEBUG: File name changing from " +
+                        oldFileName + " to " + expectedFileName);
+                notifyFileNameChanged(oldFileName, expectedFileName);
+            }
+        }
+    }
+
+    private void handleClassNameChange(String newClassName) {
+        String expectedFileName = newClassName + ".h";
+        System.out.println("DEBUG: Detected class name: " + newClassName +
+                ", current file: " + this.fileName);
+
+        if (!expectedFileName.equals(this.fileName)) {
+            String oldFileName = this.fileName;
+            this.fileName = expectedFileName;
+            System.out.println("DEBUG: File name changing from " +
+                    oldFileName + " to " + expectedFileName);
+            notifyFileNameChanged(oldFileName, expectedFileName);
+        }
+    }
+
+    // リソースの解放
+    public void shutdown() {
+        analysisExecutor.shutdown();
+        updateExecutor.shutdown();
     }
 
     private void updateMethodImplementations(String code) {

@@ -1,18 +1,25 @@
 package io.github.morichan.retuss.translator.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MethodCall {
-    private final String caller;
-    private final String callee;
-    private final String methodName;
-    private final List<String> arguments;
-    private final int nestingLevel;
-    private final String condition; // 制御構造の条件
-    private final ControlStructureType structureType;
+    private String caller;
+    private String callee;
+    private String methodName;
+    private List<String> arguments;
+    private int nestingLevel;
+    private String condition;
+    private ControlStructureType structureType;
 
     public enum ControlStructureType {
         NONE, IF, LOOP
+    }
+
+    public MethodCall() {
+        this.arguments = new ArrayList<>();
+        this.nestingLevel = 0;
+        this.structureType = ControlStructureType.NONE;
     }
 
     public MethodCall(String caller, String callee, String methodName,
@@ -30,6 +37,30 @@ public class MethodCall {
         this.nestingLevel = nestingLevel;
         this.condition = condition;
         this.structureType = structureType;
+    }
+
+    // setters
+    public void setCaller(String caller) {
+        this.caller = caller;
+    }
+
+    public void setCallee(String callee) {
+        this.callee = callee;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public void setNestingLevel(int nestingLevel) {
+        this.nestingLevel = nestingLevel;
+    }
+
+    public void addArgument(String argument) {
+        if (this.arguments == null) {
+            this.arguments = new ArrayList<>();
+        }
+        this.arguments.add(argument);
     }
 
     // Getters

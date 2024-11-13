@@ -17,6 +17,8 @@ import io.github.morichan.retuss.translator.cpp.util.CppVisibilityMapper;
 
 import java.util.*;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+
 public class ClassExtractorListener extends CPP14ParserBaseListener {
     private final CppTypeMapper typeMapper;
     private final CppVisibilityMapper visibilityMapper;
@@ -74,45 +76,97 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         if (currentClass == null || ctx.declSpecifierSeq() == null)
             return;
 
-        String type = ctx.declSpecifierSeq().getText();
-        System.out.println("DEBUG: Processing member - Type: " + type +
-                ", Current visibility: " + currentVisibility);
+        try {
+            // 型と修飾子の分離
+            String rawType = ctx.declSpecifierSeq().getText();
+            System.out.println("DEBUG: Raw type declaration: " + rawType);
 
-        if (ctx.memberDeclaratorList() != null) {
-            for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
-                if (isMethodDeclaration(memberDec)) {
-                    handleMethod(memberDec.declarator(), type);
-                } else {
-                    handleAttribute(memberDec.declarator(), type);
+            String type = ctx.declSpecifierSeq().getText();
+            System.out.println("DEBUG: Cleaned type: " + type);
+
+            if (ctx.memberDeclaratorList() != null) {
+                for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
+                    try {
+                        if (isMethodDeclaration(memberDec)) {
+                            handleMethod(memberDec.declarator(), rawType);
+                        } else {
+                            handleAttribute(memberDec.declarator(), rawType);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error processing member declarator: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             }
+        } catch (Exception e) {
+            System.err.println("Error in enterMemberdeclaration: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    private Set<CppClass.Modifier> detectModifiers(CPP14Parser.DeclaratorContext declarator, String type) {
+        Set<CppClass.Modifier> modifiers = EnumSet.noneOf(CppClass.Modifier.class);
+        String fullText = type + " " + declarator.getText();
+
+        if (isStaticMethod(declarator))
+            modifiers.add(CppClass.Modifier.STATIC);
+        if (isConstMethod(declarator))
+            modifiers.add(CppClass.Modifier.CONST);
+        if (isVirtualMethod(declarator))
+            modifiers.add(CppClass.Modifier.VIRTUAL);
+        if (fullText.contains("= 0"))
+            modifiers.add(CppClass.Modifier.ABSTRACT);
+        if (fullText.contains("override"))
+            modifiers.add(CppClass.Modifier.OVERRIDE);
+        if (isMutableField(declarator))
+            modifiers.add(CppClass.Modifier.MUTABLE);
+
+        return modifiers;
     }
 
     private void handleMethod(CPP14Parser.DeclaratorContext declarator, String type) {
         try {
             String methodName = extractMethodName(declarator.getText());
+            System.out.println("DEBUG: Processing method: " + methodName);
+
             Operation operation = new Operation(new Name(methodName));
             operation.setReturnType(new Type(cleanTypeSpecifiers(type)));
             operation.setVisibility(convertVisibility(currentVisibility));
 
-            // 修飾子の収集
-            List<String> modifiers = new ArrayList<>();
-            if (isVirtualMethod(declarator)) {
-                modifiers.add("virtual");
+            // パラメータと依存関係の処理
+            if (declarator.parametersAndQualifiers() != null) {
+                handleParameters(declarator.parametersAndQualifiers(), operation);
+                // 依存関係の追加
+                for (Parameter param : operation.getParameters()) {
+                    if (isUserDefinedType(param.getType().toString())) {
+                        currentClass.addDependency(cleanTypeName(param.getType().toString()));
+                    }
+                }
+            }
+
+            // 修飾子の検出
+            Set<CppClass.Modifier> modifiers = detectModifiers(declarator, type);
+
+            String fullText = type + " " + declarator.getText();
+            if (fullText.contains("virtual")) {
+                modifiers.add(CppClass.Modifier.VIRTUAL);
+            }
+            if (fullText.contains("override")) {
+                modifiers.add(CppClass.Modifier.OVERRIDE);
             }
             if (isConstMethod(declarator)) {
-                modifiers.add("const");
+                modifiers.add(CppClass.Modifier.CONST);
             }
-            if (isStaticMethod(declarator)) {
-                modifiers.add("static");
+            if (fullText.contains("= 0")) {
+                modifiers.add(CppClass.Modifier.ABSTRACT);
             }
 
-            // CppClassに修飾子情報を追加
-            currentClass.addMemberModifiers(methodName, modifiers);
-
-            // 操作の追加
             currentClass.addOperation(operation);
+            if (!modifiers.isEmpty()) {
+                currentClass.addMemberModifiers(methodName, modifiers);
+            }
+
+            System.out.println("DEBUG: Added method: " + methodName);
         } catch (Exception e) {
             System.err.println("Error in handleMethod: " + e.getMessage());
             e.printStackTrace();
@@ -121,7 +175,6 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
 
     // 型指定子からvirtualなどの修飾子を除去
     private String cleanTypeSpecifiers(String type) {
-        // 修飾子のリスト
         List<String> modifiers = Arrays.asList(
                 "virtual", "static", "const", "volatile", "mutable");
 
@@ -130,73 +183,102 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
             cleanType = cleanType.replace(modifier, "").trim();
         }
 
-        // 空の場合はvoidを返す
         return cleanType.isEmpty() ? "void" : cleanType;
     }
 
-    private void handleParameters(CPP14Parser.DeclaratorContext declarator,
-            Operation operation) {
-        if (declarator.parametersAndQualifiers().parameterDeclarationClause() != null) {
-            for (CPP14Parser.ParameterDeclarationContext param : declarator.parametersAndQualifiers()
-                    .parameterDeclarationClause()
-                    .parameterDeclarationList()
-                    .parameterDeclaration()) {
+    private boolean isUserDefinedType(String type) {
+        Set<String> basicTypes = Set.of("void", "bool", "char", "int", "float", "double",
+                "long", "short", "unsigned", "signed");
+        String cleanType = cleanTypeName(type);
+        return !basicTypes.contains(cleanType) && !cleanType.startsWith("std::");
+    }
 
-                String paramName = param.declarator().getText();
-                // パラメータの型も同様にクリーンアップ
-                String paramType = cleanTypeSpecifiers(
-                        param.declSpecifierSeq().getText());
+    private String cleanTypeName(String typeName) {
+        return typeName.replaceAll("[*&<>]", "")
+                .replaceAll("\\s+", "")
+                .replaceAll("const", "")
+                .replaceAll("std::", "")
+                .trim();
+    }
 
-                Parameter parameter = new Parameter(new Name(paramName));
-                parameter.setType(new Type(paramType));
-                operation.addParameter(parameter);
+    private void handleParameters(CPP14Parser.ParametersAndQualifiersContext paramsCtx, Operation operation) {
+        try {
+            if (paramsCtx.parameterDeclarationClause() != null) {
+                for (CPP14Parser.ParameterDeclarationContext paramCtx : paramsCtx.parameterDeclarationClause()
+                        .parameterDeclarationList().parameterDeclaration()) {
+
+                    String paramType = paramCtx.declSpecifierSeq().getText();
+                    String paramName = paramCtx.declarator().getText();
+
+                    Parameter param = new Parameter(new Name(paramName));
+                    param.setType(new Type(cleanTypeSpecifiers(paramType)));
+                    operation.addParameter(param);
+                }
             }
+        } catch (Exception e) {
+            System.err.println("Error handling parameters: " + e.getMessage());
         }
     }
 
     private void handleAttribute(CPP14Parser.DeclaratorContext declarator, String type) {
         String attributeName = declarator.getText();
+        String cleanType = cleanTypeSpecifiers(type);
 
         // 基本のAttribute作成
         Attribute attribute = new Attribute(new Name(attributeName));
-        attribute.setType(new Type(cleanTypeSpecifiers(type)));
+        attribute.setType(new Type(cleanType));
         attribute.setVisibility(convertVisibility(currentVisibility));
 
-        // 修飾子の情報をNameに含める（一時的な対応）
-        List<String> modifiers = new ArrayList<>();
-        if (isConstField(declarator))
-            modifiers.add("const");
-        if (isStaticField(declarator))
-            modifiers.add("static");
-        if (isMutableField(declarator))
-            modifiers.add("mutable");
+        // 修飾子の検出
+        Set<CppClass.Modifier> modifiers = detectModifiers(declarator, type);
 
-        if (!modifiers.isEmpty()) {
-            String modifiedName = "≪" + String.join(", ", modifiers) + "≫ " + attributeName;
-            attribute.setName(new Name(modifiedName));
+        // 関連の処理（コンポジション）
+        if (isUserDefinedType(cleanType)) {
+            currentClass.addComposition(cleanTypeName(cleanType));
         }
 
-        // CppClassに修飾子情報を追加
-        currentClass.addMemberModifiers(attributeName, modifiers);
-        // 属性の追加
+        // 属性と修飾子の追加
         currentClass.addAttribute(attribute);
+        if (!modifiers.isEmpty()) {
+            currentClass.addMemberModifiers(attributeName, modifiers);
+        }
+    }
+
+    private void addMembersWithModifiers(String memberName, String code) {
+        Set<CppClass.Modifier> modifiers = EnumSet.noneOf(CppClass.Modifier.class);
+
+        // コードから修飾子を検出
+        if (code.contains("static"))
+            modifiers.add(CppClass.Modifier.STATIC);
+        if (code.contains("const"))
+            modifiers.add(CppClass.Modifier.CONST);
+        if (code.contains("virtual"))
+            modifiers.add(CppClass.Modifier.VIRTUAL);
+        if (code.contains("override"))
+            modifiers.add(CppClass.Modifier.OVERRIDE);
+        if (code.contains("= 0"))
+            modifiers.add(CppClass.Modifier.ABSTRACT);
+
+        currentClass.addMemberModifiers(memberName, modifiers);
     }
 
     // 修飾子チェック用の補助メソッド
     private boolean isConstMethod(CPP14Parser.DeclaratorContext declarator) {
-        if (declarator.parametersAndQualifiers() != null) {
-            return declarator.parametersAndQualifiers().getText().contains("const");
-        }
-        return false;
+        return declarator.parametersAndQualifiers() != null &&
+                declarator.parametersAndQualifiers().getText().contains("const");
     }
 
     private boolean isStaticMethod(CPP14Parser.DeclaratorContext declarator) {
-        if (declarator.getParent() instanceof CPP14Parser.MemberdeclarationContext) {
-            CPP14Parser.MemberdeclarationContext memberDeclaration = (CPP14Parser.MemberdeclarationContext) declarator
-                    .getParent();
-            if (memberDeclaration.declSpecifierSeq() != null) {
-                return memberDeclaration.declSpecifierSeq().getText().contains("static");
-            }
+        // 親のコンテキストを正しく取得
+        ParserRuleContext parent = declarator.getParent();
+        while (parent != null && !(parent instanceof CPP14Parser.MemberdeclarationContext)) {
+            parent = parent.getParent();
+        }
+
+        if (parent instanceof CPP14Parser.MemberdeclarationContext) {
+            CPP14Parser.MemberdeclarationContext memberCtx = (CPP14Parser.MemberdeclarationContext) parent;
+            return memberCtx.declSpecifierSeq() != null &&
+                    memberCtx.declSpecifierSeq().getText().contains("static");
         }
         return false;
     }
@@ -439,11 +521,6 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         System.out.println("------------------\n");
     }
 
-    public List<Class> getExtractedClasses() {
-        // CppClassはClassのサブクラスなので、このリストはList<Class>として扱える
-        return new ArrayList<>(extractedClasses);
-    }
-
     private String extractMethodName(String fullText) {
         int parenIndex = fullText.indexOf('(');
         if (parenIndex > 0) {
@@ -463,21 +540,21 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         System.out.println("DEBUG: Access specifier changed to: " + currentVisibility);
     }
 
+    public List<Class> getExtractedClasses() {
+        return new ArrayList<>(extractedClasses);
+    }
+
     private boolean isVirtualMethod(CPP14Parser.DeclaratorContext declarator) {
-        // 親のMemberDeclarationContextを取得する必要がある
-        if (declarator.getParent() instanceof CPP14Parser.MemberDeclaratorContext) {
-            CPP14Parser.MemberDeclaratorContext memberDec = (CPP14Parser.MemberDeclaratorContext) declarator
-                    .getParent();
+        // 同様の修正
+        ParserRuleContext parent = declarator.getParent();
+        while (parent != null && !(parent instanceof CPP14Parser.MemberdeclarationContext)) {
+            parent = parent.getParent();
+        }
 
-            if (memberDec.getParent() instanceof CPP14Parser.MemberdeclarationContext) {
-                CPP14Parser.MemberdeclarationContext memberDeclaration = (CPP14Parser.MemberdeclarationContext) memberDec
-                        .getParent();
-
-                if (memberDeclaration.declSpecifierSeq() != null) {
-                    return memberDeclaration.declSpecifierSeq()
-                            .getText().contains("virtual");
-                }
-            }
+        if (parent instanceof CPP14Parser.MemberdeclarationContext) {
+            CPP14Parser.MemberdeclarationContext memberCtx = (CPP14Parser.MemberdeclarationContext) parent;
+            return memberCtx.declSpecifierSeq() != null &&
+                    memberCtx.declSpecifierSeq().getText().contains("virtual");
         }
         return false;
     }

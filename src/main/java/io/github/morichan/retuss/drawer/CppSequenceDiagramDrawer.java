@@ -5,6 +5,7 @@ import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.CppFile;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
+import javafx.application.Platform;
 import javafx.scene.control.TabPane;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
@@ -14,10 +15,14 @@ import net.sourceforge.plantuml.SourceStringReader;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CppSequenceDiagramDrawer {
     private TabPane tabPaneInSequenceTab;
     private CppTranslator translator;
+    private final ExecutorService diagramExecutor = Executors.newSingleThreadExecutor();
 
     public CppSequenceDiagramDrawer(TabPane tabPaneInSequenceTab) {
         this.tabPaneInSequenceTab = tabPaneInSequenceTab;
@@ -27,26 +32,45 @@ public class CppSequenceDiagramDrawer {
     public void draw(CppFile headerFile, CppFile implFile, String methodName, WebView webView) {
         try {
             // translatorを使用してPlantUML文字列を生成
-            String puml = translator.generateSequenceDiagram(
-                    headerFile.getCode(),
-                    implFile.getCode(),
-                    methodName);
+            CompletableFuture.supplyAsync(() -> {
+                try {
 
-            System.out.println("Generated sequence diagram for " + methodName + ":\n" + puml);
+                    String puml = translator.generateSequenceDiagram(
+                            headerFile.getCode(),
+                            implFile.getCode(),
+                            methodName);
 
-            // PlantUMLからSVGを生成
-            SourceStringReader reader = new SourceStringReader(puml);
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
+                    System.out.println("Generated sequence diagram for " + methodName + ":\n" + puml);
 
-            // SVGを表示
-            String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
-            webView.getEngine().loadContent(svg);
-
-            System.out.println("Loaded sequence diagram to WebView");
+                    // PlantUMLからSVGを生成
+                    SourceStringReader reader = new SourceStringReader(puml);
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                    reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
+                    System.out.println("Loaded sequence diagram to WebView");
+                    return new String(os.toByteArray(), Charset.forName("UTF-8"));
+                } catch (Exception e) {
+                    System.err.println("Error generating sequence diagram: " + e.getMessage());
+                    e.printStackTrace();
+                    return null;
+                }
+            }, diagramExecutor).thenAcceptAsync(svg -> {
+                if (svg != null) {
+                    // UI更新はJavaFXスレッドで
+                    Platform.runLater(() -> {
+                        webView.getEngine().loadContent(svg);
+                        System.out.println("Sequence diagram loaded to WebView");
+                    });
+                }
+            });
         } catch (Exception e) {
-            System.err.println("Error drawing sequence diagram: " + e.getMessage());
+            System.err.println("Error in draw(): " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    public void shutdown() {
+        if (diagramExecutor != null) {
+            diagramExecutor.shutdown();
         }
     }
 
