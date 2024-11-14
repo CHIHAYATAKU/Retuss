@@ -108,19 +108,24 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         Set<CppClass.Modifier> modifiers = EnumSet.noneOf(CppClass.Modifier.class);
         String fullText = type + " " + declarator.getText();
 
-        if (isStaticMethod(declarator))
-            modifiers.add(CppClass.Modifier.STATIC);
-        if (isConstMethod(declarator))
-            modifiers.add(CppClass.Modifier.CONST);
-        if (isVirtualMethod(declarator))
+        if (fullText.contains("virtual")) {
             modifiers.add(CppClass.Modifier.VIRTUAL);
-        if (fullText.contains("= 0"))
-            modifiers.add(CppClass.Modifier.ABSTRACT);
-        if (fullText.contains("override"))
+        }
+        if (fullText.contains("static")) {
+            modifiers.add(CppClass.Modifier.STATIC);
+        }
+        if (fullText.contains("const ")) {
+            modifiers.add(CppClass.Modifier.CONST);
+        }
+        if (fullText.contains("override")) {
             modifiers.add(CppClass.Modifier.OVERRIDE);
-        if (isMutableField(declarator))
+        }
+        if (fullText.contains("= 0")) {
+            modifiers.add(CppClass.Modifier.ABSTRACT);
+        }
+        if (fullText.contains("mutable")) {
             modifiers.add(CppClass.Modifier.MUTABLE);
-
+        }
         return modifiers;
     }
 
@@ -133,14 +138,16 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
             operation.setReturnType(new Type(cleanTypeSpecifiers(type)));
             operation.setVisibility(convertVisibility(currentVisibility));
 
-            // パラメータと依存関係の処理
-            if (declarator.parametersAndQualifiers() != null) {
-                handleParameters(declarator.parametersAndQualifiers(), operation);
-                // 依存関係の追加
-                for (Parameter param : operation.getParameters()) {
-                    if (isUserDefinedType(param.getType().toString())) {
-                        currentClass.addDependency(cleanTypeName(param.getType().toString()));
-                    }
+            // パラメータの処理（引数の型のみ表示）
+            if (declarator.parametersAndQualifiers() != null &&
+                    declarator.parametersAndQualifiers().parameterDeclarationClause() != null) {
+                for (CPP14Parser.ParameterDeclarationContext paramCtx : declarator.parametersAndQualifiers()
+                        .parameterDeclarationClause()
+                        .parameterDeclarationList().parameterDeclaration()) {
+                    String paramType = paramCtx.declSpecifierSeq().getText();
+                    Parameter param = new Parameter(new Name("")); // 引数名は空に
+                    param.setType(new Type(paramType));
+                    operation.addParameter(param);
                 }
             }
 
@@ -160,10 +167,15 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
             if (fullText.contains("= 0")) {
                 modifiers.add(CppClass.Modifier.ABSTRACT);
             }
+            if (declarator.parametersAndQualifiers() != null &&
+                    declarator.parametersAndQualifiers().getText().contains("const")) {
+                modifiers.add(CppClass.Modifier.CONST);
+            }
 
             currentClass.addOperation(operation);
             if (!modifiers.isEmpty()) {
                 currentClass.addMemberModifiers(methodName, modifiers);
+                System.out.println("DEBUG: Added modifiers for method " + methodName + ": " + modifiers);
             }
 
             System.out.println("DEBUG: Added method: " + methodName);
@@ -190,7 +202,9 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         Set<String> basicTypes = Set.of("void", "bool", "char", "int", "float", "double",
                 "long", "short", "unsigned", "signed");
         String cleanType = cleanTypeName(type);
-        return !basicTypes.contains(cleanType) && !cleanType.startsWith("std::");
+        return !basicTypes.contains(cleanType) &&
+                !cleanType.startsWith("std::") &&
+                Character.isUpperCase(cleanType.charAt(0));
     }
 
     private String cleanTypeName(String typeName) {
@@ -221,26 +235,58 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
     }
 
     private void handleAttribute(CPP14Parser.DeclaratorContext declarator, String type) {
-        String attributeName = declarator.getText();
-        String cleanType = cleanTypeSpecifiers(type);
+        try {
+            // 変数名とポインタの分離
+            String attributeText = declarator.getText();
+            StringBuilder pointerSuffix = new StringBuilder();
+            while (attributeText.contains("*") || attributeText.contains("&")) {
+                int idx = attributeText.indexOf('*');
+                if (idx == -1)
+                    idx = attributeText.indexOf('&');
+                pointerSuffix.append(attributeText.charAt(idx));
+                attributeText = attributeText.substring(0, idx) + attributeText.substring(idx + 1);
+            }
+            String attributeName = attributeText.trim();
 
-        // 基本のAttribute作成
-        Attribute attribute = new Attribute(new Name(attributeName));
-        attribute.setType(new Type(cleanType));
-        attribute.setVisibility(convertVisibility(currentVisibility));
+            // 型の構築（ポインタを型に付加）
+            String fullType = type.trim() + pointerSuffix.toString();
 
-        // 修飾子の検出
-        Set<CppClass.Modifier> modifiers = detectModifiers(declarator, type);
+            // 修飾子の検出
+            Set<CppClass.Modifier> modifiers = EnumSet.noneOf(CppClass.Modifier.class);
+            String fullContext = type + " " + declarator.getText();
 
-        // 関連の処理（コンポジション）
-        if (isUserDefinedType(cleanType)) {
-            currentClass.addComposition(cleanTypeName(cleanType));
-        }
+            if (fullContext.contains("static")) {
+                modifiers.add(CppClass.Modifier.STATIC);
+            }
+            if (fullContext.contains("const")) {
+                modifiers.add(CppClass.Modifier.CONST);
+            }
+            if (fullContext.contains("mutable")) {
+                modifiers.add(CppClass.Modifier.MUTABLE);
+            }
 
-        // 属性と修飾子の追加
-        currentClass.addAttribute(attribute);
-        if (!modifiers.isEmpty()) {
-            currentClass.addMemberModifiers(attributeName, modifiers);
+            // Attribute作成と追加
+            Attribute attribute = new Attribute(new Name(attributeName));
+            attribute.setType(new Type(cleanTypeSpecifiers(fullType)));
+            attribute.setVisibility(convertVisibility(currentVisibility));
+
+            currentClass.addAttribute(attribute);
+            if (!modifiers.isEmpty()) {
+                currentClass.addMemberModifiers(attributeName, modifiers);
+            }
+
+            // ポインタ/参照型の場合は依存関係として記録
+            if (pointerSuffix.length() > 0 && isUserDefinedType(cleanTypeName(type))) {
+                ((CppClass) currentClass).addDependency(cleanTypeName(type));
+            }
+
+            System.out.println("DEBUG: Added attribute: " + attributeName +
+                    " with type: " + fullType +
+                    " and modifiers: " + modifiers);
+
+        } catch (Exception e) {
+            System.err.println("Error in handleAttribute: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

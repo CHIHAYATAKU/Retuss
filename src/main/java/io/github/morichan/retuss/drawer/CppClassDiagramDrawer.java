@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -110,26 +111,20 @@ public class CppClassDiagramDrawer {
 
             // 修飾子の追加
             Set<CppClass.Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
-            StringBuilder modifierStr = new StringBuilder();
-            if (modifiers.contains(CppClass.Modifier.STATIC))
-                modifierStr.append("{static} ");
-            if (modifiers.contains(CppClass.Modifier.CONST))
-                modifierStr.append("{constant} ");
-            if (modifiers.contains(CppClass.Modifier.MUTABLE))
-                modifierStr.append("{mutable} ");
-
-            pumlBuilder.append(modifierStr);
+            if (modifiers.contains(CppClass.Modifier.STATIC)) {
+                pumlBuilder.append("{static} ");
+            }
+            if (modifiers.contains(CppClass.Modifier.CONST)) {
+                pumlBuilder.append("{constant} ");
+            }
+            if (modifiers.contains(CppClass.Modifier.MUTABLE)) {
+                pumlBuilder.append("{mutable} ");
+            }
 
             // 属性名と型
             pumlBuilder.append(attr.getName().getNameText())
-                    .append(" : ");
-
-            String type = attr.getType().toString();
-            // constの場合は型の前に付加
-            if (modifiers.contains(CppClass.Modifier.CONST)) {
-                type = "const " + type;
-            }
-            pumlBuilder.append(formatType(type))
+                    .append(" : ")
+                    .append(formatType(attr.getType().toString()))
                     .append("\n");
         } catch (Exception e) {
             System.err.println("Error appending attribute " + attr.getName() + ": " + e.getMessage());
@@ -173,39 +168,37 @@ public class CppClassDiagramDrawer {
 
             // 修飾子の追加
             Set<CppClass.Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
-            StringBuilder modifierStr = new StringBuilder();
-            if (modifiers.contains(CppClass.Modifier.STATIC))
-                modifierStr.append("{static} ");
-            if (modifiers.contains(CppClass.Modifier.VIRTUAL))
-                modifierStr.append("{abstract} ");
-            if (modifiers.contains(CppClass.Modifier.CONST))
-                modifierStr.append("{constant} ");
+            if (modifiers.contains(CppClass.Modifier.VIRTUAL)) {
+                pumlBuilder.append("{virtual} ");
+            }
+            if (modifiers.contains(CppClass.Modifier.STATIC)) {
+                pumlBuilder.append("{static} ");
+            }
+            if (modifiers.contains(CppClass.Modifier.ABSTRACT)) {
+                pumlBuilder.append("{abstract} ");
+            }
+            if (modifiers.contains(CppClass.Modifier.CONST)) {
+                pumlBuilder.append("{const} ");
+            }
 
-            pumlBuilder.append(modifierStr);
-
-            // メソッド名とパラメータ
             pumlBuilder.append(op.getName().getNameText())
                     .append("(");
 
             // パラメータ処理
             try {
+                // 引数の型のみを表示
                 List<String> params = new ArrayList<>();
                 for (Parameter param : op.getParameters()) {
-                    String paramType = formatType(param.getType().toString());
-                    params.add(paramType + " " + param.getName().getNameText());
+                    params.add(formatType(param.getType().toString()));
                 }
                 pumlBuilder.append(String.join(", ", params));
             } catch (IllegalStateException e) {
                 // パラメータがない場合は無視
             }
 
-            pumlBuilder.append(")");
-
-            // 戻り値の型を必ず表示
-            pumlBuilder.append(" : ")
-                    .append(formatType(op.getReturnType().toString()));
-
-            pumlBuilder.append("\n");
+            pumlBuilder.append(") : ")
+                    .append(formatType(op.getReturnType().toString()))
+                    .append("\n");
         } catch (Exception e) {
             System.err.println("Error appending operation " + op.getName() + ": " + e.getMessage());
             e.printStackTrace();
@@ -382,21 +375,60 @@ public class CppClassDiagramDrawer {
                     .append("\n");
         }
 
-        // コンポジション関係
-        for (String composition : cppClass.getCompositions()) {
-            pumlBuilder.append(cppClass.getName())
-                    .append(" *-- ")
-                    .append(composition)
-                    .append("\n");
+        // 属性による関係を格納するSet（重複を防ぐ）
+        Set<String> relationships = new HashSet<>();
+
+        // 属性による関係の描画
+        for (Attribute attr : cls.getAttributeList()) {
+            String type = attr.getType().toString();
+            if (isUserDefinedType(cleanTypeName(type))) {
+                String cleanType = cleanTypeName(type);
+                if (type.contains("*") || type.contains("&")) {
+                    // ポインタ/参照型は依存関係
+                    relationships.add(String.format("%s ..> %s", cls.getName(), cleanType));
+                } else {
+                    // コンポジション関係 (多重度を判定)
+                    String multiplicity = determineMultiplicity(type);
+                    relationships.add(String.format("%s \"1\" *-- \"%s\" %s",
+                            cls.getName(), multiplicity, cleanType));
+                }
+            }
         }
 
-        // 依存関係
+        // 実装ファイルからの依存関係も追加
         for (String dependency : cppClass.getDependencies()) {
-            pumlBuilder.append(cppClass.getName())
-                    .append(" ..> ")
-                    .append(dependency)
-                    .append("\n");
+            relationships.add(String.format("%s ..> %s", cls.getName(), dependency));
         }
+
+        // 実装ファイルからのコンポジション関係も追加
+        for (String composition : cppClass.getCompositions()) {
+            String multiplicity = determineMultiplicity(composition);
+            relationships.add(String.format("%s \"1\" *-- \"%s\" %s",
+                    cls.getName(), multiplicity, composition));
+        }
+
+        // 重複のない関係を描画
+        for (String relationship : relationships) {
+            pumlBuilder.append(relationship).append("\n");
+        }
+    }
+
+    private String determineMultiplicity(String type) {
+        // 固定長配列の場合（例：[5]）
+        if (type.matches(".*\\[\\d+\\]")) {
+            return type.replaceAll(".*\\[(\\d+)\\].*", "$1");
+        }
+        // 可変長配列の場合
+        if (type.contains("[]")) {
+            return "*";
+        }
+        // STLコンテナの場合
+        if (type.matches(".*vector<.*>.*") ||
+                type.matches(".*list<.*>.*") ||
+                type.matches(".*set<.*>.*")) {
+            return "*";
+        }
+        return "1";
     }
 
     private String getRelationshipArrow(Relationship.RelationType type) {

@@ -17,7 +17,7 @@ public class CppClass extends Class {
         VIRTUAL,
         ABSTRACT,
         OVERRIDE,
-        FINAL
+        FINAL,
     }
 
     // メンバー名と修飾子のマッピング
