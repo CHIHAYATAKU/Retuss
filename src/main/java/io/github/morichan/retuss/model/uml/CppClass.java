@@ -42,11 +42,57 @@ public class CppClass extends Class {
         }
     }
 
+    public static class RelationshipInfo {
+        public enum RelationType {
+            DEPENDENCY,
+            COMPOSITION
+        }
+
+        private final String targetClass;
+        private final RelationType type;
+        private final String multiplicity;
+
+        public RelationshipInfo(String targetClass, RelationType type, String multiplicity) {
+            this.targetClass = targetClass;
+            this.type = type;
+            this.multiplicity = multiplicity;
+        }
+
+        public String getTargetClass() {
+            return targetClass;
+        }
+
+        public RelationType getType() {
+            return type;
+        }
+
+        public String getMultiplicity() {
+            return multiplicity;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            RelationshipInfo that = (RelationshipInfo) o;
+            return Objects.equals(targetClass, that.targetClass) &&
+                    type == that.type &&
+                    Objects.equals(multiplicity, that.multiplicity);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(targetClass, type, multiplicity);
+        }
+    }
+
     // メンバー名と修飾子のマッピング
     private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
     private Map<String, Type> memberTypes = new HashMap<>();
     private Map<String, List<Parameter>> methodParameters = new HashMap<>();
-    private List<Relationship> relationships = new ArrayList<>();
+    private final Set<RelationshipInfo> relationships = new HashSet<>();
     private final Map<String, Set<TypeRelation>> typeRelations = new HashMap<>();
     private final Map<String, Set<String>> dependencies = new HashMap<>();
     private final Map<String, String> multiplicities = new HashMap<>();
@@ -61,14 +107,14 @@ public class CppClass extends Class {
     }
 
     // 修飾子の追加
-    public void addMemberModifier(String memberName, Modifier modifier) {
-        memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
-                .add(modifier);
-    }
-
     public void addMemberModifiers(String memberName, Set<Modifier> modifiers) {
         memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
                 .addAll(modifiers);
+    }
+
+    public void addMemberModifier(String memberName, Modifier modifier) {
+        memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
+                .add(modifier);
     }
 
     public Set<Modifier> getModifiers(String memberName) {
@@ -129,17 +175,19 @@ public class CppClass extends Class {
         return sb.toString();
     }
 
-    public void addRelationship(Relationship relationship) {
-        relationships.add(relationship);
+    public void addRelationship(String targetClass, RelationshipInfo.RelationType type, String multiplicity) {
+        relationships.add(new RelationshipInfo(targetClass, type, multiplicity));
     }
 
-    public List<Relationship> getRelationships() {
-        return Collections.unmodifiableList(relationships);
+    public Set<RelationshipInfo> getRelationships() {
+        return Collections.unmodifiableSet(relationships);
     }
 
     // 関係管理のためのメソッド
     public void setMultiplicity(String targetClass, String multiplicity) {
-        multiplicities.put(targetClass, multiplicity);
+        // 既存の関係を保持したまま多重度だけ更新
+        relationships.removeIf(r -> r.getTargetClass().equals(targetClass));
+        relationships.add(new RelationshipInfo(targetClass, RelationshipInfo.RelationType.COMPOSITION, multiplicity));
     }
 
     public String getMultiplicity(String targetClass) {
@@ -157,17 +205,13 @@ public class CppClass extends Class {
 
     public void addDependency(String targetClass) {
         if (!targetClass.equals(getName())) {
-            dependencies.computeIfAbsent(targetClass, k -> new HashSet<>());
-            // コンポジションとの重複を防ぐ
-            compositions.remove(targetClass);
+            relationships.add(new RelationshipInfo(targetClass, RelationshipInfo.RelationType.DEPENDENCY, "1"));
         }
     }
 
     public void addComposition(String targetClass) {
         if (!targetClass.equals(getName())) {
-            compositions.add(targetClass);
-            // 依存関係との重複を防ぐ
-            dependencies.remove(targetClass);
+            relationships.add(new RelationshipInfo(targetClass, RelationshipInfo.RelationType.COMPOSITION, "1"));
         }
     }
 
@@ -195,37 +239,6 @@ public class CppClass extends Class {
     public void addAttribute(Attribute attribute) {
         super.addAttribute(attribute);
         memberTypes.put(attribute.getName().getNameText(), attribute.getType());
-    }
-
-    private void analyzeAttributeRelationships(Attribute attribute) {
-        String typeName = attribute.getType().toString();
-        boolean isPointer = typeName.contains("*");
-        boolean isReference = typeName.contains("&");
-
-        // ポインタや参照の場合は集約関係
-        if (isPointer || isReference) {
-            addRelationship(new Relationship(
-                    this.getName(),
-                    cleanTypeName(typeName),
-                    Relationship.RelationType.AGGREGATION,
-                    "",
-                    attribute.getName().toString(),
-                    "",
-                    "1",
-                    true));
-        }
-        // 値型の場合はコンポジション関係
-        else if (isUserDefinedType(typeName)) {
-            addRelationship(new Relationship(
-                    this.getName(),
-                    cleanTypeName(typeName),
-                    Relationship.RelationType.COMPOSITION,
-                    "",
-                    attribute.getName().toString(),
-                    "",
-                    "1",
-                    true));
-        }
     }
 
     private String cleanTypeName(String typeName) {

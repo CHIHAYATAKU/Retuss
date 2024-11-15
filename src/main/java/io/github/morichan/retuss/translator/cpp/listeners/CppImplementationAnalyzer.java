@@ -28,9 +28,6 @@ public class CppImplementationAnalyzer {
             CPP14Parser parser = createParser(implementationCode);
             walker.walk(analyzer, parser.translationUnit());
 
-            // 依存関係の追加
-            analyzer.getRelationships().forEach(cppClass::addRelationship);
-
             // インスタンス化されたクラスと使用されたクラスの記録
             analyzer.getInstantiatedClasses().forEach(cppClass::addDependency);
             analyzer.getUsedClasses().forEach(cppClass::addDependency);

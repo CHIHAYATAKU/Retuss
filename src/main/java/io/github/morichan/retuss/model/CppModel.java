@@ -258,15 +258,13 @@ public class CppModel {
         if (!headerFile.getUmlClassList().isEmpty()) {
             Class umlClass = headerFile.getUmlClassList().get(0);
             try {
-                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
                 CharStream input = CharStreams.fromString(implFile.getCode());
                 CPP14Lexer lexer = new CPP14Lexer(input);
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
                 CPP14Parser parser = new CPP14Parser(tokens);
-                ParseTreeWalker.DEFAULT.walk(analyzer, parser.translationUnit());
 
-                System.out.println("DEBUG: Analyzed relationships in implementation file: " +
-                        implFile.getFileName());
+                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
+                ParseTreeWalker.DEFAULT.walk(analyzer, parser.translationUnit());
             } catch (Exception e) {
                 System.err.println("Error analyzing implementation relationships: " + e.getMessage());
             }
@@ -555,9 +553,19 @@ public class CppModel {
 
                 updateCode(file, code);
 
-                // ヘッダーファイルとソースファイルの両方で更新を通知
-                if (umlController != null) {
-                    umlController.updateDiagram(file);
+                // ヘッダーファイルでない場合、対応するヘッダーファイルの関係を再解析
+                if (!file.isHeader()) {
+                    String baseName = file.getBaseName();
+                    CppFile headerFile = headerFiles.get(baseName);
+                    if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+                        // 実装ファイルからの関係を解析
+                        analyzeImplementationRelationships(headerFile, file);
+
+                        // 図の更新をトリガー
+                        if (umlController != null) {
+                            umlController.updateDiagram(headerFile);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {

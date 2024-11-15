@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -174,24 +175,19 @@ public class CppClassDiagramDrawer {
                     .append(" ");
 
             // 修飾子の追加
-            Set<CppClass.Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
-            if (!modifiers.isEmpty()) {
-                appendModifiers(pumlBuilder, modifiers);
-            }
+            appendModifiers(pumlBuilder, cls.getModifiers(op.getName().getNameText()));
 
             pumlBuilder.append(op.getName().getNameText())
                     .append("(");
 
-            // パラメータ処理
+            // パラメータの型情報を表示
             List<String> params = new ArrayList<>();
             try {
                 for (Parameter param : op.getParameters()) {
                     params.add(formatType(param.getType().toString()));
                 }
             } catch (IllegalStateException e) {
-                // パラメータがない場合は無視
             }
-
             pumlBuilder.append(String.join(", ", params));
 
             pumlBuilder.append(") : ")
@@ -199,7 +195,6 @@ public class CppClassDiagramDrawer {
                     .append("\n");
         } catch (Exception e) {
             System.err.println("Error appending operation " + op.getName() + ": " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -239,7 +234,15 @@ public class CppClassDiagramDrawer {
 
         // コレクション型の処理
         if (type.contains("vector<") || type.contains("list<")) {
-            return type; // コレクション型はそのまま返す
+            // コレクション型の場合も内部の型をエスケープ
+            int startIndex = type.indexOf('<');
+            int endIndex = type.lastIndexOf('>');
+            if (startIndex != -1 && endIndex != -1) {
+                String innerType = type.substring(startIndex + 1, endIndex);
+                String formattedInner = formatType(innerType); // 再帰的に内部の型を処理
+                return type.substring(0, startIndex + 1) + formattedInner + type.substring(endIndex);
+            }
+            return type;
         }
 
         // constを一時的に除去（後で必要な位置に追加するため）
@@ -255,6 +258,11 @@ public class CppClassDiagramDrawer {
             type = type.substring(0, type.length() - 1).trim();
         }
 
+        // staticを除去
+        if (type.startsWith("static ")) {
+            type = type.substring(7).trim();
+        }
+
         // 配列表記の処理
         String arraySize = "";
         if (type.matches(".*\\[\\d+\\]")) {
@@ -268,12 +276,13 @@ public class CppClassDiagramDrawer {
             result.append("const ");
         }
 
-        if (suffix.isEmpty()) {
-            result.append(type);
-        } else {
-            // PlantUMLでのエスケープ処理
+        // 基本型を追加
+        result.append(type.trim());
+
+        // ポインタ/参照をエスケープして追加
+        if (!suffix.isEmpty()) {
             String escapedSuffix = suffix.replace("*", "\\*").replace("&", "\\&");
-            result.append(type).append(escapedSuffix);
+            result.append(escapedSuffix);
         }
 
         // 配列サイズを追加
@@ -422,8 +431,9 @@ public class CppClassDiagramDrawer {
             }
         }
 
-        // 関係を一時保存するセット（重複を防ぐ）
-        Set<String> relationships = new HashSet<>();
+        // 関係を種類ごとにマップで管理
+        Map<String, String> compositionRelations = new HashMap<>();
+        Map<String, String> dependencyRelations = new HashMap<>();
 
         // 継承関係
         if (cppClass.getSuperClass().isPresent()) {
@@ -433,41 +443,42 @@ public class CppClassDiagramDrawer {
                     .append("\n");
         }
 
-        // コンポジション関係
-        for (String composition : cppClass.getCompositions()) {
-            String multiplicity = cppClass.getMultiplicity(composition);
-            relationships.add(String.format("%s \"1\" *-- \"%s\" %s",
-                    cppClass.getName(), multiplicity, composition));
+        // 関係を集約
+        for (CppClass.RelationshipInfo rel : cppClass.getRelationships()) {
+            String targetClass = rel.getTargetClass();
+
+            switch (rel.getType()) {
+                case COMPOSITION:
+                    String existingMultiplicity = compositionRelations.get(targetClass);
+                    if (existingMultiplicity == null ||
+                            existingMultiplicity.equals("1") ||
+                            rel.getMultiplicity().equals("*")) {
+                        compositionRelations.put(targetClass, rel.getMultiplicity());
+                    }
+                    break;
+                case DEPENDENCY:
+                    dependencyRelations.put(targetClass, "1");
+                    break;
+            }
         }
 
-        // 依存関係
-        for (String dependency : cppClass.getDependencies()) {
-            relationships.add(String.format("%s ..> %s",
-                    cppClass.getName(), dependency));
+        // コンポジション関係を描画
+        for (Map.Entry<String, String> entry : compositionRelations.entrySet()) {
+            pumlBuilder.append(cppClass.getName())
+                    .append(" \"1\" *-- \"")
+                    .append(entry.getValue())
+                    .append("\" ")
+                    .append(entry.getKey())
+                    .append("\n");
         }
 
-        relationships.forEach(rel -> pumlBuilder.append(rel).append("\n"));
-
-        // // TypeRelationsから関係を描画
-        // for (Map.Entry<String, Set<CppClass.TypeRelation>> entry :
-        // relations.entrySet()) {
-        // String targetClass = entry.getKey();
-        // for (CppClass.TypeRelation rel : entry.getValue()) {
-        // if (rel.getType() == CppClass.TypeRelation.RelationType.COMPOSITION) {
-        // pumlBuilder.append(cppClass.getName())
-        // .append(" \"1\" *-- \"")
-        // .append(rel.getMultiplicity())
-        // .append("\" ")
-        // .append(targetClass)
-        // .append("\n");
-        // } else if (rel.getType() == CppClass.TypeRelation.RelationType.DEPENDENCY) {
-        // pumlBuilder.append(cppClass.getName())
-        // .append(" ..> ")
-        // .append(targetClass)
-        // .append("\n");
-        // }
-        // }
-        // }
+        // 依存関係を描画
+        for (Map.Entry<String, String> entry : dependencyRelations.entrySet()) {
+            pumlBuilder.append(cppClass.getName())
+                    .append(" ..> ")
+                    .append(entry.getKey())
+                    .append("\n");
+        }
     }
 
     private String determineMultiplicity(String type) {
