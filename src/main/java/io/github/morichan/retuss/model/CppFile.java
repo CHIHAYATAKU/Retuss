@@ -185,7 +185,7 @@ public class CppFile implements ICodeFile {
     }
 
     public String getBaseName() {
-        return fileName.replaceAll("\\.(h|cpp)$", "");
+        return fileName.replaceAll("\\.(h|hpp|cpp)$", "");
     }
 
     private void handleClassNameChange(Optional<String> newClassName) {
