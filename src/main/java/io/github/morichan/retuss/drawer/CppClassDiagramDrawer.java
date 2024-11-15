@@ -112,32 +112,27 @@ public class CppClassDiagramDrawer {
 
             // 修飾子の追加
             Set<CppClass.Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
-            if (modifiers.contains(CppClass.Modifier.STATIC)) {
-                pumlBuilder.append("{static} ");
-            }
-            if (modifiers.contains(CppClass.Modifier.CONST)) {
-                pumlBuilder.append("{constant} ");
-            }
-            if (modifiers.contains(CppClass.Modifier.MUTABLE)) {
-                pumlBuilder.append("{mutable} ");
+            if (!modifiers.isEmpty()) {
+                pumlBuilder.append("{");
+                List<String> modifierStrings = new ArrayList<>();
+                if (modifiers.contains(CppClass.Modifier.STATIC)) {
+                    modifierStrings.add("static");
+                }
+                if (modifiers.contains(CppClass.Modifier.CONST)) {
+                    modifierStrings.add("const");
+                }
+                if (modifiers.contains(CppClass.Modifier.MUTABLE)) {
+                    modifierStrings.add("mutable");
+                }
+                pumlBuilder.append(String.join(",", modifierStrings));
+                pumlBuilder.append("} ");
             }
 
             // 属性名
             pumlBuilder.append(attr.getName().getNameText())
-                    .append(" : ");
-
-            // 型と配列サイズの処理
-            String type = attr.getType().toString();
-            if (type.matches(".*\\[\\d+\\]")) {
-                String baseType = type.replaceAll("\\[\\d+\\]", "");
-                String size = type.replaceAll(".*\\[(\\d+)\\].*", "$1");
-                pumlBuilder.append(formatType(baseType))
-                        .append("[").append(size).append("]");
-            } else {
-                pumlBuilder.append(formatType(type));
-            }
-
-            pumlBuilder.append("\n");
+                    .append(" : ")
+                    .append(formatType(attr.getType().toString()))
+                    .append("\n");
         } catch (Exception e) {
             System.err.println("Error appending attribute " + attr.getName() + ": " + e.getMessage());
             e.printStackTrace();
@@ -188,28 +183,20 @@ public class CppClassDiagramDrawer {
                     .append("(");
 
             // パラメータ処理
+            List<String> params = new ArrayList<>();
             try {
-                List<String> params = new ArrayList<>();
                 for (Parameter param : op.getParameters()) {
-                    String paramStr = String.format("%s : %s",
-                            param.getName().getNameText(),
-                            formatType(param.getType().toString()));
-                    params.add(paramStr);
+                    params.add(formatType(param.getType().toString()));
                 }
-                pumlBuilder.append(String.join(", ", params));
             } catch (IllegalStateException e) {
                 // パラメータがない場合は無視
             }
 
-            pumlBuilder.append(")");
+            pumlBuilder.append(String.join(", ", params));
 
-            // 戻り値の型
-            if (!op.getReturnType().toString().equals("void")) {
-                pumlBuilder.append(" : ")
-                        .append(formatType(op.getReturnType().toString()));
-            }
-
-            pumlBuilder.append("\n");
+            pumlBuilder.append(") : ")
+                    .append(formatType(op.getReturnType().toString()))
+                    .append("\n");
         } catch (Exception e) {
             System.err.println("Error appending operation " + op.getName() + ": " + e.getMessage());
             e.printStackTrace();
@@ -423,10 +410,6 @@ public class CppClassDiagramDrawer {
         CppClass cppClass = (CppClass) cls;
 
         System.out.println("DEBUG: Drawing relationships for class: " + cppClass.getName());
-
-        // 属性による関係を格納するSet（重複を防ぐ）
-        Set<String> relationships = new HashSet<>();
-
         Map<String, Set<CppClass.TypeRelation>> relations = cppClass.getTypeRelations();
         for (Map.Entry<String, Set<CppClass.TypeRelation>> entry : relations.entrySet()) {
             String targetClass = entry.getKey();
@@ -439,6 +422,9 @@ public class CppClassDiagramDrawer {
             }
         }
 
+        // 関係を一時保存するセット（重複を防ぐ）
+        Set<String> relationships = new HashSet<>();
+
         // 継承関係
         if (cppClass.getSuperClass().isPresent()) {
             pumlBuilder.append(cppClass.getSuperClass().get().getName())
@@ -450,33 +436,38 @@ public class CppClassDiagramDrawer {
         // コンポジション関係
         for (String composition : cppClass.getCompositions()) {
             String multiplicity = cppClass.getMultiplicity(composition);
-            pumlBuilder.append(cppClass.getName())
-                    .append(" \"1\" *-- \"")
-                    .append(multiplicity)
-                    .append("\" ")
-                    .append(composition)
-                    .append("\n");
+            relationships.add(String.format("%s \"1\" *-- \"%s\" %s",
+                    cppClass.getName(), multiplicity, composition));
         }
 
-        // その他の関係
-        for (Map.Entry<String, Set<CppClass.TypeRelation>> entry : cppClass.getTypeRelations().entrySet()) {
-            String targetClass = entry.getKey();
-            for (CppClass.TypeRelation rel : entry.getValue()) {
-                if (rel.getType() == CppClass.TypeRelation.RelationType.COMPOSITION) {
-                    pumlBuilder.append(cppClass.getName())
-                            .append(" \"1\" *-- \"")
-                            .append(rel.getMultiplicity())
-                            .append("\" ")
-                            .append(targetClass)
-                            .append("\n");
-                } else if (rel.getType() == CppClass.TypeRelation.RelationType.DEPENDENCY) {
-                    pumlBuilder.append(cppClass.getName())
-                            .append(" ..> ")
-                            .append(targetClass)
-                            .append("\n");
-                }
-            }
+        // 依存関係
+        for (String dependency : cppClass.getDependencies()) {
+            relationships.add(String.format("%s ..> %s",
+                    cppClass.getName(), dependency));
         }
+
+        relationships.forEach(rel -> pumlBuilder.append(rel).append("\n"));
+
+        // // TypeRelationsから関係を描画
+        // for (Map.Entry<String, Set<CppClass.TypeRelation>> entry :
+        // relations.entrySet()) {
+        // String targetClass = entry.getKey();
+        // for (CppClass.TypeRelation rel : entry.getValue()) {
+        // if (rel.getType() == CppClass.TypeRelation.RelationType.COMPOSITION) {
+        // pumlBuilder.append(cppClass.getName())
+        // .append(" \"1\" *-- \"")
+        // .append(rel.getMultiplicity())
+        // .append("\" ")
+        // .append(targetClass)
+        // .append("\n");
+        // } else if (rel.getType() == CppClass.TypeRelation.RelationType.DEPENDENCY) {
+        // pumlBuilder.append(cppClass.getName())
+        // .append(" ..> ")
+        // .append(targetClass)
+        // .append("\n");
+        // }
+        // }
+        // }
     }
 
     private String determineMultiplicity(String type) {

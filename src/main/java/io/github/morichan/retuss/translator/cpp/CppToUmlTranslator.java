@@ -2,9 +2,11 @@ package io.github.morichan.retuss.translator.cpp;
 
 import io.github.morichan.retuss.translator.common.CodeToUmlTranslator;
 import io.github.morichan.retuss.translator.cpp.listeners.ClassExtractorListener;
+import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
 import io.github.morichan.retuss.translator.cpp.util.CppTypeMapper;
 import io.github.morichan.retuss.translator.cpp.util.CppVisibilityMapper;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.CppClass;
 import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 
@@ -25,10 +27,20 @@ public class CppToUmlTranslator implements CodeToUmlTranslator {
     public List<Class> translate(String code) {
         try {
             String processedCode = preprocessCode(code);
-            ParseTree tree = parseCode(processedCode);
-            return extractClasses(tree);
+            CharStream input = CharStreams.fromString(processedCode);
+            CPP14Lexer lexer = new CPP14Lexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            CPP14Parser parser = new CPP14Parser(tokens);
+            ParseTreeWalker walker = new ParseTreeWalker();
+
+            // クラス構造の抽出（ClassExtractorから）
+            ClassExtractorListener classExtractor = new ClassExtractorListener(typeMapper, visibilityMapper);
+            walker.walk(classExtractor, parser.translationUnit());
+            List<Class> extractedClasses = classExtractor.getExtractedClasses();
+
+            return extractedClasses;
         } catch (Exception e) {
-            System.err.println("Failed to translate C++ code to UML: " + e.getMessage());
+            System.err.println("Failed to translate C++ code: " + e.getMessage());
             return new ArrayList<>();
         }
     }

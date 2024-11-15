@@ -17,7 +17,7 @@ public class CppClass extends Class {
         VIRTUAL,
         ABSTRACT,
         OVERRIDE,
-        FINAL,
+        FINAL
     }
 
     public static class TypeRelation {
@@ -48,9 +48,9 @@ public class CppClass extends Class {
     private Map<String, List<Parameter>> methodParameters = new HashMap<>();
     private List<Relationship> relationships = new ArrayList<>();
     private final Map<String, Set<TypeRelation>> typeRelations = new HashMap<>();
-    private final Set<String> dependencies = new HashSet<>();
-    private final Set<String> compositions = new HashSet<>();
+    private final Map<String, Set<String>> dependencies = new HashMap<>();
     private final Map<String, String> multiplicities = new HashMap<>();
+    private final Set<String> compositions = new HashSet<>();
 
     public CppClass(String name) {
         super(name);
@@ -61,17 +61,19 @@ public class CppClass extends Class {
     }
 
     // 修飾子の追加
-    public void addMemberModifiers(String memberName, Set<Modifier> modifiers) {
-        memberModifiers.put(memberName, EnumSet.copyOf(modifiers));
-    }
-
     public void addMemberModifier(String memberName, Modifier modifier) {
         memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
                 .add(modifier);
     }
 
+    public void addMemberModifiers(String memberName, Set<Modifier> modifiers) {
+        memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
+                .addAll(modifiers);
+    }
+
     public Set<Modifier> getModifiers(String memberName) {
-        return memberModifiers.getOrDefault(memberName, EnumSet.noneOf(Modifier.class));
+        return Collections.unmodifiableSet(
+                memberModifiers.getOrDefault(memberName, EnumSet.noneOf(Modifier.class)));
     }
 
     public boolean hasModifier(String memberName, Modifier modifier) {
@@ -136,12 +138,12 @@ public class CppClass extends Class {
     }
 
     // 関係管理のためのメソッド
-    public void setMultiplicity(String className, String multiplicity) {
-        multiplicities.put(className, multiplicity);
+    public void setMultiplicity(String targetClass, String multiplicity) {
+        multiplicities.put(targetClass, multiplicity);
     }
 
-    public String getMultiplicity(String className) {
-        return multiplicities.getOrDefault(className, "1");
+    public String getMultiplicity(String targetClass) {
+        return multiplicities.getOrDefault(targetClass, "1");
     }
 
     public void addTypeRelation(String targetClass, TypeRelation.RelationType type, String multiplicity) {
@@ -153,24 +155,24 @@ public class CppClass extends Class {
         return Collections.unmodifiableMap(typeRelations);
     }
 
-    public void addDependency(String className) {
-        if (!className.equals(getName()) && !dependencies.contains(className)) {
-            dependencies.add(className);
-            // コンポジションが既に存在する場合は依存関係を追加しない
-            compositions.remove(className);
+    public void addDependency(String targetClass) {
+        if (!targetClass.equals(getName())) {
+            dependencies.computeIfAbsent(targetClass, k -> new HashSet<>());
+            // コンポジションとの重複を防ぐ
+            compositions.remove(targetClass);
         }
     }
 
-    public void addComposition(String className) {
-        if (!className.equals(getName()) && !compositions.contains(className)) {
-            compositions.add(className);
-            // 依存関係が存在する場合は削除（コンポジションが優先）
-            dependencies.remove(className);
+    public void addComposition(String targetClass) {
+        if (!targetClass.equals(getName())) {
+            compositions.add(targetClass);
+            // 依存関係との重複を防ぐ
+            dependencies.remove(targetClass);
         }
     }
 
     public Set<String> getDependencies() {
-        return Collections.unmodifiableSet(dependencies);
+        return Collections.unmodifiableSet(dependencies.keySet());
     }
 
     public Set<String> getCompositions() {

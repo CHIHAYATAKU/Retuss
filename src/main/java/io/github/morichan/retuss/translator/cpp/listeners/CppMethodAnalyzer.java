@@ -195,7 +195,7 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         System.out.println("  Adding normal composition to " + cleanType);
     }
 
-    // 型解析用のヘルパーメソッド群（新規追加）
+    // 型解析用のヘルパーメソッド群
     private boolean isPointerOrReference(String type) {
         return type.contains("*") || type.contains("&");
     }
