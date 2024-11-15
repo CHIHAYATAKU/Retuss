@@ -10,6 +10,9 @@ import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
+import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
+import io.github.morichan.retuss.parser.cpp.CPP14Parser;
+import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -34,6 +37,11 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class UmlController {
     private CodeController codeController;
@@ -347,6 +355,7 @@ public class UmlController {
             return;
         }
         lastUpdateTime = currentTime;
+
         if (codeFile instanceof CodeFile) {
             // Javaファイルの場合
             System.out.println("DEBUG: Updating Java diagrams");
@@ -366,21 +375,28 @@ public class UmlController {
             CppFile cppFile = (CppFile) codeFile;
             // ヘッダーファイルの場合、またはヘッダーファイルが存在する実装ファイルの場合に更新
             if (cppFile.isHeader() || findCorrespondingHeaderFile(cppFile) != null) {
-                System.out.println("Updating diagrams for C++ file: " + cppFile.getFileName());
+                System.out.println("DEBUG: Processing C++ file: " + cppFile.getFileName());
                 Platform.runLater(() -> {
-                    // クラス図の更新
-                    cppClassDiagramDrawer.draw();
-
-                    // シーケンス図の更新
-                    updateCppSequenceDiagram(cppFile);
+                    try {
+                        // クラス図の更新（関係抽出を含む）
+                        cppClassDiagramDrawer.clearCache(); // キャッシュをクリアして強制的に再描画
+                        cppClassDiagramDrawer.draw();
+                        // シーケンス図の更新
+                        updateCppSequenceDiagram(cppFile);
+                    } catch (Exception e) {
+                        System.err.println("Error updating diagrams: " + e.getMessage());
+                    }
                 });
             }
         }
     }
 
     private CppFile findCorrespondingHeaderFile(CppFile implFile) {
-        String baseName = implFile.getFileName().replace(".cpp", "");
-        return CppModel.getInstance().findHeaderFile(baseName);
+        if (!implFile.isHeader()) {
+            String baseName = implFile.getFileName().replace(".cpp", "");
+            return CppModel.getInstance().findHeaderFile(baseName);
+        }
+        return null;
     }
 
     private void updateJavaSequenceDiagram(CodeFile codeFile) {
@@ -442,6 +458,42 @@ public class UmlController {
         }
 
         System.out.println("DEBUG: Java sequence diagram update completed");
+    }
+
+    public void handleCodeUpdate(CppFile file) {
+        if (file.isHeader()) {
+            // ヘッダーファイルが更新された場合
+            String baseName = file.getFileName().replace(".h", "");
+            CppFile implFile = CppModel.getInstance().findImplFile(baseName);
+            updateRelationships(file, implFile);
+        } else {
+            // 実装ファイルが更新された場合
+            String baseName = file.getFileName().replace(".cpp", "");
+            CppFile headerFile = CppModel.getInstance().findHeaderFile(baseName);
+            if (headerFile != null) {
+                updateRelationships(headerFile, file);
+            }
+        }
+        updateDiagram(file);
+    }
+
+    private void updateRelationships(CppFile headerFile, CppFile implFile) {
+        if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+            Class umlClass = headerFile.getUmlClassList().get(0);
+            try {
+                // 実装ファイルからの関係も解析
+                if (implFile != null) {
+                    CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
+                    CharStream input = CharStreams.fromString(implFile.getCode());
+                    CPP14Lexer lexer = new CPP14Lexer(input);
+                    CommonTokenStream tokens = new CommonTokenStream(lexer);
+                    CPP14Parser parser = new CPP14Parser(tokens);
+                    ParseTreeWalker.DEFAULT.walk(analyzer, parser.translationUnit());
+                }
+            } catch (Exception e) {
+                System.err.println("Error analyzing relationships: " + e.getMessage());
+            }
+        }
     }
 
     private void updateExistingSequenceTab(Tab fileTab, CppFile headerFile) {

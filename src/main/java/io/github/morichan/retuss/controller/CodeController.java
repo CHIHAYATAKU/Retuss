@@ -256,14 +256,6 @@ public class CodeController {
         return codeTab;
     }
 
-    private void updateCodeFile(ICodeFile file, String code) {
-        if (file instanceof CodeFile) {
-            javaModel.updateCodeFile((CodeFile) file, code);
-        } else if (file instanceof CppFile) {
-            cppModel.updateCode((CppFile) file, code);
-        }
-    }
-
     // 既存のJava用コード更新メソッド
     private void updateCodeFile() {
         Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
@@ -298,12 +290,22 @@ public class CodeController {
 
                 int caretPosition = codeArea.getCaretPosition();
                 String code = codeArea.getText();
-                System.out.println("code area" + code);
+                System.out.println("DEBUG: Updating code for " + targetCodeFile.getFileName());
+
+                // UMLコントローラーに直接通知して関係抽出を行う
+                if (umlController != null) {
+                    umlController.handleCodeUpdate(targetCodeFile);
+                }
+
                 cppModel.updateCodeFile(targetCodeFile, code);
 
                 Platform.runLater(() -> {
-                    codeArea.moveTo(caretPosition);
-                    codeArea.requestFollowCaret();
+                    try {
+                        codeArea.moveTo(caretPosition);
+                        codeArea.requestFollowCaret();
+                    } catch (Exception e) {
+                        System.err.println("Error updating caret position: " + e.getMessage());
+                    }
                 });
                 return;
             }

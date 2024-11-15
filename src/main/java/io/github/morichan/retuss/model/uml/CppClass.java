@@ -20,13 +20,37 @@ public class CppClass extends Class {
         FINAL,
     }
 
+    public static class TypeRelation {
+        public enum RelationType {
+            DEPENDENCY, COMPOSITION
+        }
+
+        private final RelationType type;
+        private final String multiplicity;
+
+        public TypeRelation(RelationType type, String multiplicity) {
+            this.type = type;
+            this.multiplicity = multiplicity;
+        }
+
+        public RelationType getType() {
+            return type;
+        }
+
+        public String getMultiplicity() {
+            return multiplicity;
+        }
+    }
+
     // メンバー名と修飾子のマッピング
     private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
     private Map<String, Type> memberTypes = new HashMap<>();
     private Map<String, List<Parameter>> methodParameters = new HashMap<>();
     private List<Relationship> relationships = new ArrayList<>();
+    private final Map<String, Set<TypeRelation>> typeRelations = new HashMap<>();
     private final Set<String> dependencies = new HashSet<>();
     private final Set<String> compositions = new HashSet<>();
+    private final Map<String, String> multiplicities = new HashMap<>();
 
     public CppClass(String name) {
         super(name);
@@ -111,15 +135,37 @@ public class CppClass extends Class {
         return Collections.unmodifiableList(relationships);
     }
 
+    // 関係管理のためのメソッド
+    public void setMultiplicity(String className, String multiplicity) {
+        multiplicities.put(className, multiplicity);
+    }
+
+    public String getMultiplicity(String className) {
+        return multiplicities.getOrDefault(className, "1");
+    }
+
+    public void addTypeRelation(String targetClass, TypeRelation.RelationType type, String multiplicity) {
+        typeRelations.computeIfAbsent(targetClass, k -> new HashSet<>())
+                .add(new TypeRelation(type, multiplicity));
+    }
+
+    public Map<String, Set<TypeRelation>> getTypeRelations() {
+        return Collections.unmodifiableMap(typeRelations);
+    }
+
     public void addDependency(String className) {
-        if (!className.equals(getName())) {
+        if (!className.equals(getName()) && !dependencies.contains(className)) {
             dependencies.add(className);
+            // コンポジションが既に存在する場合は依存関係を追加しない
+            compositions.remove(className);
         }
     }
 
     public void addComposition(String className) {
-        if (!className.equals(getName())) {
+        if (!className.equals(getName()) && !compositions.contains(className)) {
             compositions.add(className);
+            // 依存関係が存在する場合は削除（コンポジションが優先）
+            dependencies.remove(className);
         }
     }
 

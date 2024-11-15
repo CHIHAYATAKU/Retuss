@@ -145,8 +145,16 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
                         .parameterDeclarationClause()
                         .parameterDeclarationList().parameterDeclaration()) {
                     String paramType = paramCtx.declSpecifierSeq().getText();
-                    Parameter param = new Parameter(new Name("")); // 引数名は空に
-                    param.setType(new Type(paramType));
+                    String paramName = paramCtx.declarator() != null ? paramCtx.declarator().getText() : "";
+
+                    // パラメータの型からの関係抽出
+                    String cleanParamType = cleanTypeName(paramType);
+                    if (isUserDefinedType(cleanParamType)) {
+                        ((CppClass) currentClass).addDependency(cleanParamType);
+                    }
+
+                    Parameter param = new Parameter(new Name(paramName));
+                    param.setType(new Type(cleanTypeSpecifiers(paramType)));
                     operation.addParameter(param);
                 }
             }
@@ -275,15 +283,40 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
                 currentClass.addMemberModifiers(attributeName, modifiers);
             }
 
-            // ポインタ/参照型の場合は依存関係として記録
-            if (pointerSuffix.length() > 0 && isUserDefinedType(cleanTypeName(type))) {
-                ((CppClass) currentClass).addDependency(cleanTypeName(type));
+            // 関係の抽出と追加
+            String cleanType = cleanTypeName(type);
+            if (isUserDefinedType(cleanType)) {
+                CppClass cppClass = (CppClass) currentClass;
+
+                // ポインタ/参照による依存関係
+                if (pointerSuffix.length() > 0) {
+                    cppClass.addTypeRelation(cleanType,
+                            CppClass.TypeRelation.RelationType.DEPENDENCY, "1");
+                }
+
+                // コレクションによるコンポジション
+                if (type.contains("vector<") || type.contains("list<")) {
+                    cppClass.addTypeRelation(cleanType,
+                            CppClass.TypeRelation.RelationType.COMPOSITION, "*");
+                }
+
+                // 配列によるコンポジション
+                else if (attributeText.matches(".*\\[\\d+\\]")) {
+                    String size = attributeText.replaceAll(".*\\[(\\d+)\\].*", "$1");
+                    cppClass.addTypeRelation(cleanType,
+                            CppClass.TypeRelation.RelationType.COMPOSITION, size);
+                }
+
+                // 通常のインスタンスによるコンポジション
+                else if (pointerSuffix.length() == 0) {
+                    cppClass.addTypeRelation(cleanType,
+                            CppClass.TypeRelation.RelationType.COMPOSITION, "1");
+                }
             }
 
             System.out.println("DEBUG: Added attribute: " + attributeName +
                     " with type: " + fullType +
                     " and modifiers: " + modifiers);
-
         } catch (Exception e) {
             System.err.println("Error in handleAttribute: " + e.getMessage());
             e.printStackTrace();
