@@ -19,7 +19,10 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -110,26 +113,26 @@ public class CppClassDiagramDrawer {
 
             // 修飾子の追加
             Set<CppClass.Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
-            StringBuilder modifierStr = new StringBuilder();
-            if (modifiers.contains(CppClass.Modifier.STATIC))
-                modifierStr.append("{static} ");
-            if (modifiers.contains(CppClass.Modifier.CONST))
-                modifierStr.append("{constant} ");
-            if (modifiers.contains(CppClass.Modifier.MUTABLE))
-                modifierStr.append("{mutable} ");
-
-            pumlBuilder.append(modifierStr);
-
-            // 属性名と型
-            pumlBuilder.append(attr.getName().getNameText())
-                    .append(" : ");
-
-            String type = attr.getType().toString();
-            // constの場合は型の前に付加
-            if (modifiers.contains(CppClass.Modifier.CONST)) {
-                type = "const " + type;
+            if (!modifiers.isEmpty()) {
+                pumlBuilder.append("{");
+                List<String> modifierStrings = new ArrayList<>();
+                if (modifiers.contains(CppClass.Modifier.STATIC)) {
+                    modifierStrings.add("static");
+                }
+                if (modifiers.contains(CppClass.Modifier.CONST)) {
+                    modifierStrings.add("const");
+                }
+                if (modifiers.contains(CppClass.Modifier.MUTABLE)) {
+                    modifierStrings.add("mutable");
+                }
+                pumlBuilder.append(String.join(",", modifierStrings));
+                pumlBuilder.append("} ");
             }
-            pumlBuilder.append(formatType(type))
+
+            // 属性名
+            pumlBuilder.append(attr.getName().getNameText())
+                    .append(" : ")
+                    .append(formatType(attr.getType().toString()))
                     .append("\n");
         } catch (Exception e) {
             System.err.println("Error appending attribute " + attr.getName() + ": " + e.getMessage());
@@ -172,43 +175,49 @@ public class CppClassDiagramDrawer {
                     .append(" ");
 
             // 修飾子の追加
-            Set<CppClass.Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
-            StringBuilder modifierStr = new StringBuilder();
-            if (modifiers.contains(CppClass.Modifier.STATIC))
-                modifierStr.append("{static} ");
-            if (modifiers.contains(CppClass.Modifier.VIRTUAL))
-                modifierStr.append("{abstract} ");
-            if (modifiers.contains(CppClass.Modifier.CONST))
-                modifierStr.append("{constant} ");
+            appendModifiers(pumlBuilder, cls.getModifiers(op.getName().getNameText()));
 
-            pumlBuilder.append(modifierStr);
-
-            // メソッド名とパラメータ
             pumlBuilder.append(op.getName().getNameText())
                     .append("(");
 
-            // パラメータ処理
+            // パラメータの型情報を表示
+            List<String> params = new ArrayList<>();
             try {
-                List<String> params = new ArrayList<>();
                 for (Parameter param : op.getParameters()) {
-                    String paramType = formatType(param.getType().toString());
-                    params.add(paramType + " " + param.getName().getNameText());
+                    params.add(formatType(param.getType().toString()));
                 }
-                pumlBuilder.append(String.join(", ", params));
             } catch (IllegalStateException e) {
-                // パラメータがない場合は無視
             }
+            pumlBuilder.append(String.join(", ", params));
 
-            pumlBuilder.append(")");
-
-            // 戻り値の型を必ず表示
-            pumlBuilder.append(" : ")
-                    .append(formatType(op.getReturnType().toString()));
-
-            pumlBuilder.append("\n");
+            pumlBuilder.append(") : ")
+                    .append(formatType(op.getReturnType().toString()))
+                    .append("\n");
         } catch (Exception e) {
             System.err.println("Error appending operation " + op.getName() + ": " + e.getMessage());
-            e.printStackTrace();
+        }
+    }
+
+    private void appendModifiers(StringBuilder pumlBuilder, Set<CppClass.Modifier> modifiers) {
+        List<String> modifierStrings = new ArrayList<>();
+
+        if (modifiers.contains(CppClass.Modifier.VIRTUAL)) {
+            modifierStrings.add("virtual");
+        }
+        if (modifiers.contains(CppClass.Modifier.STATIC)) {
+            modifierStrings.add("static");
+        }
+        if (modifiers.contains(CppClass.Modifier.ABSTRACT)) {
+            modifierStrings.add("abstract");
+        }
+        if (modifiers.contains(CppClass.Modifier.CONST)) {
+            modifierStrings.add("const");
+        }
+
+        if (!modifierStrings.isEmpty()) {
+            pumlBuilder.append("{")
+                    .append(String.join(",", modifierStrings))
+                    .append("} ");
         }
     }
 
@@ -219,6 +228,22 @@ public class CppClassDiagramDrawer {
 
         // 空白を正規化
         type = type.trim().replaceAll("\\s+", " ");
+
+        // std::を除去
+        type = type.replaceAll("std::", "");
+
+        // コレクション型の処理
+        if (type.contains("vector<") || type.contains("list<")) {
+            // コレクション型の場合も内部の型をエスケープ
+            int startIndex = type.indexOf('<');
+            int endIndex = type.lastIndexOf('>');
+            if (startIndex != -1 && endIndex != -1) {
+                String innerType = type.substring(startIndex + 1, endIndex);
+                String formattedInner = formatType(innerType); // 再帰的に内部の型を処理
+                return type.substring(0, startIndex + 1) + formattedInner + type.substring(endIndex);
+            }
+            return type;
+        }
 
         // constを一時的に除去（後で必要な位置に追加するため）
         boolean isConst = type.startsWith("const ");
@@ -233,17 +258,36 @@ public class CppClassDiagramDrawer {
             type = type.substring(0, type.length() - 1).trim();
         }
 
+        // staticを除去
+        if (type.startsWith("static ")) {
+            type = type.substring(7).trim();
+        }
+
+        // 配列表記の処理
+        String arraySize = "";
+        if (type.matches(".*\\[\\d+\\]")) {
+            arraySize = type.replaceAll(".*\\[(\\d+)\\].*", "[$1]");
+            type = type.replaceAll("\\[\\d+\\]", "");
+        }
+
         // 結果を組み立て
         StringBuilder result = new StringBuilder();
-        if (suffix.isEmpty()) {
-            if (isConst)
-                result.append("const ");
-            result.append(type);
-        } else {
-            // ポインタ/参照型の場合は型の前に付ける
-            if (isConst)
-                result.append("const ");
-            result.append(suffix).append(type);
+        if (isConst) {
+            result.append("const ");
+        }
+
+        // 基本型を追加
+        result.append(type.trim());
+
+        // ポインタ/参照をエスケープして追加
+        if (!suffix.isEmpty()) {
+            String escapedSuffix = suffix.replace("*", "\\*").replace("&", "\\&");
+            result.append(escapedSuffix);
+        }
+
+        // 配列サイズを追加
+        if (!arraySize.isEmpty()) {
+            result.append(arraySize);
         }
 
         return result.toString();
@@ -374,6 +418,23 @@ public class CppClassDiagramDrawer {
             return;
         CppClass cppClass = (CppClass) cls;
 
+        System.out.println("DEBUG: Drawing relationships for class: " + cppClass.getName());
+        Map<String, Set<CppClass.TypeRelation>> relations = cppClass.getTypeRelations();
+        for (Map.Entry<String, Set<CppClass.TypeRelation>> entry : relations.entrySet()) {
+            String targetClass = entry.getKey();
+            for (CppClass.TypeRelation rel : entry.getValue()) {
+                if (rel.getType() == CppClass.TypeRelation.RelationType.DEPENDENCY) {
+                    System.out.println("  Dependency: " + targetClass);
+                } else if (rel.getType() == CppClass.TypeRelation.RelationType.COMPOSITION) {
+                    System.out.println("  Composition: " + targetClass + " [" + rel.getMultiplicity() + "]");
+                }
+            }
+        }
+
+        // 関係を種類ごとにマップで管理
+        Map<String, String> compositionRelations = new HashMap<>();
+        Map<String, String> dependencyRelations = new HashMap<>();
+
         // 継承関係
         if (cppClass.getSuperClass().isPresent()) {
             pumlBuilder.append(cppClass.getSuperClass().get().getName())
@@ -382,21 +443,60 @@ public class CppClassDiagramDrawer {
                     .append("\n");
         }
 
-        // コンポジション関係
-        for (String composition : cppClass.getCompositions()) {
+        // 関係を集約
+        for (CppClass.RelationshipInfo rel : cppClass.getRelationships()) {
+            String targetClass = rel.getTargetClass();
+
+            switch (rel.getType()) {
+                case COMPOSITION:
+                    String existingMultiplicity = compositionRelations.get(targetClass);
+                    if (existingMultiplicity == null ||
+                            existingMultiplicity.equals("1") ||
+                            rel.getMultiplicity().equals("*")) {
+                        compositionRelations.put(targetClass, rel.getMultiplicity());
+                    }
+                    break;
+                case DEPENDENCY:
+                    dependencyRelations.put(targetClass, "1");
+                    break;
+            }
+        }
+
+        // コンポジション関係を描画
+        for (Map.Entry<String, String> entry : compositionRelations.entrySet()) {
             pumlBuilder.append(cppClass.getName())
-                    .append(" *-- ")
-                    .append(composition)
+                    .append(" \"1\" *-- \"")
+                    .append(entry.getValue())
+                    .append("\" ")
+                    .append(entry.getKey())
                     .append("\n");
         }
 
-        // 依存関係
-        for (String dependency : cppClass.getDependencies()) {
+        // 依存関係を描画
+        for (Map.Entry<String, String> entry : dependencyRelations.entrySet()) {
             pumlBuilder.append(cppClass.getName())
                     .append(" ..> ")
-                    .append(dependency)
+                    .append(entry.getKey())
                     .append("\n");
         }
+    }
+
+    private String determineMultiplicity(String type) {
+        // 固定長配列の場合（例：[5]）
+        if (type.matches(".*\\[\\d+\\]")) {
+            return type.replaceAll(".*\\[(\\d+)\\].*", "$1");
+        }
+        // 可変長配列の場合
+        if (type.contains("[]")) {
+            return "*";
+        }
+        // STLコンテナの場合
+        if (type.matches(".*vector<.*>.*") ||
+                type.matches(".*list<.*>.*") ||
+                type.matches(".*set<.*>.*")) {
+            return "*";
+        }
+        return "1";
     }
 
     private String getRelationshipArrow(Relationship.RelationType type) {

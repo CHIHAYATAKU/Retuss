@@ -9,6 +9,7 @@ import io.github.morichan.fescue.feature.value.DefaultValue;
 import io.github.morichan.fescue.feature.value.expression.OneIdentifier;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.uml.CppClass;
+import io.github.morichan.retuss.model.uml.CppClass.RelationshipInfo;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.parser.cpp.CPP14ParserBaseListener;
@@ -23,6 +24,7 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
     private final CppTypeMapper typeMapper;
     private final CppVisibilityMapper visibilityMapper;
     private List<CppClass> extractedClasses = new ArrayList<>();
+    private final Set<String> analyzedTypes = new HashSet<>();
     private CppClass currentClass;
     private String currentVisibility = "private";
 
@@ -88,9 +90,9 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
                 for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
                     try {
                         if (isMethodDeclaration(memberDec)) {
-                            handleMethod(memberDec.declarator(), rawType);
+                            handleMethod(memberDec.declarator(), type);
                         } else {
-                            handleAttribute(memberDec.declarator(), rawType);
+                            handleAttribute(memberDec.declarator(), type);
                         }
                     } catch (Exception e) {
                         System.err.println("Error processing member declarator: " + e.getMessage());
@@ -104,73 +106,289 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         }
     }
 
-    private Set<CppClass.Modifier> detectModifiers(CPP14Parser.DeclaratorContext declarator, String type) {
-        Set<CppClass.Modifier> modifiers = EnumSet.noneOf(CppClass.Modifier.class);
-        String fullText = type + " " + declarator.getText();
-
-        if (isStaticMethod(declarator))
-            modifiers.add(CppClass.Modifier.STATIC);
-        if (isConstMethod(declarator))
-            modifiers.add(CppClass.Modifier.CONST);
-        if (isVirtualMethod(declarator))
-            modifiers.add(CppClass.Modifier.VIRTUAL);
-        if (fullText.contains("= 0"))
-            modifiers.add(CppClass.Modifier.ABSTRACT);
-        if (fullText.contains("override"))
-            modifiers.add(CppClass.Modifier.OVERRIDE);
-        if (isMutableField(declarator))
-            modifiers.add(CppClass.Modifier.MUTABLE);
-
-        return modifiers;
-    }
-
     private void handleMethod(CPP14Parser.DeclaratorContext declarator, String type) {
         try {
-            String methodName = extractMethodName(declarator.getText());
-            System.out.println("DEBUG: Processing method: " + methodName);
+            String methodName = extractMethodName(declarator.getText()).replaceAll("[*&]", "").trim();
+            boolean isDestructor = methodName.startsWith("~");
+
+            if (currentClass.getOperationList().stream()
+                    .anyMatch(op -> op.getName().getNameText().equals(methodName))) {
+                return;
+            }
+
+            // 修飾子の収集
+            Set<CppClass.Modifier> modifiers = new LinkedHashSet<>();
+            String processedType = type;
+
+            // virtual修飾子
+            if (type.contains("virtual") || isDestructor) {
+                modifiers.add(CppClass.Modifier.VIRTUAL);
+                processedType = processedType.replaceAll("virtual", "").trim();
+            }
+            // static修飾子
+            if (type.contains("static")) {
+                modifiers.add(CppClass.Modifier.STATIC);
+                processedType = processedType.replaceAll("static", "").trim();
+            }
+            // const修飾子
+            if (type.contains("const")) {
+                modifiers.add(CppClass.Modifier.CONST);
+                processedType = processedType.replaceAll("const", "").trim();
+            }
+            // override修飾子
+            if (type.contains("override")) {
+                modifiers.add(CppClass.Modifier.OVERRIDE);
+                processedType = processedType.replaceAll("override", "").trim();
+            }
+
+            analyzeParameterType(type, declarator);
 
             Operation operation = new Operation(new Name(methodName));
-            operation.setReturnType(new Type(cleanTypeSpecifiers(type)));
+            operation.setReturnType(new Type(isDestructor ? "void" : processedType));
             operation.setVisibility(convertVisibility(currentVisibility));
 
-            // パラメータと依存関係の処理
-            if (declarator.parametersAndQualifiers() != null) {
-                handleParameters(declarator.parametersAndQualifiers(), operation);
-                // 依存関係の追加
-                for (Parameter param : operation.getParameters()) {
-                    if (isUserDefinedType(param.getType().toString())) {
-                        currentClass.addDependency(cleanTypeName(param.getType().toString()));
-                    }
-                }
-            }
-
-            // 修飾子の検出
-            Set<CppClass.Modifier> modifiers = detectModifiers(declarator, type);
-
-            String fullText = type + " " + declarator.getText();
-            if (fullText.contains("virtual")) {
-                modifiers.add(CppClass.Modifier.VIRTUAL);
-            }
-            if (fullText.contains("override")) {
-                modifiers.add(CppClass.Modifier.OVERRIDE);
-            }
-            if (isConstMethod(declarator)) {
-                modifiers.add(CppClass.Modifier.CONST);
-            }
-            if (fullText.contains("= 0")) {
-                modifiers.add(CppClass.Modifier.ABSTRACT);
-            }
+            processParameters(declarator, operation);
 
             currentClass.addOperation(operation);
-            if (!modifiers.isEmpty()) {
-                currentClass.addMemberModifiers(methodName, modifiers);
+            for (CppClass.Modifier modifier : modifiers) {
+                currentClass.addMemberModifier(methodName, modifier);
             }
 
-            System.out.println("DEBUG: Added method: " + methodName);
+            System.out.println("DEBUG: Added method: " + methodName
+                    + " type: " + processedType
+                    + " modifiers: " + modifiers);
         } catch (Exception e) {
             System.err.println("Error in handleMethod: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private boolean isPointerOrReference(String type) {
+        return type.contains("*") || type.contains("&");
+    }
+
+    private boolean isArray(String type) {
+        return type.matches(".*\\[\\d*\\]");
+    }
+
+    private void analyzeTypeRelationship(String type) {
+        if (!isUserDefinedType(cleanTypeName(type)) || analyzedTypes.contains(type)) {
+            return;
+        }
+
+        CppClass cppClass = (CppClass) currentClass;
+        String cleanType = cleanTypeName(type);
+
+        if (isPointerOrReference(type)) {
+            cppClass.addDependency(cleanType);
+        } else if (isCollectionType(type)) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                cppClass.addComposition(elementType);
+                cppClass.setMultiplicity(elementType, "*");
+            }
+        } else if (isArray(type)) {
+            String baseType = extractArrayBaseType(type);
+            if (isUserDefinedType(baseType)) {
+                cppClass.addComposition(baseType);
+                cppClass.setMultiplicity(baseType, extractArraySize(type));
+            }
+        } else {
+            cppClass.addComposition(cleanType);
+            cppClass.setMultiplicity(cleanType, "1");
+        }
+
+        analyzedTypes.add(type);
+    }
+
+    private String extractArrayBaseType(String type) {
+        return type.replaceAll("\\[.*\\]", "").trim();
+    }
+
+    private String extractArraySize(String type) {
+        if (type.matches(".*\\[\\d+\\]")) {
+            return type.replaceAll(".*\\[(\\d+)\\].*", "$1");
+        }
+        return "*";
+    }
+
+    private void processParameters(CPP14Parser.DeclaratorContext declarator, Operation operation) {
+        if (declarator.parametersAndQualifiers() != null &&
+                declarator.parametersAndQualifiers().parameterDeclarationClause() != null) {
+            for (CPP14Parser.ParameterDeclarationContext paramCtx : declarator.parametersAndQualifiers()
+                    .parameterDeclarationClause()
+                    .parameterDeclarationList().parameterDeclaration()) {
+                String paramType = paramCtx.declSpecifierSeq().getText();
+
+                // パラメータ型からの関係を抽出
+                String cleanType = cleanTypeName(paramType);
+                if (isUserDefinedType(cleanType)) {
+                    ((CppClass) currentClass).addDependency(cleanType);
+                }
+
+                // パラメータを型のみで追加
+                Parameter param = new Parameter(new Name(""));
+                param.setType(new Type(processParamType(paramType, paramCtx.declarator())));
+                operation.addParameter(param);
+            }
+        }
+    }
+
+    private String processReturnType(String type) {
+        // static を除去
+        String processedType = type.replaceAll("static", "").trim();
+        // virtual を除去
+        processedType = processedType.replaceAll("virtual", "").trim();
+        // const を保持
+        return processedType.trim();
+    }
+
+    private String generateMethodSignature(String methodName, CPP14Parser.DeclaratorContext declarator) {
+        StringBuilder signature = new StringBuilder(methodName);
+        if (declarator.parametersAndQualifiers() != null &&
+                declarator.parametersAndQualifiers().parameterDeclarationClause() != null) {
+            signature.append("(");
+            List<String> paramTypes = new ArrayList<>();
+            for (CPP14Parser.ParameterDeclarationContext paramCtx : declarator.parametersAndQualifiers()
+                    .parameterDeclarationClause()
+                    .parameterDeclarationList().parameterDeclaration()) {
+                paramTypes.add(paramCtx.declSpecifierSeq().getText());
+            }
+            signature.append(String.join(",", paramTypes));
+            signature.append(")");
+        }
+        return signature.toString();
+    }
+
+    private String processParamType(String type, CPP14Parser.DeclaratorContext declarator) {
+        StringBuilder processedType = new StringBuilder();
+
+        // constの処理
+        if (type.contains("const")) {
+            processedType.append("const ");
+        }
+
+        // 基本型
+        String baseType = type.replaceAll("(const|volatile)", "")
+                .replaceAll("std::", "")
+                .trim();
+        processedType.append(baseType);
+
+        // ポインタ/参照の追加
+        String declaratorText = declarator.getText();
+        if (declaratorText.contains("*") || type.contains("*")) {
+            processedType.append("*");
+        }
+        if (declaratorText.contains("&") || type.contains("&")) {
+            processedType.append("&");
+        }
+
+        return processedType.toString();
+    }
+
+    private void analyzeParameterType(String type, CPP14Parser.DeclaratorContext declarator) {
+        String cleanType = cleanTypeName(type);
+        if (!isUserDefinedType(cleanType)) {
+            return;
+        }
+
+        String declaratorText = declarator.getText();
+        if (declaratorText.contains("*") || type.contains("*") ||
+                declaratorText.contains("&") || type.contains("&")) {
+            ((CppClass) currentClass).addDependency(cleanType);
+            System.out.println("DEBUG: Added parameter dependency: " + cleanType);
+        }
+    }
+
+    // 型解析と関係抽出のメソッド群
+    private void analyzeTypeRelationship(String type, String declarator) {
+        CppClass cppClass = (CppClass) currentClass;
+        String cleanType = cleanTypeName(type);
+
+        if (!isUserDefinedType(cleanType)) {
+            return;
+        }
+
+        System.out.println("DEBUG: Analyzing type relationship for: " + type);
+
+        // コンテナ型の処理
+        if (isCollectionType(type)) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                String cleanElementType = cleanTypeName(elementType);
+                cppClass.addComposition(cleanElementType);
+                cppClass.setMultiplicity(cleanElementType, "*");
+                System.out.println("DEBUG: Added collection composition for " + cleanElementType);
+                return;
+            }
+        }
+
+        // 配列の処理
+        if (declarator.matches(".*\\[\\d+\\]")) {
+            String size = declarator.replaceAll(".*\\[(\\d+)\\].*", "$1");
+            cppClass.addComposition(cleanType);
+            cppClass.setMultiplicity(cleanType, size);
+            System.out.println("DEBUG: Added array composition for " + cleanType + " with size " + size);
+            return;
+        }
+
+        // ポインタ/参照による依存関係
+        if (type.contains("*") || type.contains("&") ||
+                declarator.contains("*") || declarator.contains("&")) {
+            cppClass.addDependency(cleanType);
+            System.out.println("DEBUG: Added dependency for " + cleanType);
+            return;
+        }
+
+        // 通常のインスタンスメンバ
+        cppClass.addComposition(cleanType);
+        cppClass.setMultiplicity(cleanType, "1");
+        System.out.println("DEBUG: Added composition for " + cleanType);
+    }
+
+    // ヘルパーメソッド群
+    private boolean isCollectionType(String type) {
+        return type.contains("vector<") ||
+                type.contains("array<") ||
+                type.contains("list<") ||
+                type.contains("set<") ||
+                type.contains("deque<") ||
+                type.contains("queue<") ||
+                type.contains("stack<") ||
+                type.contains("map<");
+    }
+
+    private String extractElementType(String type) {
+        if (type.contains("<")) {
+            return cleanTypeName(type.replaceAll(".*<(.+)>.*", "$1"));
+        }
+        return type;
+    }
+
+    private String cleanTypeName(String type) {
+        return type.replaceAll("[*&\\[\\]]", "") // ポインタ、参照、配列記号を除去
+                .replaceAll("const", "") // constを除去
+                .replaceAll("volatile", "") // volatileを除去
+                .replaceAll("std::", "") // std::を除去
+                .replaceAll("<.*>", "") // テンプレートパラメータを除去
+                .trim();
+    }
+
+    private boolean isUserDefinedType(String type) {
+        Set<String> basicTypes = Set.of(
+                "void", "bool", "char", "signed", "unsigned",
+                "short", "int", "long", "float", "double",
+                "wchar_t", "auto", "string");
+        String cleanType = cleanTypeName(type);
+        return !basicTypes.contains(cleanType) &&
+                !cleanType.startsWith("std::") &&
+                Character.isUpperCase(cleanType.charAt(0));
+    }
+
+    private String extractParameterName(CPP14Parser.DeclaratorContext declarator) {
+        String name = declarator.getText();
+        // ポインタ/参照記号を除去
+        return name.replaceAll("[*&]", "").trim();
     }
 
     // 型指定子からvirtualなどの修飾子を除去
@@ -183,22 +401,10 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
             cleanType = cleanType.replace(modifier, "").trim();
         }
 
+        // std::プレフィックスの除去
+        cleanType = cleanType.replaceAll("std::", "");
+
         return cleanType.isEmpty() ? "void" : cleanType;
-    }
-
-    private boolean isUserDefinedType(String type) {
-        Set<String> basicTypes = Set.of("void", "bool", "char", "int", "float", "double",
-                "long", "short", "unsigned", "signed");
-        String cleanType = cleanTypeName(type);
-        return !basicTypes.contains(cleanType) && !cleanType.startsWith("std::");
-    }
-
-    private String cleanTypeName(String typeName) {
-        return typeName.replaceAll("[*&<>]", "")
-                .replaceAll("\\s+", "")
-                .replaceAll("const", "")
-                .replaceAll("std::", "")
-                .trim();
     }
 
     private void handleParameters(CPP14Parser.ParametersAndQualifiersContext paramsCtx, Operation operation) {
@@ -221,27 +427,170 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
     }
 
     private void handleAttribute(CPP14Parser.DeclaratorContext declarator, String type) {
-        String attributeName = declarator.getText();
-        String cleanType = cleanTypeSpecifiers(type);
+        try {
+            String attributeName = extractAttributeName(declarator).replaceAll("[*&]", "").trim();
+            if (currentClass.getAttributeList().stream()
+                    .anyMatch(attr -> attr.getName().getNameText().equals(attributeName))) {
+                return;
+            }
 
-        // 基本のAttribute作成
-        Attribute attribute = new Attribute(new Name(attributeName));
-        attribute.setType(new Type(cleanType));
-        attribute.setVisibility(convertVisibility(currentVisibility));
+            // 修飾子の収集
+            Set<CppClass.Modifier> modifiers = new LinkedHashSet<>();
+            String processedType = type;
+
+            // static修飾子
+            if (type.contains("static")) {
+                modifiers.add(CppClass.Modifier.STATIC);
+                processedType = processedType.replaceAll("static", "").trim();
+            }
+            // const修飾子
+            if (type.contains("const")) {
+                modifiers.add(CppClass.Modifier.CONST);
+                processedType = processedType.replaceAll("const", "").trim();
+            }
+            // mutable修飾子
+            if (type.contains("mutable")) {
+                modifiers.add(CppClass.Modifier.MUTABLE);
+                processedType = processedType.replaceAll("mutable", "").trim();
+            }
+
+            // 型の処理
+            processedType = processAttributeType(processedType, declarator);
+
+            Attribute attribute = new Attribute(new Name(attributeName));
+            attribute.setType(new Type(processedType));
+            attribute.setVisibility(convertVisibility(currentVisibility));
+
+            currentClass.addAttribute(attribute);
+            for (CppClass.Modifier modifier : modifiers) {
+                currentClass.addMemberModifier(attributeName, modifier);
+            }
+
+            // 関係の解析
+            analyzeAttributeRelationships(type, declarator);
+
+            System.out.println("DEBUG: Added attribute: " + attributeName
+                    + " type: " + processedType
+                    + " modifiers: " + modifiers);
+        } catch (Exception e) {
+            System.err.println("Error in handleAttribute: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private String extractAttributeName(CPP14Parser.DeclaratorContext declarator) {
+        String name = declarator.getText();
+        // 配列表記を除去
+        return name.replaceAll("\\[.*\\]", "").trim();
+    }
+
+    private void analyzeAttributeRelationships(String type, CPP14Parser.DeclaratorContext declarator) {
+        // コレクション型の処理
+        if (isCollectionType(type)) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(cleanTypeName(elementType))) {
+                currentClass.addRelationship(cleanTypeName(elementType),
+                        RelationshipInfo.RelationType.COMPOSITION, "*");
+                System.out.println("DEBUG: Added collection relationship: " + elementType);
+            }
+        }
+
+        String cleanType = cleanTypeName(type);
+        if (!isUserDefinedType(cleanType)) {
+            return;
+        }
+
+        // 配列の処理
+        String declaratorText = declarator.getText();
+        if (declaratorText.matches(".*\\[\\d+\\]")) {
+            String size = declaratorText.replaceAll(".*\\[(\\d+)\\].*", "$1");
+            currentClass.addRelationship(cleanType,
+                    RelationshipInfo.RelationType.COMPOSITION, size);
+            System.out.println("DEBUG: Added array relationship: " + cleanType);
+            return;
+        }
+
+        // ポインタ/参照の処理
+        if (type.contains("*") || type.contains("&") ||
+                declaratorText.contains("*") || declaratorText.contains("&")) {
+            currentClass.addRelationship(cleanType,
+                    RelationshipInfo.RelationType.DEPENDENCY, "1");
+            System.out.println("DEBUG: Added dependency: " + cleanType);
+            return;
+        }
+
+        // 通常のインスタンス
+        currentClass.addRelationship(cleanType,
+                RelationshipInfo.RelationType.COMPOSITION, "1");
+        System.out.println("DEBUG: Added composition: " + cleanType);
+    }
+
+    private String processAttributeType(String type, CPP14Parser.DeclaratorContext declarator) {
+        StringBuilder processedType = new StringBuilder();
+        Set<String> modifiers = new LinkedHashSet<>();
+
+        // 修飾子の処理
+        if (type.contains("static")) {
+            modifiers.add("static");
+        }
+        if (type.contains("const")) {
+            modifiers.add("const");
+        }
+        if (type.contains("mutable")) {
+            modifiers.add("mutable");
+        }
+
+        // 基本型（修飾子を除去）
+        String baseType = type;
+        for (String modifier : modifiers) {
+            baseType = baseType.replaceAll(modifier, "").trim();
+        }
+        baseType = baseType.replaceAll("std::", "").trim();
+
+        // 修飾子を型の前に追加
+        if (!modifiers.isEmpty()) {
+            processedType.append(String.join(" ", modifiers)).append(" ");
+        }
+
+        processedType.append(baseType);
+
+        // ポインタ/参照の処理
+        String declaratorText = declarator.getText();
+        if (declaratorText.contains("*") || type.contains("*")) {
+            processedType.append("*");
+        }
+        if (declaratorText.contains("&") || type.contains("&")) {
+            processedType.append("&");
+        }
+
+        return processedType.toString();
+    }
+
+    private Set<CppClass.Modifier> detectModifiers(CPP14Parser.DeclaratorContext declarator, String type) {
+        Set<CppClass.Modifier> modifiers = EnumSet.noneOf(CppClass.Modifier.class);
+        String fullText = type + " " + declarator.getText();
 
         // 修飾子の検出
-        Set<CppClass.Modifier> modifiers = detectModifiers(declarator, type);
-
-        // 関連の処理（コンポジション）
-        if (isUserDefinedType(cleanType)) {
-            currentClass.addComposition(cleanTypeName(cleanType));
+        if (fullText.contains("virtual ")) {
+            modifiers.add(CppClass.Modifier.VIRTUAL);
+        }
+        if (fullText.contains("static ")) {
+            modifiers.add(CppClass.Modifier.STATIC);
+        }
+        if (fullText.contains("const ")) {
+            modifiers.add(CppClass.Modifier.CONST);
+        }
+        if (fullText.contains("override ")) {
+            modifiers.add(CppClass.Modifier.OVERRIDE);
+        }
+        if (fullText.contains("= 0")) {
+            modifiers.add(CppClass.Modifier.ABSTRACT);
+        }
+        if (fullText.contains("mutable ")) {
+            modifiers.add(CppClass.Modifier.MUTABLE);
         }
 
-        // 属性と修飾子の追加
-        currentClass.addAttribute(attribute);
-        if (!modifiers.isEmpty()) {
-            currentClass.addMemberModifiers(attributeName, modifiers);
-        }
+        return modifiers;
     }
 
     private void addMembersWithModifiers(String memberName, String code) {
@@ -350,6 +699,9 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
     }
 
     private boolean isMethodDeclaration(CPP14Parser.MemberDeclaratorContext memberDec) {
+        if (memberDec.declarator() == null)
+            return false;
+
         // 1. 基本的なメソッド判定
         if (memberDec.declarator().parametersAndQualifiers() != null)
             return true;

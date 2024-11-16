@@ -52,6 +52,7 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
     private Operation currentMethod;
     private List<MethodCall> methodCalls = new ArrayList<>();
     private Set<StandardLifeline> usedLifelines = new HashSet<>();
+    private final Set<String> analyzedTypes = new HashSet<>();
     private String currentVisibility = "private";
     private Interaction currentInteraction;
     private Stack<InteractionOperand> operandStack = new Stack<>();
@@ -72,13 +73,180 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
             return;
 
         String type = ctx.declSpecifierSeq().getText();
-        System.out.println("Processing member with type: " + type);
+        System.out.println("DEBUG: Analyzing member type: " + type);
 
         if (ctx.memberDeclaratorList() != null) {
             for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
-                handleMemberDeclarator(memberDec, type);
+                if (memberDec.declarator() != null) {
+                    handleMemberDeclarator(memberDec, type);
+                }
             }
         }
+    }
+
+    private void analyzeTypeRelationship(String type, boolean isPointerOrRef) {
+        if (!isUserDefinedType(cleanTypeName(type))) {
+            return;
+        }
+
+        CppClass cppClass = (CppClass) currentClass;
+        String cleanType = cleanTypeName(type);
+        System.out.println("DEBUG: Analyzing relationship for type: " + type +
+                " (cleaned: " + cleanType + ", isPointerOrRef: " + isPointerOrRef + ")");
+
+        if (isPointerOrRef) {
+            System.out.println("DEBUG: Adding dependency: " + cleanType);
+            cppClass.addDependency(cleanType);
+        } else if (isCollectionType(type)) {
+            System.out.println("DEBUG: Adding collection composition: " + cleanType);
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                cppClass.addComposition(elementType);
+                cppClass.setMultiplicity(elementType, "*");
+            }
+        } else if (isArray(type)) {
+            System.out.println("DEBUG: Adding array composition: " + cleanType);
+            String baseType = extractArrayBaseType(type);
+            String size = extractArraySize(type);
+            if (isUserDefinedType(baseType)) {
+                cppClass.addComposition(baseType);
+                cppClass.setMultiplicity(baseType, size);
+            }
+        } else {
+            System.out.println("DEBUG: Adding normal composition: " + cleanType);
+            cppClass.addComposition(cleanType);
+            cppClass.setMultiplicity(cleanType, "1");
+        }
+    }
+
+    private void analyzeTypeRelationship(String type) {
+        if (!isUserDefinedType(cleanTypeName(type)) || analyzedTypes.contains(type)) {
+            return;
+        }
+
+        CppClass cppClass = (CppClass) currentClass;
+        String cleanType = cleanTypeName(type);
+
+        if (isPointerOrReference(type)) {
+            cppClass.addDependency(cleanType);
+        } else if (isCollectionType(type)) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                cppClass.addComposition(elementType);
+                cppClass.setMultiplicity(elementType, "*");
+            }
+        } else if (isArray(type)) {
+            String baseType = extractArrayBaseType(type);
+            if (isUserDefinedType(baseType)) {
+                cppClass.addComposition(baseType);
+                cppClass.setMultiplicity(baseType, extractArraySize(type));
+            }
+        } else {
+            cppClass.addComposition(cleanType);
+            cppClass.setMultiplicity(cleanType, "1");
+        }
+
+        analyzedTypes.add(type);
+    }
+
+    private void analyzeAttributeRelationships(Attribute attr) {
+        String type = attr.getType().toString();
+        String cleanType = cleanTypeName(type);
+
+        if (!isUserDefinedType(cleanType)) {
+            return;
+        }
+
+        System.out.println("DEBUG: Analyzing attribute relationship: " + attr.getName() + " : " + type);
+
+        // ポインタ/参照による依存関係
+        if (type.contains("*") || type.contains("&")) {
+            ((CppClass) currentClass).addDependency(cleanType);
+            System.out.println("  Adding dependency to " + cleanType);
+            return;
+        }
+
+        // コレクション型の関係
+        if (type.contains("vector<") || type.contains("list<")) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                ((CppClass) currentClass).addComposition(elementType);
+                ((CppClass) currentClass).setMultiplicity(elementType, "*");
+                System.out.println("  Adding collection composition to " + elementType);
+            }
+            return;
+        }
+
+        // 配列の関係
+        if (type.matches(".*\\[\\d+\\]")) {
+            String baseType = type.replaceAll("\\[\\d+\\]", "");
+            String size = type.replaceAll(".*\\[(\\d+)\\].*", "$1");
+            if (isUserDefinedType(baseType)) {
+                ((CppClass) currentClass).addComposition(baseType);
+                ((CppClass) currentClass).setMultiplicity(baseType, size);
+                System.out.println("  Adding array composition to " + baseType + " with size " + size);
+            }
+            return;
+        }
+
+        // 通常のインスタンスによるコンポジション関係
+        ((CppClass) currentClass).addComposition(cleanType);
+        ((CppClass) currentClass).setMultiplicity(cleanType, "1");
+        System.out.println("  Adding normal composition to " + cleanType);
+    }
+
+    // 型解析用のヘルパーメソッド群
+    private boolean isPointerOrReference(String type) {
+        return type.contains("*") || type.contains("&");
+    }
+
+    private boolean isCollectionType(String type) {
+        return type.contains("vector<") ||
+                type.contains("array<") ||
+                type.contains("list<") ||
+                type.contains("set<");
+    }
+
+    private boolean isArray(String type) {
+        return type.matches(".*\\[\\d*\\]");
+    }
+
+    private String cleanTypeName(String type) {
+        return type.replaceAll("[*&\\[\\]]", "")
+                .replaceAll("const", "")
+                .replaceAll("volatile", "")
+                .replaceAll("std::", "")
+                .replaceAll("<.*>", "")
+                .trim();
+    }
+
+    private String extractElementType(String type) {
+        if (type.contains("<")) {
+            return cleanTypeName(type.replaceAll(".*<(.+)>.*", "$1"));
+        }
+        return type;
+    }
+
+    private String extractArrayBaseType(String type) {
+        return type.replaceAll("\\[.*\\]", "").trim();
+    }
+
+    private String extractArraySize(String type) {
+        if (type.matches(".*\\[\\d+\\]")) {
+            return type.replaceAll(".*\\[(\\d+)\\].*", "$1");
+        }
+        return "*";
+    }
+
+    private boolean isUserDefinedType(String type) {
+        Set<String> basicTypes = Set.of(
+                "void", "bool", "char", "signed", "unsigned",
+                "short", "int", "long", "float", "double",
+                "wchar_t", "auto", "string");
+        String cleanType = cleanTypeName(type);
+        return !basicTypes.contains(cleanType) &&
+                !cleanType.startsWith("std::") &&
+                Character.isUpperCase(cleanType.charAt(0));
     }
 
     private void handleMemberDeclarator(CPP14Parser.MemberDeclaratorContext memberDec, String type) {
@@ -102,26 +270,27 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         operation.setVisibility(convertVisibility(currentVisibility));
 
         // パラメータの解析
-        if (declarator.parametersAndQualifiers().parameterDeclarationClause() != null) {
+        if (declarator.parametersAndQualifiers() != null &&
+                declarator.parametersAndQualifiers().parameterDeclarationClause() != null) {
             for (CPP14Parser.ParameterDeclarationContext param : declarator.parametersAndQualifiers()
                     .parameterDeclarationClause()
                     .parameterDeclarationList()
                     .parameterDeclaration()) {
 
-                Parameter parameter = new Parameter(
-                        new Name(param.declarator().getText()));
-                parameter.setType(new Type(param.declSpecifierSeq().getText()));
+                String paramType = param.declSpecifierSeq().getText();
+                analyzeTypeRelationship(paramType); // パラメータの型も関係として解析
+
+                Parameter parameter = new Parameter(new Name(param.declarator().getText()));
+                parameter.setType(new Type(paramType));
                 operation.addParameter(parameter);
             }
         }
 
         currentClass.addOperation(operation);
-        System.out.println("Added method: " + methodName);
+        System.out.println("DEBUG: Added method: " + methodName + " with return type: " + type);
     }
 
-    private void handleAttribute(
-            CPP14Parser.DeclaratorContext declarator,
-            String type,
+    private void handleAttribute(CPP14Parser.DeclaratorContext declarator, String type,
             CPP14Parser.MemberDeclaratorContext memberDec) {
         String attributeName = declarator.getText();
         Attribute attribute = new Attribute(new Name(attributeName));
@@ -131,12 +300,57 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         // 初期値の設定
         if (memberDec.braceOrEqualInitializer() != null) {
             String initValue = memberDec.braceOrEqualInitializer().getText().substring(1);
-            attribute.setDefaultValue(new DefaultValue(
-                    new OneIdentifier(initValue)));
+            attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initValue)));
         }
 
+        // 関係の抽出（属性追加前に行う）
+        analyzeAttributeType(type, declarator.getText());
+
         currentClass.addAttribute(attribute);
-        System.out.println("Added attribute: " + attributeName);
+        System.out.println("Added attribute: " + attributeName + " with type: " + type);
+    }
+
+    private void analyzeAttributeType(String type, String declarator) {
+        CppClass cppClass = (CppClass) currentClass;
+        String cleanType = cleanTypeName(type);
+
+        if (!isUserDefinedType(cleanType)) {
+            return;
+        }
+
+        System.out.println("DEBUG: Analyzing type relationship for: " + type);
+
+        // ポインタまたは参照による依存関係
+        if (type.contains("*") || type.contains("&") || declarator.contains("*") || declarator.contains("&")) {
+            System.out.println("DEBUG: Adding dependency: " + cleanType);
+            cppClass.addDependency(cleanType);
+            return;
+        }
+
+        // コレクション型の処理
+        if (type.contains("vector<") || type.contains("list<")) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                System.out.println("DEBUG: Adding collection composition: " + elementType);
+                cppClass.addComposition(elementType);
+                cppClass.setMultiplicity(elementType, "*");
+            }
+            return;
+        }
+
+        // 配列の処理
+        if (declarator.matches(".*\\[\\d+\\]")) {
+            String size = declarator.replaceAll(".*\\[(\\d+)\\].*", "$1");
+            System.out.println("DEBUG: Adding array composition: " + cleanType + " with size " + size);
+            cppClass.addComposition(cleanType);
+            cppClass.setMultiplicity(cleanType, size);
+            return;
+        }
+
+        // 通常のインスタンスメンバ（コンポジション）
+        System.out.println("DEBUG: Adding composition: " + cleanType);
+        cppClass.addComposition(cleanType);
+        cppClass.setMultiplicity(cleanType, "1");
     }
 
     @Override
@@ -354,18 +568,6 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         return fullText;
     }
 
-    private boolean isVirtualMethod(CPP14Parser.MemberDeclaratorContext ctx) {
-        // virtual指定子のチェック
-        if (ctx.getParent() instanceof CPP14Parser.MemberdeclarationContext) {
-            CPP14Parser.MemberdeclarationContext memberDeclaration = (CPP14Parser.MemberdeclarationContext) ctx
-                    .getParent();
-            if (memberDeclaration.declSpecifierSeq() != null) {
-                return memberDeclaration.declSpecifierSeq().getText().contains("virtual");
-            }
-        }
-        return false;
-    }
-
     public List<MethodCall> getMethodCalls() {
         return methodCalls;
     }
@@ -402,29 +604,6 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
             }
         }
         return args;
-    }
-
-    private OccurenceSpecification createMethodCallOccurence(
-            String caller,
-            String callee,
-            String methodName,
-            List<String> args) {
-        Lifeline callerLifeline = new Lifeline("", caller);
-        Lifeline calleeLifeline = new Lifeline("", callee);
-
-        OccurenceSpecification messageStart = new OccurenceSpecification(callerLifeline);
-        OccurenceSpecification messageEnd = new OccurenceSpecification(calleeLifeline);
-
-        Message message = new Message(methodName, messageEnd);
-        message.setMessageSort(MessageSort.synchCall);
-
-        for (String arg : args) {
-            Parameter param = new Parameter(new Name(arg));
-            message.getParameterList().add(param);
-        }
-
-        messageStart.setMessage(message);
-        return messageStart;
     }
 
     private Visibility convertVisibility(String visibility) {

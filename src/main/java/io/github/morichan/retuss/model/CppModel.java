@@ -9,10 +9,18 @@ import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.CppClass;
+import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
+import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
 import io.github.morichan.retuss.translator.cpp.listeners.CppImplementationAnalyzer;
+import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
 
 import java.util.*;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class CppModel {
     private static final CppModel model = new CppModel();
@@ -155,22 +163,16 @@ public class CppModel {
         }
     }
 
-    public void updateCode(ICodeFile file, String code) {
-        if (file instanceof CppFile) {
-            CppFile cppFile = (CppFile) file;
-            String baseName = getBaseName(cppFile.getFileName());
-            System.out.println("DEBUG: Updating code for: " + cppFile.getFileName());
+    public void updateCode(CppFile file, String code) {
+        String baseName = file.getBaseName();
 
-            if (cppFile.isHeader()) {
-                // ヘッダーファイルの更新
-                updateHeaderFile(cppFile, code, baseName);
-            } else {
-                // 実装ファイルの更新
-                updateImplementationFile(cppFile, code);
-            }
-
-            notifyModelChanged();
+        if (file.isHeader()) {
+            updateHeaderFile(file, code, baseName);
+        } else {
+            updateImplementationFile(file, code);
         }
+
+        notifyModelChanged();
     }
 
     private void updateHeaderFile(CppFile headerFile, String code, String baseName) {
@@ -188,30 +190,83 @@ public class CppModel {
                     " -> " + newName);
 
             if (!newName.equals(oldClassName)) {
-                // ヘッダーファイルのマップ更新
+                // マップの更新
                 headerFiles.remove(oldClassName);
                 headerFiles.put(newName, headerFile);
 
                 // 実装ファイルの更新
-                CppFile implFile = implFiles.remove(oldClassName);
-                if (implFile != null) {
-                    String newImplName = newName + ".cpp";
-                    updateImplFileName(implFile, newImplName);
-                    implFiles.put(newName, implFile);
+                updateImplFileForClassNameChange(oldClassName, newName);
 
-                    // コントローラーに通知
-                    if (codeController != null) {
-                        System.out.println("DEBUG: Updating implementation file tab");
-                        codeController.updateCodeTab(headerFile);
-                        codeController.updateCodeTab(implFile);
-                    }
+                // コントローラーに通知（既存の処理を維持）
+                if (codeController != null) {
+                    codeController.updateCodeTab(headerFile);
                 }
+            }
+        }
+        // 実装ファイルの関係解析
+        CppFile implFile = implFiles.get(baseName);
+        if (implFile != null) {
+            analyzeImplementationRelationships(headerFile, implFile);
+        }
+    }
 
-                // UMLの更新
-                if (umlController != null) {
-                    System.out.println("DEBUG: Updating UML diagram");
-                    umlController.updateDiagram(headerFile);
-                }
+    private void updateImplFileForClassNameChange(String oldClassName, String newClassName) {
+        CppFile implFile = implFiles.remove(oldClassName);
+        if (implFile != null) {
+            String newImplName = newClassName + ".cpp";
+            String oldImplName = implFile.getFileName();
+
+            // ヘッダーファイルのインクルードを更新
+            String currentCode = implFile.getCode();
+            String oldInclude = "#include \"" + oldClassName + ".h\"";
+            String newInclude = "#include \"" + newClassName + ".h\"";
+            String newCode = currentCode.replace(oldInclude, newInclude);
+
+            // ファイル名と内容を更新
+            implFile.updateFileName(newImplName);
+            implFile.updateCode(newCode);
+            implFiles.put(newClassName, implFile);
+
+            // コントローラーに通知
+            if (codeController != null) {
+                codeController.updateCodeTab(implFile);
+            }
+
+            System.out.println("DEBUG: Updated implementation file name from " +
+                    oldImplName + " to " + newImplName);
+        }
+    }
+
+    private void updateImplementationFile(CppFile implFile, String code) {
+        String baseName = implFile.getBaseName();
+        CppFile headerFile = headerFiles.get(baseName);
+
+        implFile.updateCode(code);
+
+        // ヘッダーファイルが存在する場合は関係を解析
+        if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+            analyzeImplementationRelationships(headerFile, implFile);
+        }
+
+        // 既存の通知処理を維持
+        if (codeController != null) {
+            codeController.updateCodeTab(implFile);
+        }
+    }
+
+    private void analyzeImplementationRelationships(CppFile headerFile, CppFile implFile) {
+        if (!headerFile.getUmlClassList().isEmpty()) {
+            Class umlClass = headerFile.getUmlClassList().get(0);
+            try {
+                CharStream input = CharStreams.fromString(implFile.getCode());
+                CPP14Lexer lexer = new CPP14Lexer(input);
+                CommonTokenStream tokens = new CommonTokenStream(lexer);
+                CPP14Parser parser = new CPP14Parser(tokens);
+
+                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
+                ParseTreeWalker.DEFAULT.walk(analyzer, parser.translationUnit());
+            } catch (Exception e) {
+                System.err.println("Error analyzing implementation relationships: " + e.getMessage());
             }
         }
     }
@@ -392,11 +447,18 @@ public class CppModel {
         }
         System.out.println("CppModel classes: " + allClasses.size());
         for (Class cls : allClasses) {
-            System.out.println("  Class: " + cls.getName());
-            System.out.println("  Attri: " + cls.getAttributeList().toString());
-            System.out.println("  Opera: " + cls.getOperationList().toString());
-            System.out.println("  Inter: " + cls.getInteractionList().toString());
-            System.out.println("  Inter: " + cls.getInteractionList().toString());
+            if (cls instanceof CppClass) {
+                CppClass cppClass = (CppClass) cls;
+                System.out.println("  Class: " + cppClass.getName());
+                System.out.println("  Attributes: " + cls.getAttributeList());
+                System.out.println("  Operations: " + cls.getOperationList());
+                System.out.println("  Dependencies: " + cppClass.getDependencies());
+                System.out.println("  Compositions: " + cppClass.getCompositions());
+                System.out.println("  Multiplicities: ");
+                for (String comp : cppClass.getCompositions()) {
+                    System.out.println("    " + comp + ": " + cppClass.getMultiplicity(comp));
+                }
+            }
         }
         return Collections.unmodifiableList(allClasses);
     }
@@ -508,11 +570,23 @@ public class CppModel {
         try {
             if (changedCodeFile instanceof CppFile) {
                 CppFile file = (CppFile) changedCodeFile;
+                System.out.println("DEBUG: Updating code for file: " + file.getFileName());
+
                 updateCode(file, code);
 
-                // ヘッダーファイルとソースファイルの両方で更新を通知
-                if (umlController != null) {
-                    umlController.updateDiagram(file);
+                // ヘッダーファイルでない場合、対応するヘッダーファイルの関係を再解析
+                if (!file.isHeader()) {
+                    String baseName = file.getBaseName();
+                    CppFile headerFile = headerFiles.get(baseName);
+                    if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+                        // 実装ファイルからの関係を解析
+                        analyzeImplementationRelationships(headerFile, file);
+
+                        // 図の更新をトリガー
+                        if (umlController != null) {
+                            umlController.updateDiagram(headerFile);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -570,11 +644,11 @@ public class CppModel {
     /**
      * 実装ファイルを取得する
      *
-     * @param baseName 拡張子を除いたファイル名
+     * @param className 拡張子を除いたファイル名
      * @return 実装ファイル、存在しない場合はnull
      */
-    public CppFile findImplFile(String baseName) {
-        return implFiles.get(baseName);
+    public CppFile findImplFile(String className) {
+        return implFiles.get(className);
     }
 
     /**
