@@ -170,8 +170,15 @@ public class CppModel {
             updateHeaderFile(file, code, baseName);
         } else {
             updateImplementationFile(file, code);
+            CppFile headerFile = headerFiles.get(baseName);
+            if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+                analyzeImplementationRelationships(headerFile, file);
+                // 図の更新をトリガー
+                if (umlController != null) {
+                    umlController.updateDiagram(headerFile);
+                }
+            }
         }
-
         notifyModelChanged();
     }
 
@@ -264,30 +271,12 @@ public class CppModel {
                 CPP14Parser parser = new CPP14Parser(tokens);
 
                 CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
-                ParseTreeWalker.DEFAULT.walk(analyzer, parser.translationUnit());
+                ParseTreeWalker walker = new ParseTreeWalker();
+                walker.walk(analyzer, parser.translationUnit());
+
+                System.out.println("DEBUG: Analyzed implementation relationships for " + implFile.getFileName());
             } catch (Exception e) {
                 System.err.println("Error analyzing implementation relationships: " + e.getMessage());
-            }
-        }
-    }
-
-    public void updateImplementationFile(CppFile implFile, String code) {
-        String baseName = getBaseName(implFile.getFileName());
-        CppFile headerFile = headerFiles.get(baseName);
-
-        if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
-            CppClass umlClass = (CppClass) headerFile.getUmlClassList().get(0);
-
-            // 実装ファイルの解析
-            CppImplementationAnalyzer analyzer = new CppImplementationAnalyzer(
-                    headerFile.getCode(),
-                    code,
-                    umlClass.getName());
-            analyzer.analyze(umlClass);
-
-            // ヘッダーファイルを更新して図の再描画をトリガー
-            if (umlController != null) {
-                umlController.updateDiagram(headerFile);
             }
         }
     }
