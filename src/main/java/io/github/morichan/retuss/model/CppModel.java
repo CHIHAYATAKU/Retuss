@@ -170,8 +170,15 @@ public class CppModel {
             updateHeaderFile(file, code, baseName);
         } else {
             updateImplementationFile(file, code);
+            CppFile headerFile = headerFiles.get(baseName);
+            if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
+                analyzeImplementationRelationships(headerFile, file);
+                // 図の更新をトリガー
+                if (umlController != null) {
+                    umlController.updateDiagram(headerFile);
+                }
+            }
         }
-
         notifyModelChanged();
     }
 
@@ -264,7 +271,10 @@ public class CppModel {
                 CPP14Parser parser = new CPP14Parser(tokens);
 
                 CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
-                ParseTreeWalker.DEFAULT.walk(analyzer, parser.translationUnit());
+                ParseTreeWalker walker = new ParseTreeWalker();
+                walker.walk(analyzer, parser.translationUnit());
+
+                System.out.println("DEBUG: Analyzed implementation relationships for " + implFile.getFileName());
             } catch (Exception e) {
                 System.err.println("Error analyzing implementation relationships: " + e.getMessage());
             }

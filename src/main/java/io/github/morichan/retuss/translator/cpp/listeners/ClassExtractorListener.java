@@ -87,22 +87,48 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
             System.out.println("DEBUG: Cleaned type: " + type);
 
             if (ctx.memberDeclaratorList() != null) {
-                for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
-                    try {
+                if (ctx.memberDeclaratorList() != null) {
+                    for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList()
+                            .memberDeclarator()) {
                         if (isMethodDeclaration(memberDec)) {
+                            // メソッドの場合はパラメータも含めて関係を解析
                             handleMethod(memberDec.declarator(), type);
+                            analyzeMethodRelationships(memberDec.declarator());
                         } else {
                             handleAttribute(memberDec.declarator(), type);
                         }
-                    } catch (Exception e) {
-                        System.err.println("Error processing member declarator: " + e.getMessage());
-                        e.printStackTrace();
                     }
                 }
             }
         } catch (Exception e) {
             System.err.println("Error in enterMemberdeclaration: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void analyzeMethodRelationships(CPP14Parser.DeclaratorContext declarator) {
+        if (declarator.parametersAndQualifiers() != null &&
+                declarator.parametersAndQualifiers().parameterDeclarationClause() != null) {
+
+            for (CPP14Parser.ParameterDeclarationContext paramCtx : declarator.parametersAndQualifiers()
+                    .parameterDeclarationClause()
+                    .parameterDeclarationList().parameterDeclaration()) {
+
+                String paramType = paramCtx.declSpecifierSeq().getText();
+                String paramDeclText = paramCtx.declarator() != null ? paramCtx.declarator().getText() : "";
+
+                analyzeTypeForRelationship(paramType, paramDeclText);
+            }
+        }
+    }
+
+    @Override
+    public void enterSimpleTypeSpecifier(CPP14Parser.SimpleTypeSpecifierContext ctx) {
+        String type = ctx.getText();
+        String cleanType = cleanTypeName(type);
+        if (isUserDefinedType(cleanType)) {
+            ((CppClass) currentClass).addDependency(cleanType);
+            System.out.println("DEBUG: Added dependency from type specifier: " + cleanType);
         }
     }
 
@@ -141,8 +167,6 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
                 processedType = processedType.replaceAll("override", "").trim();
             }
 
-            analyzeParameterType(type, declarator);
-
             Operation operation = new Operation(new Name(methodName));
             operation.setReturnType(new Type(isDestructor ? "void" : processedType));
             operation.setVisibility(convertVisibility(currentVisibility));
@@ -169,6 +193,46 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
 
     private boolean isArray(String type) {
         return type.matches(".*\\[\\d*\\]");
+    }
+
+    private void analyzeTypeForRelationship(String type, String declaratorText) {
+        String cleanType = cleanTypeName(type);
+        if (!isUserDefinedType(cleanType)) {
+            return;
+        }
+
+        // ポインタ/参照による依存関係
+        if (type.contains("*") || type.contains("&") ||
+                declaratorText.contains("*") || declaratorText.contains("&")) {
+            ((CppClass) currentClass).addDependency(cleanType);
+            System.out.println("DEBUG: Added dependency: " + cleanType + " (from parameter)");
+            return;
+        }
+
+        // コンテナ型の処理
+        if (isCollectionType(type)) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                ((CppClass) currentClass).addComposition(elementType);
+                ((CppClass) currentClass).setMultiplicity(elementType, "*");
+                System.out.println("DEBUG: Added collection relationship: " + elementType);
+            }
+            return;
+        }
+
+        // 配列の処理
+        if (declaratorText.matches(".*\\[\\d+\\]")) {
+            String size = declaratorText.replaceAll(".*\\[(\\d+)\\].*", "$1");
+            ((CppClass) currentClass).addComposition(cleanType);
+            ((CppClass) currentClass).setMultiplicity(cleanType, size);
+            System.out.println("DEBUG: Added array relationship: " + cleanType + "[" + size + "]");
+            return;
+        }
+
+        // 通常の型
+        ((CppClass) currentClass).addComposition(cleanType);
+        ((CppClass) currentClass).setMultiplicity(cleanType, "1");
+        System.out.println("DEBUG: Added composition: " + cleanType);
     }
 
     private void analyzeTypeRelationship(String type) {
@@ -219,12 +283,11 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
                     .parameterDeclarationClause()
                     .parameterDeclarationList().parameterDeclaration()) {
                 String paramType = paramCtx.declSpecifierSeq().getText();
+                String paramDeclText = paramCtx.declarator() != null ? paramCtx.declarator().getText() : "";
 
                 // パラメータ型からの関係を抽出
-                String cleanType = cleanTypeName(paramType);
-                if (isUserDefinedType(cleanType)) {
-                    ((CppClass) currentClass).addDependency(cleanType);
-                }
+                analyzeTypeRelationship(paramType, paramDeclText);
+                analyzeParameterType(paramType, paramCtx.declarator());
 
                 // パラメータを型のみで追加
                 Parameter param = new Parameter(new Name(""));
