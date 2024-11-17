@@ -3,12 +3,11 @@ package io.github.morichan.retuss.drawer;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.parameter.Parameter;
-import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.CppClass;
-import io.github.morichan.retuss.model.uml.Relationship;
+import io.github.morichan.retuss.model.uml.CppClass.RelationshipInfo;
 import javafx.application.Platform;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
@@ -16,22 +15,20 @@ import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class CppClassDiagramDrawer {
     private final CppModel model;
@@ -47,8 +44,10 @@ public class CppClassDiagramDrawer {
     }
 
     private void drawClass(StringBuilder pumlBuilder, Class cls) {
-        if (!(cls instanceof CppClass))
+        if (!(cls instanceof CppClass)) {
+            System.err.println("Warning: Not a CppClass instance: " + cls.getName());
             return;
+        }
         CppClass cppClass = (CppClass) cls;
 
         try {
@@ -68,41 +67,13 @@ public class CppClassDiagramDrawer {
             }
 
             pumlBuilder.append("}\n\n");
+
+            // 関係の描画
+            drawRelationships(pumlBuilder, cppClass);
         } catch (Exception e) {
             System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    private boolean isUserDefinedType(String type) {
-        Set<String> basicTypes = Set.of("void", "bool", "char", "int", "float", "double",
-                "long", "short", "unsigned", "signed");
-        String cleanType = cleanTypeName(type);
-        return !basicTypes.contains(cleanType) &&
-                !cleanType.startsWith("std::") &&
-                Character.isUpperCase(cleanType.charAt(0));
-    }
-
-    private boolean isPointerOrReference(String type) {
-        return type.contains("*") || type.contains("&");
-    }
-
-    private String cleanTypeName(String typeName) {
-        return typeName.replaceAll("[*&]", "") // ポインタ、参照記号を削除
-                .replaceAll("\\s+", "") // 空白を削除
-                .replaceAll("const", "") // constを削除
-                .replaceAll("std::", "") // std::を削除
-                .trim();
-    }
-
-    private void appendAttributeBase(StringBuilder pumlBuilder, Attribute attr) {
-        pumlBuilder.append("  ")
-                .append(getVisibilitySymbol(attr.getVisibility()))
-                .append(" ")
-                .append(attr.getName())
-                .append(" : ")
-                .append(attr.getType())
-                .append("\n");
     }
 
     private void appendAttribute(StringBuilder pumlBuilder, Attribute attr, CppClass cls) {
@@ -137,34 +108,6 @@ public class CppClassDiagramDrawer {
         } catch (Exception e) {
             System.err.println("Error appending attribute " + attr.getName() + ": " + e.getMessage());
             e.printStackTrace();
-        }
-    }
-
-    private void appendOperationBase(StringBuilder pumlBuilder, Operation op) {
-        try {
-            pumlBuilder.append("  ")
-                    .append(getVisibilitySymbol(op.getVisibility()))
-                    .append(" ")
-                    .append(op.getName().getNameText())
-                    .append("(");
-
-            // パラメータ処理
-            List<String> params = new ArrayList<>();
-            for (Parameter param : op.getParameters()) {
-                params.add(param.getType() + " " + param.getName());
-            }
-            pumlBuilder.append(String.join(", ", params));
-
-            pumlBuilder.append(")");
-
-            String returnType = op.getReturnType().toString();
-            pumlBuilder.append(" : ")
-                    .append(returnType);
-
-            pumlBuilder.append("\n");
-        } catch (Exception e) {
-            System.err.println("Error appending operation " + op.getName() +
-                    ": " + e.getMessage());
         }
     }
 
@@ -322,11 +265,6 @@ public class CppClassDiagramDrawer {
                     drawClass(pumlBuilder, cls);
                 }
 
-                // 関係の描画を追加
-                for (Class cls : classes) {
-                    drawRelationships(pumlBuilder, cls);
-                }
-
                 pumlBuilder.append("@enduml\n");
                 String puml = pumlBuilder.toString();
                 System.out.println("Generated PlantUML:\n" + puml);
@@ -381,6 +319,182 @@ public class CppClassDiagramDrawer {
         }
     }
 
+    private void drawRelationships(StringBuilder pumlBuilder, CppClass cls) {
+        // ターゲットクラスごとに関係をグループ化
+        Map<String, Map<RelationshipInfo.RelationType, Set<RelationshipInfo>>> relationshipsByTarget = new HashMap<>();
+
+        // 関係を整理
+        for (RelationshipInfo relation : cls.getRelationships()) {
+            relationshipsByTarget
+                    .computeIfAbsent(relation.getTargetClass(), k -> new EnumMap<>(RelationshipInfo.RelationType.class))
+                    .computeIfAbsent(relation.getType(), k -> new HashSet<>())
+                    .add(relation);
+        }
+
+        // 各ターゲットクラスとの関係を描画
+        for (Map.Entry<String, Map<RelationshipInfo.RelationType, Set<RelationshipInfo>>> targetEntry : relationshipsByTarget
+                .entrySet()) {
+
+            String targetClass = targetEntry.getKey();
+            Map<RelationshipInfo.RelationType, Set<RelationshipInfo>> relationsByType = targetEntry.getValue();
+
+            for (Map.Entry<RelationshipInfo.RelationType, Set<RelationshipInfo>> typeEntry : relationsByType
+                    .entrySet()) {
+
+                RelationshipInfo.RelationType type = typeEntry.getKey();
+                Set<RelationshipInfo> relations = typeEntry.getValue();
+
+                // 継承関係の場合は向きを逆にする
+                if (type == RelationshipInfo.RelationType.INHERITANCE) {
+                    pumlBuilder.append(targetClass);
+                    appendRelationshipSymbol(pumlBuilder, type);
+                    pumlBuilder.append(cls.getName());
+                } else {
+                    pumlBuilder.append(cls.getName());
+                    appendRelationshipSymbol(pumlBuilder, type, getAggregatedMultiplicity(relations));
+                    pumlBuilder.append(targetClass);
+                }
+
+                // 関係の詳細情報を追加（重複を避ける）
+                Set<String> uniqueDetails = new LinkedHashSet<>();
+                for (RelationshipInfo relation : relations) {
+                    for (RelationshipInfo.RelationshipElement element : relation.getElements()) {
+                        uniqueDetails.add(formatElement(element));
+                    }
+                }
+
+                if (!uniqueDetails.isEmpty()) {
+                    pumlBuilder.append(" : ").append(String.join("\\n", uniqueDetails));
+                }
+
+                pumlBuilder.append("\n");
+            }
+        }
+    }
+
+    private void appendRelationshipSymbol(StringBuilder pumlBuilder,
+            RelationshipInfo.RelationType type,
+            String multiplicity) {
+        switch (type) {
+            case INHERITANCE:
+                pumlBuilder.append(" <|-- ");
+                break;
+            case COMPOSITION:
+                pumlBuilder.append(" \"1\" *-- \"").append(multiplicity).append("\" ");
+                break;
+            case AGGREGATION:
+                pumlBuilder.append(" \"1\" o-- \"").append(multiplicity).append("\" ");
+                break;
+            case ASSOCIATION:
+                pumlBuilder.append(" \"1\" -- \"").append(multiplicity).append("\" ");
+                break;
+            case DEPENDENCY:
+                pumlBuilder.append(" ..> ");
+                break;
+            case REALIZATION:
+                pumlBuilder.append(" ..|> ");
+                break;
+        }
+    }
+
+    private void appendRelationshipSymbol(StringBuilder pumlBuilder,
+            RelationshipInfo.RelationType type) {
+        // 多重度なしバージョン（継承用）
+        switch (type) {
+            case INHERITANCE:
+                pumlBuilder.append(" <|-- ");
+                break;
+            case REALIZATION:
+                pumlBuilder.append(" ..|> ");
+                break;
+            default:
+                pumlBuilder.append(" -- ");
+                break;
+        }
+    }
+
+    private String formatElement(RelationshipInfo.RelationshipElement element) {
+        StringBuilder sb = new StringBuilder();
+
+        // 可視性の追加
+        sb.append(getVisibilitySymbol(element.getVisibility())).append(" ");
+
+        switch (element.getElemType()) {
+            case OPERATION:
+                // virtual修飾子の表示
+                if (element.getModifiers().contains(CppClass.Modifier.VIRTUAL) ||
+                        element.isPureVirtual()) {
+                    sb.append("{virtual} ");
+                }
+                // staticの表示
+                if (element.getModifiers().contains(CppClass.Modifier.STATIC)) {
+                    sb.append("{static} ");
+                }
+                sb.append(cleanName(element.getName()));
+                if (element.getType() != null) {
+                    sb.append(" : ").append(cleanTypeForDisplay(element.getType()));
+                }
+                break;
+
+            case ATTRIBUTE:
+                if (element.getModifiers().contains(CppClass.Modifier.STATIC)) {
+                    sb.append("{static} ");
+                }
+                if (element.getModifiers().contains(CppClass.Modifier.CONST)) {
+                    sb.append("{const} ");
+                }
+                sb.append(cleanName(element.getName()));
+                if (element.getType() != null) {
+                    sb.append(" : ").append(cleanTypeForDisplay(element.getType()));
+                }
+                if (!element.getMultiplicity().equals("1")) {
+                    sb.append("[").append(element.getMultiplicity()).append("]");
+                }
+                break;
+
+            case PARAMETER:
+                sb.append(cleanName(element.getName()));
+                break;
+        }
+
+        return sb.toString();
+    }
+
+    private String cleanName(String name) {
+        return name.replaceAll("[*&]", "").trim();
+    }
+
+    private String cleanTypeForDisplay(String type) {
+        if (type == null)
+            return "";
+        return type.replaceAll("\\s+", " ")
+                .replaceAll("const", "")
+                .replaceAll("std::", "")
+                .trim();
+    }
+
+    private String getAggregatedMultiplicity(Set<RelationshipInfo> relations) {
+        Set<String> multiplicities = new HashSet<>();
+        for (RelationshipInfo relation : relations) {
+            for (RelationshipInfo.RelationshipElement element : relation.getElements()) {
+                multiplicities.add(element.getMultiplicity());
+            }
+        }
+
+        if (multiplicities.contains("*"))
+            return "*";
+
+        try {
+            return multiplicities.stream()
+                    .map(Integer::parseInt)
+                    .max(Integer::compareTo)
+                    .map(String::valueOf)
+                    .orElse("1");
+        } catch (NumberFormatException e) {
+            return "1";
+        }
+    }
+
     private String getVisibilitySymbol(Visibility visibility) {
         switch (visibility) {
             case Public:
@@ -391,128 +505,6 @@ public class CppClassDiagramDrawer {
                 return "-";
             default:
                 return "~";
-        }
-    }
-
-    private Boolean isComposition(Type type) {
-        for (Class umlClass : model.getUmlClassList()) {
-            if (type.getName().getNameText().equals(umlClass.getName())) {
-                return Boolean.TRUE;
-            }
-        }
-        return Boolean.FALSE;
-    }
-
-    private boolean isClassType(String typeName) {
-        // 基本型でないかどうかをチェック
-        Set<String> basicTypes = Set.of(
-                "int", "char", "bool", "float", "double",
-                "void", "long", "short", "unsigned", "signed");
-        return !basicTypes.contains(typeName) &&
-                !typeName.startsWith("std::") &&
-                Character.isUpperCase(typeName.charAt(0)); // クラス名は大文字で始まると仮定
-    }
-
-    private void drawRelationships(StringBuilder pumlBuilder, Class cls) {
-        if (!(cls instanceof CppClass))
-            return;
-        CppClass cppClass = (CppClass) cls;
-
-        System.out.println("DEBUG: Drawing relationships for class: " + cppClass.getName());
-        Map<String, Set<CppClass.TypeRelation>> relations = cppClass.getTypeRelations();
-        for (Map.Entry<String, Set<CppClass.TypeRelation>> entry : relations.entrySet()) {
-            String targetClass = entry.getKey();
-            for (CppClass.TypeRelation rel : entry.getValue()) {
-                if (rel.getType() == CppClass.TypeRelation.RelationType.DEPENDENCY) {
-                    System.out.println("  Dependency: " + targetClass);
-                } else if (rel.getType() == CppClass.TypeRelation.RelationType.COMPOSITION) {
-                    System.out.println("  Composition: " + targetClass + " [" + rel.getMultiplicity() + "]");
-                }
-            }
-        }
-
-        // 関係を種類ごとにマップで管理
-        Map<String, String> compositionRelations = new HashMap<>();
-        Map<String, String> dependencyRelations = new HashMap<>();
-
-        // 継承関係
-        if (cppClass.getSuperClass().isPresent()) {
-            pumlBuilder.append(cppClass.getSuperClass().get().getName())
-                    .append(" <|-- ")
-                    .append(cppClass.getName())
-                    .append("\n");
-        }
-
-        // 関係を集約
-        for (CppClass.RelationshipInfo rel : cppClass.getRelationships()) {
-            String targetClass = rel.getTargetClass();
-
-            switch (rel.getType()) {
-                case COMPOSITION:
-                    String existingMultiplicity = compositionRelations.get(targetClass);
-                    if (existingMultiplicity == null ||
-                            existingMultiplicity.equals("1") ||
-                            rel.getMultiplicity().equals("*")) {
-                        compositionRelations.put(targetClass, rel.getMultiplicity());
-                    }
-                    break;
-                case DEPENDENCY:
-                    dependencyRelations.put(targetClass, "1");
-                    break;
-            }
-        }
-
-        // コンポジション関係を描画
-        for (Map.Entry<String, String> entry : compositionRelations.entrySet()) {
-            pumlBuilder.append(cppClass.getName())
-                    .append(" \"1\" *-- \"")
-                    .append(entry.getValue())
-                    .append("\" ")
-                    .append(entry.getKey())
-                    .append("\n");
-        }
-
-        // 依存関係を描画
-        for (Map.Entry<String, String> entry : dependencyRelations.entrySet()) {
-            pumlBuilder.append(cppClass.getName())
-                    .append(" ..> ")
-                    .append(entry.getKey())
-                    .append("\n");
-        }
-    }
-
-    private String determineMultiplicity(String type) {
-        // 固定長配列の場合（例：[5]）
-        if (type.matches(".*\\[\\d+\\]")) {
-            return type.replaceAll(".*\\[(\\d+)\\].*", "$1");
-        }
-        // 可変長配列の場合
-        if (type.contains("[]")) {
-            return "*";
-        }
-        // STLコンテナの場合
-        if (type.matches(".*vector<.*>.*") ||
-                type.matches(".*list<.*>.*") ||
-                type.matches(".*set<.*>.*")) {
-            return "*";
-        }
-        return "1";
-    }
-
-    private String getRelationshipArrow(Relationship.RelationType type) {
-        switch (type) {
-            case INHERITANCE:
-                return "<|--";
-            case AGGREGATION:
-                return "o--";
-            case COMPOSITION:
-                return "*--";
-            case DEPENDENCY:
-                return "<..";
-            case ASSOCIATION:
-                return "--";
-            default:
-                return "--";
         }
     }
 }

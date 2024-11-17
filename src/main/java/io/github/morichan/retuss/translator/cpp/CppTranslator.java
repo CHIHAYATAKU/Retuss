@@ -13,14 +13,10 @@ import io.github.morichan.retuss.translator.model.MethodCall;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.parameter.Parameter;
-import io.github.morichan.fescue.feature.name.Name;
 import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
-import io.github.morichan.fescue.feature.value.DefaultValue;
-import io.github.morichan.fescue.feature.value.expression.OneIdentifier;
 import java.util.*;
 
-import org.antlr.runtime.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -266,91 +262,6 @@ public class CppTranslator extends AbstractLanguageTranslator {
         return sb.toString();
     }
 
-    private boolean isSpecialMethod(String methodName) {
-        return methodName.equals("output") ||
-                methodName.equals("input") ||
-                methodName.equals("cout") ||
-                methodName.equals("cin");
-    }
-
-    private void appendSpecialMethodCall(StringBuilder sb, MethodCall call) {
-        if (!call.getArguments().isEmpty()) {
-            sb.append(call.getArguments().get(0));
-        }
-    }
-
-    private void appendNormalMethodCall(StringBuilder sb, MethodCall call) {
-        sb.append(call.getMethodName())
-                .append("(")
-                .append(String.join(", ", call.getArguments()))
-                .append(")");
-    }
-
-    private String escapeCallee(String callee) {
-        // 特殊文字のエスケープ処理が必要な場合
-        return callee.replace("::", "_");
-    }
-
-    private void addMethodCallToSequence(StringBuilder sb, MethodCall call, String className) {
-        String caller = className;
-        String callee = call.getCallee().isEmpty() ? className : call.getCallee();
-
-        sb.append("\"").append(caller).append("\" -> \"")
-                .append(callee).append("\" : ")
-                .append(call.getMethodName());
-
-        // 引数の追加
-        sb.append("(");
-        if (!call.getArguments().isEmpty()) {
-            sb.append(String.join(", ", call.getArguments()));
-        }
-        sb.append(")\n");
-
-        // 活性化とメッセージの戻り
-        if (!caller.equals(callee)) {
-            sb.append("activate \"").append(callee).append("\"\n");
-            sb.append("\"").append(callee).append("\" --> \"")
-                    .append(caller).append("\"\n");
-            sb.append("deactivate \"").append(callee).append("\"\n");
-        }
-    }
-
-    private String generateSequenceDiagramPlantUML(Interaction interaction) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("@startuml\n");
-        sb.append("skinparam style strictuml\n\n");
-
-        // 参加者の収集と出力
-        Set<String> participants = collectParticipants(interaction);
-        for (String participant : participants) {
-            sb.append("participant \"").append(participant).append("\"\n");
-        }
-        sb.append("\n");
-
-        // メインのシーケンス
-        generateInteractionSequence(sb, interaction.getInteractionFragmentList(), 0);
-
-        sb.append("@enduml\n");
-        return sb.toString();
-    }
-
-    private Set<String> collectParticipants(Interaction interaction) {
-        Set<String> participants = new HashSet<>();
-        for (InteractionFragment fragment : interaction.getInteractionFragmentList()) {
-            if (fragment instanceof OccurenceSpecification) {
-                OccurenceSpecification occurence = (OccurenceSpecification) fragment;
-                participants.add(occurence.getLifeline().getSignature());
-                if (occurence.getMessage() != null) {
-                    participants.add(occurence.getMessage().getMessageEnd().getLifeline().getSignature());
-                }
-            } else if (fragment instanceof CombinedFragment) {
-                CombinedFragment combined = (CombinedFragment) fragment;
-                participants.add(combined.getLifeline().getSignature());
-            }
-        }
-        return participants;
-    }
-
     private void generateInteractionSequence(
             StringBuilder sb,
             List<InteractionFragment> fragments,
@@ -468,30 +379,6 @@ public class CppTranslator extends AbstractLanguageTranslator {
         sb.append(indentation).append("end\n");
     }
 
-    /**
-     * 実装ファイルの特定のメソッドを解析
-     */
-    private void analyzeMethodImplementation(
-            Class umlClass,
-            String implCode,
-            String methodName) {
-        try {
-            CharStream input = CharStreams.fromString(implCode);
-            CPP14Lexer lexer = new CPP14Lexer(input);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            CPP14Parser parser = new CPP14Parser(tokens);
-
-            // コンストラクタに引数を渡す
-            CppMethodAnalyzer methodAnalyzer = new CppMethodAnalyzer(umlClass);
-            ParseTreeWalker walker = new ParseTreeWalker();
-            walker.walk(methodAnalyzer, parser.translationUnit());
-
-        } catch (Exception e) {
-            System.err.println("Error analyzing method implementation: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
     public List<MethodCall> analyzeMethodCalls(String code, String methodName) {
         try {
             CharStream input = CharStreams.fromString(code);
@@ -512,49 +399,6 @@ public class CppTranslator extends AbstractLanguageTranslator {
         } catch (Exception e) {
             System.err.println("Failed to analyze method calls: " + e.getMessage());
             return new ArrayList<>();
-        }
-    }
-
-    private void generateMethodCallSequence(StringBuilder sb, List<MethodCall> methodCalls) {
-        int currentNestLevel = 0;
-        Stack<String> activeGroups = new Stack<>();
-
-        for (MethodCall call : methodCalls) {
-            // ネストレベルの調整
-            while (currentNestLevel > call.getNestingLevel()) {
-                currentNestLevel--;
-                if (!activeGroups.empty()) {
-                    sb.append("  ".repeat(currentNestLevel))
-                            .append("end ").append(activeGroups.pop()).append("\n");
-                }
-            }
-
-            if (call.getNestingLevel() > currentNestLevel) {
-                String groupType = call.getStructureType() == MethodCall.ControlStructureType.LOOP ? "loop" : "alt";
-                String condition = call.getCondition() != null ? call.getCondition() : "";
-                sb.append("  ".repeat(currentNestLevel))
-                        .append(groupType).append(" ").append(condition).append("\n");
-                activeGroups.push(groupType);
-                currentNestLevel = call.getNestingLevel();
-            }
-
-            // メソッド呼び出しの表示
-            sb.append("  ".repeat(currentNestLevel))
-                    .append(call.getCaller())
-                    .append(" -> ")
-                    .append(call.getCallee())
-                    .append(" : ")
-                    .append(call.getMethodName())
-                    .append("(")
-                    .append(String.join(", ", call.getArguments()))
-                    .append(")\n");
-        }
-
-        // 残りのグループを閉じる
-        while (!activeGroups.empty()) {
-            currentNestLevel--;
-            sb.append("  ".repeat(currentNestLevel))
-                    .append("end ").append(activeGroups.pop()).append("\n");
         }
     }
 }

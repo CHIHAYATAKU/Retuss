@@ -1,24 +1,17 @@
 package io.github.morichan.retuss.model;
 
 import io.github.morichan.retuss.controller.UmlController;
-import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.model.uml.CppClass;
 import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
 import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
-import javafx.application.Platform;
-import javafx.util.Pair;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.*;
@@ -26,8 +19,6 @@ import org.antlr.v4.runtime.*;
 public class CppFile implements ICodeFile {
     private final ExecutorService analysisExecutor = Executors.newSingleThreadExecutor(); // 解析用の専用スレッド
     private final ScheduledExecutorService updateExecutor = Executors.newSingleThreadScheduledExecutor(); // 更新用のスレッド
-    private ScheduledFuture<?> pendingUpdate;
-    private static final long UPDATE_DELAY = 500;
     private final UUID ID = UUID.randomUUID();
     private String fileName = "";
     private String sourceCode;

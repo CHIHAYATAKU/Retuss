@@ -94,29 +94,6 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         System.out.println("DEBUG: Analyzing relationship for type: " + type +
                 " (cleaned: " + cleanType + ", isPointerOrRef: " + isPointerOrRef + ")");
 
-        if (isPointerOrRef) {
-            System.out.println("DEBUG: Adding dependency: " + cleanType);
-            cppClass.addDependency(cleanType);
-        } else if (isCollectionType(type)) {
-            System.out.println("DEBUG: Adding collection composition: " + cleanType);
-            String elementType = extractElementType(type);
-            if (isUserDefinedType(elementType)) {
-                cppClass.addComposition(elementType);
-                cppClass.setMultiplicity(elementType, "*");
-            }
-        } else if (isArray(type)) {
-            System.out.println("DEBUG: Adding array composition: " + cleanType);
-            String baseType = extractArrayBaseType(type);
-            String size = extractArraySize(type);
-            if (isUserDefinedType(baseType)) {
-                cppClass.addComposition(baseType);
-                cppClass.setMultiplicity(baseType, size);
-            }
-        } else {
-            System.out.println("DEBUG: Adding normal composition: " + cleanType);
-            cppClass.addComposition(cleanType);
-            cppClass.setMultiplicity(cleanType, "1");
-        }
     }
 
     private void analyzeTypeRelationship(String type) {
@@ -126,25 +103,6 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
 
         CppClass cppClass = (CppClass) currentClass;
         String cleanType = cleanTypeName(type);
-
-        if (isPointerOrReference(type)) {
-            cppClass.addDependency(cleanType);
-        } else if (isCollectionType(type)) {
-            String elementType = extractElementType(type);
-            if (isUserDefinedType(elementType)) {
-                cppClass.addComposition(elementType);
-                cppClass.setMultiplicity(elementType, "*");
-            }
-        } else if (isArray(type)) {
-            String baseType = extractArrayBaseType(type);
-            if (isUserDefinedType(baseType)) {
-                cppClass.addComposition(baseType);
-                cppClass.setMultiplicity(baseType, extractArraySize(type));
-            }
-        } else {
-            cppClass.addComposition(cleanType);
-            cppClass.setMultiplicity(cleanType, "1");
-        }
 
         analyzedTypes.add(type);
     }
@@ -156,43 +114,6 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         if (!isUserDefinedType(cleanType)) {
             return;
         }
-
-        System.out.println("DEBUG: Analyzing attribute relationship: " + attr.getName() + " : " + type);
-
-        // ポインタ/参照による依存関係
-        if (type.contains("*") || type.contains("&")) {
-            ((CppClass) currentClass).addDependency(cleanType);
-            System.out.println("  Adding dependency to " + cleanType);
-            return;
-        }
-
-        // コレクション型の関係
-        if (type.contains("vector<") || type.contains("list<")) {
-            String elementType = extractElementType(type);
-            if (isUserDefinedType(elementType)) {
-                ((CppClass) currentClass).addComposition(elementType);
-                ((CppClass) currentClass).setMultiplicity(elementType, "*");
-                System.out.println("  Adding collection composition to " + elementType);
-            }
-            return;
-        }
-
-        // 配列の関係
-        if (type.matches(".*\\[\\d+\\]")) {
-            String baseType = type.replaceAll("\\[\\d+\\]", "");
-            String size = type.replaceAll(".*\\[(\\d+)\\].*", "$1");
-            if (isUserDefinedType(baseType)) {
-                ((CppClass) currentClass).addComposition(baseType);
-                ((CppClass) currentClass).setMultiplicity(baseType, size);
-                System.out.println("  Adding array composition to " + baseType + " with size " + size);
-            }
-            return;
-        }
-
-        // 通常のインスタンスによるコンポジション関係
-        ((CppClass) currentClass).addComposition(cleanType);
-        ((CppClass) currentClass).setMultiplicity(cleanType, "1");
-        System.out.println("  Adding normal composition to " + cleanType);
     }
 
     // 型解析用のヘルパーメソッド群
@@ -319,38 +240,6 @@ public class CppMethodAnalyzer extends CPP14ParserBaseListener {
         }
 
         System.out.println("DEBUG: Analyzing type relationship for: " + type);
-
-        // ポインタまたは参照による依存関係
-        if (type.contains("*") || type.contains("&") || declarator.contains("*") || declarator.contains("&")) {
-            System.out.println("DEBUG: Adding dependency: " + cleanType);
-            cppClass.addDependency(cleanType);
-            return;
-        }
-
-        // コレクション型の処理
-        if (type.contains("vector<") || type.contains("list<")) {
-            String elementType = extractElementType(type);
-            if (isUserDefinedType(elementType)) {
-                System.out.println("DEBUG: Adding collection composition: " + elementType);
-                cppClass.addComposition(elementType);
-                cppClass.setMultiplicity(elementType, "*");
-            }
-            return;
-        }
-
-        // 配列の処理
-        if (declarator.matches(".*\\[\\d+\\]")) {
-            String size = declarator.replaceAll(".*\\[(\\d+)\\].*", "$1");
-            System.out.println("DEBUG: Adding array composition: " + cleanType + " with size " + size);
-            cppClass.addComposition(cleanType);
-            cppClass.setMultiplicity(cleanType, size);
-            return;
-        }
-
-        // 通常のインスタンスメンバ（コンポジション）
-        System.out.println("DEBUG: Adding composition: " + cleanType);
-        cppClass.addComposition(cleanType);
-        cppClass.setMultiplicity(cleanType, "1");
     }
 
     @Override

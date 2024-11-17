@@ -1,63 +1,146 @@
 package io.github.morichan.retuss.model.uml;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import io.github.morichan.fescue.feature.Attribute;
-import io.github.morichan.fescue.feature.Operation;
-import io.github.morichan.fescue.feature.parameter.Parameter;
-import io.github.morichan.fescue.feature.type.Type;
+import io.github.morichan.fescue.feature.*;
+import io.github.morichan.fescue.feature.visibility.Visibility;
 
 public class CppClass extends Class {
+    // 修飾子の定義
     public enum Modifier {
         STATIC,
         CONST,
         VOLATILE,
         MUTABLE,
         VIRTUAL,
+        PURE_VIRTUAL,
         ABSTRACT,
         OVERRIDE,
         FINAL
     }
 
-    public static class TypeRelation {
-        public enum RelationType {
-            DEPENDENCY, COMPOSITION
-        }
-
-        private final RelationType type;
-        private final String multiplicity;
-
-        public TypeRelation(RelationType type, String multiplicity) {
-            this.type = type;
-            this.multiplicity = multiplicity;
-        }
-
-        public RelationType getType() {
-            return type;
-        }
-
-        public String getMultiplicity() {
-            return multiplicity;
-        }
-    }
-
+    // 関係情報の定義
     public static class RelationshipInfo {
+        // 関係の種類
         public enum RelationType {
-            DEPENDENCY,
-            COMPOSITION
+            INHERITANCE, // 継承
+            COMPOSITION, // コンポジション（値型メンバ）
+            AGGREGATION, // 集約（ポインタ型メンバ）
+            ASSOCIATION, // 関連（参照型メンバ）
+            DEPENDENCY, // 依存（一時的な使用）
+            REALIZATION // 実現（インターフェース実装）
+        }
+
+        // 要素の種類
+        public enum ElementType {
+            ATTRIBUTE, // 属性
+            OPERATION, // 操作
+            PARAMETER // パラメータ
+        }
+
+        // 関係の要素
+        public static class RelationshipElement {
+            private final String name;
+            private final ElementType elemType;
+            private final String multiplicity;
+            private final Visibility visibility;
+            private final String type;
+            private final String returnType;
+            private final String defaultValue;
+            private final boolean isPureVirtual;
+            private final Set<Modifier> modifiers;
+
+            public RelationshipElement(
+                    String name,
+                    ElementType elemType,
+                    String multiplicity,
+                    Visibility visibility,
+                    String type,
+                    String returnType,
+                    String defaultValue,
+                    boolean isPureVirtual,
+                    Set<Modifier> modifiers) {
+                this.name = name;
+                this.elemType = elemType;
+                this.multiplicity = multiplicity;
+                this.visibility = visibility;
+                this.type = type;
+                this.returnType = returnType;
+                this.defaultValue = defaultValue;
+                this.isPureVirtual = isPureVirtual;
+                // nullや空のSetが渡された場合の処理を追加
+                this.modifiers = (modifiers != null && !modifiers.isEmpty()) ? EnumSet.copyOf(modifiers)
+                        : EnumSet.noneOf(Modifier.class);
+            }
+
+            // ゲッターメソッド
+            public String getName() {
+                return name;
+            }
+
+            public ElementType getElemType() {
+                return elemType;
+            }
+
+            public String getMultiplicity() {
+                return multiplicity;
+            }
+
+            public Visibility getVisibility() {
+                return visibility;
+            }
+
+            public String getType() {
+                return type;
+            }
+
+            public String getReturnType() {
+                return returnType;
+            }
+
+            public String getDefaultValue() {
+                return defaultValue;
+            }
+
+            public boolean isPureVirtual() {
+                return isPureVirtual;
+            }
+
+            public Set<Modifier> getModifiers() {
+                return Collections.unmodifiableSet(modifiers);
+            }
         }
 
         private final String targetClass;
         private final RelationType type;
-        private final String multiplicity;
+        private final Set<RelationshipElement> elements = new HashSet<>();
 
-        public RelationshipInfo(String targetClass, RelationType type, String multiplicity) {
+        public RelationshipInfo(String targetClass, RelationType type) {
             this.targetClass = targetClass;
             this.type = type;
-            this.multiplicity = multiplicity;
         }
 
+        public void addElement(String name, ElementType elemType, String multiplicity, Visibility visibility) {
+            addElement(name, elemType, multiplicity, visibility, null, null, null, false,
+                    EnumSet.noneOf(Modifier.class));
+        }
+
+        // 完全版
+        public void addElement(
+                String name,
+                ElementType elemType,
+                String multiplicity,
+                Visibility visibility,
+                String type,
+                String returnType,
+                String defaultValue,
+                boolean isPureVirtual,
+                Set<Modifier> modifiers) {
+            elements.add(new RelationshipElement(
+                    name, elemType, multiplicity, visibility,
+                    type, returnType, defaultValue, isPureVirtual, modifiers));
+        }
+
+        // ゲッターメソッド
         public String getTargetClass() {
             return targetClass;
         }
@@ -66,38 +149,16 @@ public class CppClass extends Class {
             return type;
         }
 
-        public String getMultiplicity() {
-            return multiplicity;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-            RelationshipInfo that = (RelationshipInfo) o;
-            return Objects.equals(targetClass, that.targetClass) &&
-                    type == that.type &&
-                    Objects.equals(multiplicity, that.multiplicity);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(targetClass, type, multiplicity);
+        public Set<RelationshipElement> getElements() {
+            return Collections.unmodifiableSet(elements);
         }
     }
 
-    // メンバー名と修飾子のマッピング
+    // メンバー変数
     private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
-    private Map<String, Type> memberTypes = new HashMap<>();
-    private Map<String, List<Parameter>> methodParameters = new HashMap<>();
-    private final Set<RelationshipInfo> relationships = new HashSet<>();
-    private final Map<String, Set<TypeRelation>> typeRelations = new HashMap<>();
-    private final Map<String, Set<String>> dependencies = new HashMap<>();
-    private final Map<String, String> multiplicities = new HashMap<>();
-    private final Set<String> compositions = new HashSet<>();
+    private final Map<String, Set<RelationshipInfo>> relationships = new HashMap<>();
 
+    // コンストラクタ
     public CppClass(String name) {
         super(name);
     }
@@ -106,12 +167,7 @@ public class CppClass extends Class {
         super(name, isActive);
     }
 
-    // 修飾子の追加
-    public void addMemberModifiers(String memberName, Set<Modifier> modifiers) {
-        memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
-                .addAll(modifiers);
-    }
-
+    // メンバー修飾子の管理
     public void addMemberModifier(String memberName, Modifier modifier) {
         memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
                 .add(modifier);
@@ -122,122 +178,28 @@ public class CppClass extends Class {
                 memberModifiers.getOrDefault(memberName, EnumSet.noneOf(Modifier.class)));
     }
 
-    public boolean hasModifier(String memberName, Modifier modifier) {
-        return getModifiers(memberName).contains(modifier);
-    }
-
-    public Type getMemberType(String memberName) {
-        return memberTypes.get(memberName);
-    }
-
-    public List<Parameter> getMethodParameters(String methodName) {
-        return methodParameters.getOrDefault(methodName, new ArrayList<>());
-    }
-
-    // UMLの表記に変換するユーティリティメソッド
-    public String getUmlModifierNotation(String memberName) {
-        Set<Modifier> modifiers = getModifiers(memberName);
-        List<String> notations = new ArrayList<>();
-
-        if (modifiers.contains(Modifier.STATIC))
-            notations.add("static");
-        if (modifiers.contains(Modifier.CONST))
-            notations.add("readOnly");
-        if (modifiers.contains(Modifier.VIRTUAL) ||
-                modifiers.contains(Modifier.ABSTRACT))
-            notations.add("abstract");
-
-        if (notations.isEmpty())
-            return "";
-        return "{" + String.join(",", notations) + "}";
-    }
-
-    // メソッドのシグネチャを取得
-    public String getMethodSignature(String methodName) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(methodName).append("(");
-
-        List<Parameter> params = getMethodParameters(methodName);
-        if (params != null) {
-            List<String> paramStrings = params.stream()
-                    .map(p -> p.getType() + " " + p.getName())
-                    .collect(Collectors.toList());
-            sb.append(String.join(", ", paramStrings));
-        }
-
-        sb.append(")");
-
-        Type returnType = getMemberType(methodName);
-        if (returnType != null && !returnType.toString().equals("void")) {
-            sb.append(" : ").append(returnType);
-        }
-
-        return sb.toString();
-    }
-
-    public void addRelationship(String targetClass, RelationshipInfo.RelationType type, String multiplicity) {
-        relationships.add(new RelationshipInfo(targetClass, type, multiplicity));
+    // 関係の管理
+    public void addRelationship(RelationshipInfo relationship) {
+        relationships.computeIfAbsent(relationship.getTargetClass(), k -> new HashSet<>())
+                .add(relationship);
     }
 
     public Set<RelationshipInfo> getRelationships() {
-        return Collections.unmodifiableSet(relationships);
-    }
-
-    // 関係管理のためのメソッド
-    public void setMultiplicity(String targetClass, String multiplicity) {
-        // 既存の関係を保持したまま多重度だけ更新
-        relationships.removeIf(r -> r.getTargetClass().equals(targetClass));
-        relationships.add(new RelationshipInfo(targetClass, RelationshipInfo.RelationType.COMPOSITION, multiplicity));
-    }
-
-    public String getMultiplicity(String targetClass) {
-        return multiplicities.getOrDefault(targetClass, "1");
-    }
-
-    public void addTypeRelation(String targetClass, TypeRelation.RelationType type, String multiplicity) {
-        typeRelations.computeIfAbsent(targetClass, k -> new HashSet<>())
-                .add(new TypeRelation(type, multiplicity));
-    }
-
-    public Map<String, Set<TypeRelation>> getTypeRelations() {
-        return Collections.unmodifiableMap(typeRelations);
-    }
-
-    public void addDependency(String targetClass) {
-        if (!targetClass.equals(getName())) {
-            relationships.add(new RelationshipInfo(targetClass, RelationshipInfo.RelationType.DEPENDENCY, "1"));
+        Set<RelationshipInfo> allRelationships = new HashSet<>();
+        for (Set<RelationshipInfo> relationSet : relationships.values()) {
+            allRelationships.addAll(relationSet);
         }
+        return Collections.unmodifiableSet(allRelationships);
     }
 
-    public void addComposition(String targetClass) {
-        if (!targetClass.equals(getName())) {
-            relationships.add(new RelationshipInfo(targetClass, RelationshipInfo.RelationType.COMPOSITION, "1"));
-        }
-    }
-
-    public Set<String> getDependencies() {
-        return Collections.unmodifiableSet(dependencies.keySet());
-    }
-
-    public Set<String> getCompositions() {
-        return Collections.unmodifiableSet(compositions);
-    }
-
+    // 基底クラスのメソッドのオーバーライド
     @Override
     public void addOperation(Operation operation) {
         super.addOperation(operation);
-        memberTypes.put(operation.getName().getNameText(), operation.getReturnType());
-        try {
-            methodParameters.put(operation.getName().getNameText(),
-                    new ArrayList<>(operation.getParameters()));
-        } catch (IllegalStateException e) {
-            methodParameters.put(operation.getName().getNameText(), new ArrayList<>());
-        }
     }
 
     @Override
     public void addAttribute(Attribute attribute) {
         super.addAttribute(attribute);
-        memberTypes.put(attribute.getName().getNameText(), attribute.getType());
     }
 }

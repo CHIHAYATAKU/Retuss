@@ -5,6 +5,7 @@ import io.github.morichan.fescue.feature.name.Name;
 import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.uml.CppClass;
+import io.github.morichan.retuss.model.uml.CppClass.RelationshipInfo;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.analyzers.base.AbstractAnalyzer;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -42,13 +43,8 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             }
         } catch (Exception e) {
             System.err.println("Error in attribute analysis: " + e.getMessage());
+            e.printStackTrace();
         }
-    }
-
-    private String cleanType(String type) {
-        return type.replaceAll("(static|const|mutable|volatile)", "")
-                .replaceAll("\\s+", " ")
-                .trim();
     }
 
     private void handleAttribute(
@@ -74,7 +70,119 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
 
         // 型の関係解析
-        analyzeAttributeTypeRelationship(type, memberDec.declarator());
+        analyzeAttributeTypeRelationship(type, memberDec.declarator(), attributeName);
+    }
+
+    private void analyzeAttributeTypeRelationship(
+            String type,
+            CPP14Parser.DeclaratorContext declarator,
+            String attributeName) {
+
+        String cleanType = cleanTypeName(type);
+        if (!isUserDefinedType(cleanType)) {
+            return;
+        }
+
+        CppClass currentClass = context.getCurrentClass();
+        String declaratorText = declarator.getText();
+        Visibility visibility = convertVisibility(context.getCurrentVisibility());
+        Set<CppClass.Modifier> mods = currentClass.getModifiers(attributeName);
+
+        // コレクション型の処理
+        if (isCollectionType(type)) {
+            String elementType = extractElementType(type);
+            if (isUserDefinedType(elementType)) {
+                RelationshipInfo relation = new RelationshipInfo(
+                        elementType,
+                        RelationshipInfo.RelationType.COMPOSITION);
+                relation.addElement(
+                        attributeName,
+                        RelationshipInfo.ElementType.ATTRIBUTE,
+                        "*",
+                        visibility,
+                        type,
+                        null, // returnType
+                        null, // defaultValue
+                        false, // isPureVirtual
+                        mods);
+                currentClass.addRelationship(relation);
+            }
+            return;
+        }
+
+        // 配列の処理
+        if (declaratorText.matches(".*\\[\\d+\\]")) {
+            String size = declaratorText.replaceAll(".*\\[(\\d+)\\].*", "$1");
+            RelationshipInfo relation = new RelationshipInfo(
+                    cleanType,
+                    RelationshipInfo.RelationType.COMPOSITION);
+            relation.addElement(
+                    attributeName,
+                    RelationshipInfo.ElementType.ATTRIBUTE,
+                    size,
+                    visibility,
+                    type,
+                    null, // returnType
+                    null, // defaultValue
+                    false, // isPureVirtual
+                    mods);
+            currentClass.addRelationship(relation);
+            return;
+        }
+
+        // ポインタ処理
+        if (type.contains("*") || declaratorText.contains("*")) {
+            RelationshipInfo relation = new RelationshipInfo(
+                    cleanType,
+                    RelationshipInfo.RelationType.AGGREGATION);
+            relation.addElement(
+                    attributeName,
+                    RelationshipInfo.ElementType.ATTRIBUTE,
+                    "0..1",
+                    visibility,
+                    type,
+                    null, // returnType
+                    null, // defaultValue
+                    false, // isPureVirtual
+                    mods);
+            currentClass.addRelationship(relation);
+            return;
+        }
+
+        // 参照処理
+        if (type.contains("&") || declaratorText.contains("&")) {
+            RelationshipInfo relation = new RelationshipInfo(
+                    cleanType,
+                    RelationshipInfo.RelationType.ASSOCIATION);
+            relation.addElement(
+                    attributeName,
+                    RelationshipInfo.ElementType.ATTRIBUTE,
+                    "1",
+                    visibility,
+                    type,
+                    null, // returnType
+                    null, // defaultValue
+                    false, // isPureVirtual
+                    mods);
+            currentClass.addRelationship(relation);
+            return;
+        }
+
+        // 通常のインスタンスメンバ
+        RelationshipInfo relation = new RelationshipInfo(
+                cleanType,
+                RelationshipInfo.RelationType.COMPOSITION);
+        relation.addElement(
+                attributeName,
+                RelationshipInfo.ElementType.ATTRIBUTE,
+                "1",
+                visibility,
+                type,
+                null, // returnType
+                null, // defaultValue
+                false, // isPureVirtual
+                mods);
+        currentClass.addRelationship(relation);
     }
 
     private Set<CppClass.Modifier> extractModifiers(String type) {
@@ -114,50 +222,15 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return processedType.toString();
     }
 
-    private void analyzeAttributeTypeRelationship(
-            String type,
-            CPP14Parser.DeclaratorContext declarator) {
-
-        String cleanType = cleanTypeName(type);
-        if (!isUserDefinedType(cleanType)) {
-            return;
-        }
-
-        // コレクション型の処理
-        if (isCollectionType(type)) {
-            String elementType = extractElementType(type);
-            if (isUserDefinedType(elementType)) {
-                context.getCurrentClass().addRelationship(elementType,
-                        CppClass.RelationshipInfo.RelationType.COMPOSITION, "*");
-            }
-            return;
-        }
-
-        // 配列の処理
-        String declaratorText = declarator.getText();
-        if (declaratorText.matches(".*\\[\\d+\\]")) {
-            String size = declaratorText.replaceAll(".*\\[(\\d+)\\].*", "$1");
-            context.getCurrentClass().addRelationship(cleanType,
-                    CppClass.RelationshipInfo.RelationType.COMPOSITION, size);
-            return;
-        }
-
-        // ポインタ/参照の処理
-        if (type.contains("*") || type.contains("&") ||
-                declaratorText.contains("*") || declaratorText.contains("&")) {
-            context.getCurrentClass().addRelationship(cleanType,
-                    CppClass.RelationshipInfo.RelationType.DEPENDENCY, "1");
-            return;
-        }
-
-        // 通常のインスタンスメンバ
-        context.getCurrentClass().addRelationship(cleanType,
-                CppClass.RelationshipInfo.RelationType.COMPOSITION, "1");
-    }
-
     private String extractAttributeName(CPP14Parser.DeclaratorContext declarator) {
         String name = declarator.getText();
         return name.replaceAll("\\[.*\\]", "").trim();
+    }
+
+    private String cleanType(String type) {
+        return type.replaceAll("(static|const|mutable|volatile|virtual)", "") // virtualを追加
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     private String cleanTypeName(String typeName) {
@@ -167,6 +240,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 .replaceAll("static", "")
                 .replaceAll("mutable", "")
                 .replaceAll("std::", "")
+                .replaceAll("virtual", "")
                 .trim();
     }
 

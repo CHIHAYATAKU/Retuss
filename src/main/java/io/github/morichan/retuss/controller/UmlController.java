@@ -27,13 +27,6 @@ import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
-import net.sourceforge.plantuml.FileFormat;
-import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.SourceStringReader;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -496,61 +489,6 @@ public class UmlController {
         }
     }
 
-    private void updateExistingSequenceTab(Tab fileTab, CppFile headerFile) {
-        TabPane methodTabPane = new TabPane();
-        fileTab.setContent(methodTabPane);
-
-        if (!headerFile.getUmlClassList().isEmpty()) {
-            Class umlClass = headerFile.getUmlClassList().get(0);
-            generateMethodTabs(umlClass, methodTabPane, headerFile.getFileName());
-        }
-    }
-
-    private void createNewSequenceTab(CppFile headerFile) {
-        if (headerFile.getUmlClassList().isEmpty())
-            return;
-
-        Class umlClass = headerFile.getUmlClassList().get(0);
-        Tab fileTab = new Tab(umlClass.getName() + ".cpp");
-        TabPane methodTabPane = new TabPane();
-        fileTab.setContent(methodTabPane);
-
-        generateMethodTabs(umlClass, methodTabPane, headerFile.getFileName());
-        tabPaneInSequenceTab.getTabs().add(fileTab);
-    }
-
-    private void generateMethodTabs(Class umlClass, TabPane methodTabPane, String fileName) {
-        String baseName = fileName.replace(".h", "");
-        for (Operation operation : umlClass.getOperationList()) {
-            Tab methodTab = new Tab(operation.getName().getNameText());
-            WebView webView = new WebView();
-            methodTab.setContent(webView);
-
-            try {
-                String sequenceDiagram = CppModel.getInstance().generateSequenceDiagram(
-                        baseName,
-                        operation.getName().getNameText());
-
-                System.out.println("Sequence Diagram Content:\n" + sequenceDiagram);
-
-                if (!sequenceDiagram.isEmpty()) {
-                    SourceStringReader reader = new SourceStringReader(sequenceDiagram);
-                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
-                    String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
-
-                    webView.getEngine().loadContent(svg);
-                    System.out.println("SVG content loaded to WebView");
-                }
-            } catch (Exception e) {
-                System.err.println("Error generating sequence diagram: " + e.getMessage());
-                e.printStackTrace();
-            }
-
-            methodTabPane.getTabs().add(methodTab);
-        }
-    }
-
     private void removeOldSequenceTab(String oldClassName) {
         tabPaneInSequenceTab.getTabs().removeIf(tab -> tab.getText().equals(oldClassName + ".cpp") ||
                 tab.getText().equals(oldClassName + ".h"));
@@ -561,19 +499,6 @@ public class UmlController {
         if (oldName != null && newName != null && !oldName.equals(newName)) {
             removeOldSequenceTab(oldName.replace(".h", "").replace(".cpp", ""));
         }
-    }
-
-    private Tab findOrCreateCppFileTab(CppFile headerFile) {
-        String fileName = headerFile.getFileName();
-        for (Tab tab : tabPaneInSequenceTab.getTabs()) {
-            if (tab.getText().equals(fileName)) {
-                return tab;
-            }
-        }
-
-        Tab newTab = new Tab(fileName);
-        tabPaneInSequenceTab.getTabs().add(newTab);
-        return newTab;
     }
 
     /**
@@ -641,57 +566,4 @@ public class UmlController {
         }
         return Optional.empty();
     }
-
-    private Optional<Tab> findOrCreateSequenceTab(CppFile headerFile) {
-        String baseName = headerFile.getFileName().replace(".h", "");
-
-        // 既存のタブを探す
-        Optional<Tab> existingTab = tabPaneInSequenceTab.getTabs().stream()
-                .filter(tab -> tab.getText().equals(baseName + ".cpp"))
-                .findFirst();
-
-        if (existingTab.isEmpty()) {
-            // 新しいタブを作成
-            if (!headerFile.getUmlClassList().isEmpty()) {
-                Class umlClass = headerFile.getUmlClassList().get(0);
-                Tab newTab = new Tab(umlClass.getName() + ".cpp");
-                tabPaneInSequenceTab.getTabs().add(newTab);
-                return Optional.of(newTab);
-            }
-        }
-
-        return existingTab;
-    }
-
-    private void updateSequenceTabContent(Tab fileTab, CppFile headerFile, CppFile implFile) {
-        System.out.println("Updating sequence tab content for: " + headerFile.getFileName());
-
-        TabPane methodTabPane = new TabPane();
-        fileTab.setContent(methodTabPane);
-
-        if (!headerFile.getUmlClassList().isEmpty()) {
-            Class umlClass = headerFile.getUmlClassList().get(0);
-            for (Operation operation : umlClass.getOperationList()) {
-                Tab methodTab = new Tab(operation.getName().getNameText());
-                WebView webView = new WebView();
-                methodTab.setContent(webView);
-
-                // シーケンス図の生成と表示
-                try {
-                    cppSequenceDiagramDrawer.draw(
-                            headerFile,
-                            implFile,
-                            operation.getName().getNameText(),
-                            webView);
-                    System.out.println("Drew sequence diagram for method: " + operation.getName().getNameText());
-                } catch (Exception e) {
-                    System.err.println("Error drawing sequence diagram: " + e.getMessage());
-                    e.printStackTrace();
-                }
-
-                methodTabPane.getTabs().add(methodTab);
-            }
-        }
-    }
-
 }

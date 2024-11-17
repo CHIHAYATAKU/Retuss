@@ -5,14 +5,13 @@ import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
-import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.CppClass;
+import io.github.morichan.retuss.model.uml.CppClass.RelationshipInfo;
 import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
-import io.github.morichan.retuss.translator.cpp.listeners.CppImplementationAnalyzer;
 import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
 
 import java.util.*;
@@ -400,11 +399,14 @@ public class CppModel {
                 System.out.println("  Class: " + cppClass.getName());
                 System.out.println("  Attributes: " + cls.getAttributeList());
                 System.out.println("  Operations: " + cls.getOperationList());
-                System.out.println("  Dependencies: " + cppClass.getDependencies());
-                System.out.println("  Compositions: " + cppClass.getCompositions());
-                System.out.println("  Multiplicities: ");
-                for (String comp : cppClass.getCompositions()) {
-                    System.out.println("    " + comp + ": " + cppClass.getMultiplicity(comp));
+                System.out.println("  Relations: ");
+                for (RelationshipInfo relation : cppClass.getRelationships()) {
+                    System.out.println("    " + relation.getTargetClass() +
+                            " (" + relation.getType() + ")");
+                    for (RelationshipInfo.RelationshipElement elem : relation.getElements()) {
+                        System.out.println("      - " + elem.getName() +
+                                " [" + elem.getMultiplicity() + "]");
+                    }
                 }
             }
         }
