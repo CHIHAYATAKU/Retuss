@@ -240,16 +240,4 @@ public class CppClass extends Class {
         super.addAttribute(attribute);
         memberTypes.put(attribute.getName().getNameText(), attribute.getType());
     }
-
-    private String cleanTypeName(String typeName) {
-        return typeName.replaceAll("[*&]", "").trim();
-    }
-
-    private boolean isUserDefinedType(String typeName) {
-        // 基本型のリスト
-        Set<String> basicTypes = Set.of("void", "bool", "char", "int", "float", "double",
-                "long", "short", "unsigned", "signed");
-        String cleanType = cleanTypeName(typeName);
-        return !basicTypes.contains(cleanType) && !cleanType.startsWith("std::");
-    }
 }

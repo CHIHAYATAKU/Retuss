@@ -188,69 +188,10 @@ public class CppFile implements ICodeFile {
         return fileName.replaceAll("\\.(h|hpp|cpp)$", "");
     }
 
-    private void handleClassNameChange(Optional<String> newClassName) {
-        if (newClassName.isPresent()) {
-            String className = newClassName.get();
-            String expectedFileName = className + ".h";
-
-            if (!expectedFileName.equals(this.fileName)) {
-                String oldFileName = this.fileName;
-                this.fileName = expectedFileName;
-                System.out.println("DEBUG: File name changing from " +
-                        oldFileName + " to " + expectedFileName);
-                notifyFileNameChanged(oldFileName, expectedFileName);
-            }
-        }
-    }
-
-    private void handleClassNameChange(String newClassName) {
-        String expectedFileName = newClassName + ".h";
-        System.out.println("DEBUG: Detected class name: " + newClassName +
-                ", current file: " + this.fileName);
-
-        if (!expectedFileName.equals(this.fileName)) {
-            String oldFileName = this.fileName;
-            this.fileName = expectedFileName;
-            System.out.println("DEBUG: File name changing from " +
-                    oldFileName + " to " + expectedFileName);
-            notifyFileNameChanged(oldFileName, expectedFileName);
-        }
-    }
-
     // リソースの解放
     public void shutdown() {
         analysisExecutor.shutdown();
         updateExecutor.shutdown();
-    }
-
-    private void updateMethodImplementations(String code) {
-        try {
-            // 対応するヘッダーファイルのクラスを取得
-            String baseName = getBaseName();
-            CppFile headerFile = CppModel.getInstance().findHeaderFile(baseName);
-
-            if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
-                Class umlClass = headerFile.getUmlClassList().get(0);
-
-                // メソッドの実装を解析
-                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
-                CharStream input = CharStreams.fromString(code);
-                CPP14Lexer lexer = new CPP14Lexer(input);
-                CommonTokenStream tokens = new CommonTokenStream(lexer);
-                CPP14Parser parser = new CPP14Parser(tokens);
-
-                ParseTreeWalker walker = new ParseTreeWalker();
-                walker.walk(analyzer, parser.translationUnit());
-
-                // シーケンス図の更新をトリガー
-                if (umlController != null) {
-                    umlController.updateDiagram(this);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to update method implementations: " + e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     @Override

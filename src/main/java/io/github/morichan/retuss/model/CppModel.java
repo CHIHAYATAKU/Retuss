@@ -281,22 +281,6 @@ public class CppModel {
         }
     }
 
-    private void updateImplFileName(CppFile implFile, String newName) {
-        System.out.println("DEBUG: Updating implementation file name to " + newName);
-        String currentCode = implFile.getCode();
-        String oldHeaderName = implFile.getFileName().replace(".cpp", ".h");
-        String newHeaderName = newName.replace(".cpp", ".h");
-
-        // インクルード文の更新
-        String oldInclude = "#include \"" + oldHeaderName + "\"";
-        String newInclude = "#include \"" + newHeaderName + "\"";
-        String newCode = currentCode.replace(oldInclude, newInclude);
-
-        // ファイル名も更新
-        implFile.updateFileName(newName);
-        implFile.updateCode(newCode);
-    }
-
     public void addAttribute(String className, Attribute attribute) {
         CppFile headerFile = headerFiles.get(className);
         if (headerFile == null)
@@ -401,31 +385,6 @@ public class CppModel {
                 }
                 implFile.updateCode(newCode);
             }
-        }
-    }
-
-    private void updateImplFileContent(CppFile implFile, String newCode) {
-        String baseName = getBaseName(implFile.getFileName());
-        CppFile existingImpl = implFiles.get(baseName);
-        if (existingImpl != null) {
-            System.out.println("DEBUG: Updating implementation file content for: " +
-                    implFile.getFileName());
-
-            // ヘッダーファイルのインクルードを保持
-            String headerInclude = "";
-            String currentCode = existingImpl.getCode();
-            String includePattern = "#include \".*?.h\"";
-            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(includePattern).matcher(currentCode);
-            if (matcher.find()) {
-                headerInclude = matcher.group() + "\n\n";
-            }
-
-            // 新しいコードの先頭にインクルード文を追加
-            if (!newCode.contains(headerInclude.trim())) {
-                newCode = headerInclude + newCode;
-            }
-
-            existingImpl.updateCode(newCode);
         }
     }
 
