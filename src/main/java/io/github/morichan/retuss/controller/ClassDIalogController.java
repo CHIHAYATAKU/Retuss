@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -48,8 +49,9 @@ public class ClassDialogController {
                 }
 
                 if (umlController.isCppSelected()) {
+                    CppHeaderClass headerClass = new CppHeaderClass(classNameTextField.getText());
                     System.out.println("Creating C++ class: " + classNameTextField.getText());
-                    cppModel.addNewUmlClass(umlClass);
+                    cppModel.addNewFileFromUml(headerClass);
                 }
 
                 // ダイアログを閉じる

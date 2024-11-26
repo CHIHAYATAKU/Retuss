@@ -100,12 +100,6 @@ public class CodeFile implements ICodeFile {
         listeners.add(listener);
     }
 
-    private void notifyFileChanged() {
-        for (FileChangeListener listener : listeners) {
-            listener.onFileChanged(this);
-        }
-    }
-
     private void notifyFileNameChanged(String oldName, String newName) {
         for (FileChangeListener listener : listeners) {
             listener.onFileNameChanged(oldName, newName);

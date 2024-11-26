@@ -3,12 +3,10 @@ package io.github.morichan.retuss.drawer;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.parameter.Parameter;
-import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.CppModel;
-import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.model.uml.CppClass;
-import io.github.morichan.retuss.model.uml.Relationship;
+import io.github.morichan.retuss.model.uml.cpp.*;
+import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import javafx.application.Platform;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
@@ -16,22 +14,16 @@ import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class CppClassDiagramDrawer {
     private final CppModel model;
@@ -46,178 +38,158 @@ public class CppClassDiagramDrawer {
         System.out.println("CppClassDiagramDrawer initialized");
     }
 
-    private void drawClass(StringBuilder pumlBuilder, Class cls) {
-        if (!(cls instanceof CppClass))
-            return;
-        CppClass cppClass = (CppClass) cls;
-
+    private void drawClass(StringBuilder pumlBuilder, CppHeaderClass cls) {
         try {
-            if (cls.getAbstruct()) {
+            if (cls.getAbstruct() && !cls.getInterface()) {
                 pumlBuilder.append("abstract ");
             }
-            pumlBuilder.append("class ").append(cls.getName()).append(" {\n");
+            pumlBuilder.append("class ").append(cls.getName());
+
+            if (cls.getInterface() && cls.getAbstruct()) {
+                pumlBuilder.append(" <<interface>>");
+            }
+
+            pumlBuilder.append(" {\n");
 
             // 属性
             for (Attribute attr : cls.getAttributeList()) {
-                appendAttribute(pumlBuilder, attr, cppClass);
+                appendAttribute(pumlBuilder, attr, cls);
             }
 
             // メソッド
             for (Operation op : cls.getOperationList()) {
-                appendOperation(pumlBuilder, op, cppClass);
+                appendOperation(pumlBuilder, op, cls);
             }
 
             pumlBuilder.append("}\n\n");
+
+            // 関係の描画
+            pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
         } catch (Exception e) {
             System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private boolean isUserDefinedType(String type) {
-        Set<String> basicTypes = Set.of("void", "bool", "char", "int", "float", "double",
-                "long", "short", "unsigned", "signed");
-        String cleanType = cleanTypeName(type);
-        return !basicTypes.contains(cleanType) &&
-                !cleanType.startsWith("std::") &&
-                Character.isUpperCase(cleanType.charAt(0));
-    }
-
-    private boolean isPointerOrReference(String type) {
-        return type.contains("*") || type.contains("&");
-    }
-
-    private String cleanTypeName(String typeName) {
-        return typeName.replaceAll("[*&]", "") // ポインタ、参照記号を削除
-                .replaceAll("\\s+", "") // 空白を削除
-                .replaceAll("const", "") // constを削除
-                .replaceAll("std::", "") // std::を削除
-                .trim();
-    }
-
-    private void appendAttributeBase(StringBuilder pumlBuilder, Attribute attr) {
-        pumlBuilder.append("  ")
-                .append(getVisibilitySymbol(attr.getVisibility()))
-                .append(" ")
-                .append(attr.getName())
-                .append(" : ")
-                .append(attr.getType())
-                .append("\n");
-    }
-
-    private void appendAttribute(StringBuilder pumlBuilder, Attribute attr, CppClass cls) {
+    private void appendAttribute(StringBuilder pumlBuilder, Attribute attr, CppHeaderClass cls) {
         try {
             pumlBuilder.append("  ")
                     .append(getVisibilitySymbol(attr.getVisibility()))
                     .append(" ");
 
             // 修飾子の追加
-            Set<CppClass.Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
-            if (!modifiers.isEmpty()) {
-                pumlBuilder.append("{");
-                List<String> modifierStrings = new ArrayList<>();
-                if (modifiers.contains(CppClass.Modifier.STATIC)) {
-                    modifierStrings.add("static");
+            Set<Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
+            appendAttributeModifiers(pumlBuilder, modifiers);
+
+            // 属性名と型を表示
+            String cleanName = cleanName(attr.getName().getNameText());
+            pumlBuilder.append(cleanName)
+                    .append(" : ")
+                    .append(formatType(attr.getType().toString()));
+
+            // 初期値の追加（エラー処理を追加）
+            try {
+                if (attr.getDefaultValue() != null &&
+                        attr.getDefaultValue().toString() != null &&
+                        !attr.getDefaultValue().toString().isEmpty()) {
+                    pumlBuilder.append(" = ")
+                            .append(attr.getDefaultValue().toString());
                 }
-                if (modifiers.contains(CppClass.Modifier.CONST)) {
-                    modifierStrings.add("const");
-                }
-                if (modifiers.contains(CppClass.Modifier.MUTABLE)) {
-                    modifierStrings.add("mutable");
-                }
-                pumlBuilder.append(String.join(",", modifierStrings));
-                pumlBuilder.append("} ");
+            } catch (Exception e) {
+                // 初期値の処理でエラーが発生しても続行
+                System.err.println("Warning: Could not append default value for " + cleanName);
             }
 
-            // 属性名
-            pumlBuilder.append(attr.getName().getNameText())
-                    .append(" : ")
-                    .append(formatType(attr.getType().toString()))
-                    .append("\n");
+            pumlBuilder.append("\n");
         } catch (Exception e) {
             System.err.println("Error appending attribute " + attr.getName() + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private void appendOperationBase(StringBuilder pumlBuilder, Operation op) {
-        try {
-            pumlBuilder.append("  ")
-                    .append(getVisibilitySymbol(op.getVisibility()))
-                    .append(" ")
-                    .append(op.getName().getNameText())
-                    .append("(");
+    private void appendAttributeModifiers(StringBuilder pumlBuilder, Set<Modifier> modifiers) {
+        if (modifiers == null || modifiers.isEmpty())
+            return;
 
-            // パラメータ処理
-            List<String> params = new ArrayList<>();
-            for (Parameter param : op.getParameters()) {
-                params.add(param.getType() + " " + param.getName());
+        List<String> modifierStrings = new ArrayList<>();
+        for (Modifier modifier : modifiers) {
+            if (modifier.isApplicableTo(ElementType.ATTRIBUTE)) {
+                modifierStrings.add(modifier.getPlantUmlText(false));
             }
-            pumlBuilder.append(String.join(", ", params));
+        }
 
-            pumlBuilder.append(")");
-
-            String returnType = op.getReturnType().toString();
-            pumlBuilder.append(" : ")
-                    .append(returnType);
-
-            pumlBuilder.append("\n");
-        } catch (Exception e) {
-            System.err.println("Error appending operation " + op.getName() +
-                    ": " + e.getMessage());
+        if (!modifierStrings.isEmpty()) {
+            pumlBuilder.append(String.join(" ", modifierStrings))
+                    .append(" ");
         }
     }
 
-    private void appendOperation(StringBuilder pumlBuilder, Operation op, CppClass cls) {
+    private void appendOperationModifiers(StringBuilder pumlBuilder, Set<Modifier> modifiers) {
+        if (modifiers == null || modifiers.isEmpty())
+            return;
+
+        List<String> modifierStrings = new ArrayList<>();
+        for (Modifier modifier : modifiers) {
+            if (modifier.isApplicableTo(ElementType.OPERATION) && !modifier.equals(Modifier.OVERRIDE)) {
+                modifierStrings.add(modifier.getPlantUmlText(false));
+            }
+        }
+
+        if (!modifierStrings.isEmpty()) {
+            pumlBuilder.append(String.join(" ", modifierStrings))
+                    .append(" ");
+        }
+    }
+
+    private void appendOperation(StringBuilder pumlBuilder, Operation op, CppHeaderClass cls) {
         try {
             pumlBuilder.append("  ")
                     .append(getVisibilitySymbol(op.getVisibility()))
                     .append(" ");
 
-            // 修飾子の追加
-            appendModifiers(pumlBuilder, cls.getModifiers(op.getName().getNameText()));
+            // メソッド用の修飾子を追加
+            Set<Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
+            appendOperationModifiers(pumlBuilder, modifiers);
 
+            // メソッド名
             pumlBuilder.append(op.getName().getNameText())
                     .append("(");
 
-            // パラメータの型情報を表示
-            List<String> params = new ArrayList<>();
             try {
-                for (Parameter param : op.getParameters()) {
-                    params.add(formatType(param.getType().toString()));
+                // パラメータリストの表示
+                List<Parameter> params = op.getParameters();
+                if (params != null && !params.isEmpty()) {
+                    List<String> paramStrings = new ArrayList<>();
+                    for (Parameter param : params) {
+                        if (param != null && param.getName() != null && param.getType() != null) {
+                            String paramStr = param.getName().getNameText() + " : " +
+                                    formatType(param.getType().toString());
+                            paramStrings.add(paramStr);
+                        }
+                    }
+                    pumlBuilder.append(String.join(", ", paramStrings));
                 }
-            } catch (IllegalStateException e) {
+            } catch (Exception e) {
+                System.err.println("Error processing parameters for " + op.getName() + ": " + e.getMessage());
             }
-            pumlBuilder.append(String.join(", ", params));
 
-            pumlBuilder.append(") : ")
-                    .append(formatType(op.getReturnType().toString()))
-                    .append("\n");
+            pumlBuilder.append(")");
+            // 戻り値型の表示
+            if (!op.getName().getNameText().contains("~") &&
+                    !op.getName().getNameText().equals(cls.getName())) {
+                String returnType = op.getReturnType().toString();
+                if (returnType != null && !returnType.isEmpty()) {
+                    pumlBuilder.append(" : ").append(formatType(returnType));
+                }
+            }
+
+            if (modifiers.contains(Modifier.OVERRIDE)) {
+                pumlBuilder.append(" " + Modifier.OVERRIDE.getPlantUmlText(false));
+            }
+
+            pumlBuilder.append("\n");
         } catch (Exception e) {
             System.err.println("Error appending operation " + op.getName() + ": " + e.getMessage());
-        }
-    }
-
-    private void appendModifiers(StringBuilder pumlBuilder, Set<CppClass.Modifier> modifiers) {
-        List<String> modifierStrings = new ArrayList<>();
-
-        if (modifiers.contains(CppClass.Modifier.VIRTUAL)) {
-            modifierStrings.add("virtual");
-        }
-        if (modifiers.contains(CppClass.Modifier.STATIC)) {
-            modifierStrings.add("static");
-        }
-        if (modifiers.contains(CppClass.Modifier.ABSTRACT)) {
-            modifierStrings.add("abstract");
-        }
-        if (modifiers.contains(CppClass.Modifier.CONST)) {
-            modifierStrings.add("const");
-        }
-
-        if (!modifierStrings.isEmpty()) {
-            pumlBuilder.append("{")
-                    .append(String.join(",", modifierStrings))
-                    .append("} ");
         }
     }
 
@@ -226,71 +198,29 @@ public class CppClassDiagramDrawer {
             return "void";
         }
 
-        // 空白を正規化
-        type = type.trim().replaceAll("\\s+", " ");
+        StringBuilder result = new StringBuilder();
 
-        // std::を除去
-        type = type.replaceAll("std::", "");
-
-        // コレクション型の処理
-        if (type.contains("vector<") || type.contains("list<")) {
-            // コレクション型の場合も内部の型をエスケープ
-            int startIndex = type.indexOf('<');
-            int endIndex = type.lastIndexOf('>');
-            if (startIndex != -1 && endIndex != -1) {
-                String innerType = type.substring(startIndex + 1, endIndex);
-                String formattedInner = formatType(innerType); // 再帰的に内部の型を処理
-                return type.substring(0, startIndex + 1) + formattedInner + type.substring(endIndex);
-            }
-            return type;
-        }
-
-        // constを一時的に除去（後で必要な位置に追加するため）
-        boolean isConst = type.startsWith("const ");
-        if (isConst) {
-            type = type.substring(6).trim();
-        }
-
-        // ポインタ/参照修飾子を抽出
-        String suffix = "";
-        while (type.endsWith("*") || type.endsWith("&")) {
-            suffix = type.charAt(type.length() - 1) + suffix;
-            type = type.substring(0, type.length() - 1).trim();
-        }
-
-        // staticを除去
-        if (type.startsWith("static ")) {
-            type = type.substring(7).trim();
-        }
-
-        // 配列表記の処理
+        // 配列サイズの抽出
         String arraySize = "";
         if (type.matches(".*\\[\\d+\\]")) {
             arraySize = type.replaceAll(".*\\[(\\d+)\\].*", "[$1]");
             type = type.replaceAll("\\[\\d+\\]", "");
         }
 
-        // 結果を組み立て
-        StringBuilder result = new StringBuilder();
-        if (isConst) {
-            result.append("const ");
-        }
-
-        // 基本型を追加
+        // 基本型の処理
         result.append(type.trim());
 
-        // ポインタ/参照をエスケープして追加
-        if (!suffix.isEmpty()) {
-            String escapedSuffix = suffix.replace("*", "\\*").replace("&", "\\&");
-            result.append(escapedSuffix);
-        }
-
-        // 配列サイズを追加
+        // 配列サイズの追加
         if (!arraySize.isEmpty()) {
             result.append(arraySize);
         }
 
         return result.toString();
+    }
+
+    private boolean isCollectionType(String type) {
+        // 型名からテンプレート部分を含めて判定
+        return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
     }
 
     public void draw() {
@@ -300,31 +230,27 @@ public class CppClassDiagramDrawer {
 
         CompletableFuture.supplyAsync(() -> {
             try {
-                List<Class> classes = model.getUmlClassList();
+                List<CppHeaderClass> classes = model.getHeaderClasses();
                 System.out.println("DEBUG: CppClassDiagramDrawer - Number of classes: " + classes.size());
-                for (Class cls : classes) {
+                for (CppHeaderClass cls : classes) {
                     System.out.println("DEBUG: CppClassDiagramDrawer - Drawing class: " + cls.getName());
                     System.out.println("DEBUG: CppClassDiagramDrawer - Class type: " + cls.getClass().getName());
                     System.out.println("DEBUG: CppClassDiagramDrawer - Attributes: " + cls.getAttributeList().size());
                     System.out.println("DEBUG: CppClassDiagramDrawer - Operations: " + cls.getOperationList().size());
                 }
 
-                StringBuilder pumlBuilder = new StringBuilder();
-                pumlBuilder.append("@startuml\n")
-                        .append("skinparam style strictuml\n")
-                        .append("skinparam classAttributeIconSize 0\n")
-                        .append("skinparam stereotypePosition inside\n");
+                StringBuilder pumlBuilder = new StringBuilder("@startuml\n");
+                pumlBuilder.append("skinparam style strictuml\n");
+                pumlBuilder.append("skinparam linetype polyline\n");
+                pumlBuilder.append("skinparam classAttributeIconSize 0\n");
+                // 関係線の設定
+                pumlBuilder.append("skinparam LineThickness 1.5\n"); // 線の太さ
 
-                for (Class cls : classes) {
+                for (CppHeaderClass cls : classes) {
                     System.out.println("Processing class: " + cls.getName());
                     System.out.println("Attributes: " + cls.getAttributeList().size());
                     System.out.println("Operations: " + cls.getOperationList().size());
                     drawClass(pumlBuilder, cls);
-                }
-
-                // 関係の描画を追加
-                for (Class cls : classes) {
-                    drawRelationships(pumlBuilder, cls);
                 }
 
                 pumlBuilder.append("@enduml\n");
@@ -381,6 +307,10 @@ public class CppClassDiagramDrawer {
         }
     }
 
+    private String cleanName(String name) {
+        return name.replaceAll("[*&]", "").trim();
+    }
+
     private String getVisibilitySymbol(Visibility visibility) {
         switch (visibility) {
             case Public:
@@ -391,128 +321,6 @@ public class CppClassDiagramDrawer {
                 return "-";
             default:
                 return "~";
-        }
-    }
-
-    private Boolean isComposition(Type type) {
-        for (Class umlClass : model.getUmlClassList()) {
-            if (type.getName().getNameText().equals(umlClass.getName())) {
-                return Boolean.TRUE;
-            }
-        }
-        return Boolean.FALSE;
-    }
-
-    private boolean isClassType(String typeName) {
-        // 基本型でないかどうかをチェック
-        Set<String> basicTypes = Set.of(
-                "int", "char", "bool", "float", "double",
-                "void", "long", "short", "unsigned", "signed");
-        return !basicTypes.contains(typeName) &&
-                !typeName.startsWith("std::") &&
-                Character.isUpperCase(typeName.charAt(0)); // クラス名は大文字で始まると仮定
-    }
-
-    private void drawRelationships(StringBuilder pumlBuilder, Class cls) {
-        if (!(cls instanceof CppClass))
-            return;
-        CppClass cppClass = (CppClass) cls;
-
-        System.out.println("DEBUG: Drawing relationships for class: " + cppClass.getName());
-        Map<String, Set<CppClass.TypeRelation>> relations = cppClass.getTypeRelations();
-        for (Map.Entry<String, Set<CppClass.TypeRelation>> entry : relations.entrySet()) {
-            String targetClass = entry.getKey();
-            for (CppClass.TypeRelation rel : entry.getValue()) {
-                if (rel.getType() == CppClass.TypeRelation.RelationType.DEPENDENCY) {
-                    System.out.println("  Dependency: " + targetClass);
-                } else if (rel.getType() == CppClass.TypeRelation.RelationType.COMPOSITION) {
-                    System.out.println("  Composition: " + targetClass + " [" + rel.getMultiplicity() + "]");
-                }
-            }
-        }
-
-        // 関係を種類ごとにマップで管理
-        Map<String, String> compositionRelations = new HashMap<>();
-        Map<String, String> dependencyRelations = new HashMap<>();
-
-        // 継承関係
-        if (cppClass.getSuperClass().isPresent()) {
-            pumlBuilder.append(cppClass.getSuperClass().get().getName())
-                    .append(" <|-- ")
-                    .append(cppClass.getName())
-                    .append("\n");
-        }
-
-        // 関係を集約
-        for (CppClass.RelationshipInfo rel : cppClass.getRelationships()) {
-            String targetClass = rel.getTargetClass();
-
-            switch (rel.getType()) {
-                case COMPOSITION:
-                    String existingMultiplicity = compositionRelations.get(targetClass);
-                    if (existingMultiplicity == null ||
-                            existingMultiplicity.equals("1") ||
-                            rel.getMultiplicity().equals("*")) {
-                        compositionRelations.put(targetClass, rel.getMultiplicity());
-                    }
-                    break;
-                case DEPENDENCY:
-                    dependencyRelations.put(targetClass, "1");
-                    break;
-            }
-        }
-
-        // コンポジション関係を描画
-        for (Map.Entry<String, String> entry : compositionRelations.entrySet()) {
-            pumlBuilder.append(cppClass.getName())
-                    .append(" \"1\" *-- \"")
-                    .append(entry.getValue())
-                    .append("\" ")
-                    .append(entry.getKey())
-                    .append("\n");
-        }
-
-        // 依存関係を描画
-        for (Map.Entry<String, String> entry : dependencyRelations.entrySet()) {
-            pumlBuilder.append(cppClass.getName())
-                    .append(" ..> ")
-                    .append(entry.getKey())
-                    .append("\n");
-        }
-    }
-
-    private String determineMultiplicity(String type) {
-        // 固定長配列の場合（例：[5]）
-        if (type.matches(".*\\[\\d+\\]")) {
-            return type.replaceAll(".*\\[(\\d+)\\].*", "$1");
-        }
-        // 可変長配列の場合
-        if (type.contains("[]")) {
-            return "*";
-        }
-        // STLコンテナの場合
-        if (type.matches(".*vector<.*>.*") ||
-                type.matches(".*list<.*>.*") ||
-                type.matches(".*set<.*>.*")) {
-            return "*";
-        }
-        return "1";
-    }
-
-    private String getRelationshipArrow(Relationship.RelationType type) {
-        switch (type) {
-            case INHERITANCE:
-                return "<|--";
-            case AGGREGATION:
-                return "o--";
-            case COMPOSITION:
-                return "*--";
-            case DEPENDENCY:
-                return "<..";
-            case ASSOCIATION:
-                return "--";
-            default:
-                return "--";
         }
     }
 }

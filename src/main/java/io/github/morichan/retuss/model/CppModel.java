@@ -1,19 +1,10 @@
 package io.github.morichan.retuss.model;
 
-import io.github.morichan.fescue.feature.Attribute;
-import io.github.morichan.fescue.feature.Operation;
-import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
-import io.github.morichan.retuss.model.common.FileChangeListener;
-import io.github.morichan.retuss.model.common.ICodeFile;
-import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.model.uml.CppClass;
-import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
-import io.github.morichan.retuss.parser.cpp.CPP14Parser;
+import io.github.morichan.retuss.model.uml.cpp.*;
+import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
-import io.github.morichan.retuss.translator.cpp.listeners.CppImplementationAnalyzer;
-import io.github.morichan.retuss.translator.cpp.listeners.CppMethodAnalyzer;
 
 import java.util.*;
 
@@ -59,107 +50,76 @@ public class CppModel {
 
     public void addNewFile(String fileName) {
         String baseName = fileName.replaceAll("\\.(h|hpp|cpp)$", "");
+        createCppFiles(baseName, Optional.empty());
+    }
 
-        // 既存のファイルチェック
-        if (headerFiles.containsKey(baseName) || implFiles.containsKey(baseName)) {
-            System.out.println("DEBUG: Files for " + baseName + " already exist");
-            return;
+    public void addNewFileFromUml(CppHeaderClass headerClass) {
+        createCppFiles(headerClass.getName(), Optional.of(headerClass));
+    }
+
+    private void createCppFiles(String baseName, Optional<CppHeaderClass> headerClass) {
+        // ヘッダーファイル作成
+        CppFile headerFile = new CppFile(baseName + ".h", true);
+        if (headerClass.isPresent()) {
+            String headerCode = headerFile.getCode();
+            headerFile.updateCode(headerCode);
         }
 
-        System.out.println("DEBUG: Creating new files for " + baseName);
-
-        // ファイルの作成
-        final CppFile headerFile = new CppFile(baseName + ".h", true);
-        final CppFile implFile = new CppFile(baseName + ".cpp", false);
+        CppFile implFile = new CppFile(baseName + ".cpp", false);
 
         if (umlController != null) {
             headerFile.setUmlController(umlController);
             implFile.setUmlController(umlController);
         }
 
-        // ヘッダーファイルの変更監視
         headerFile.addChangeListener(new CppFile.FileChangeListener() {
             @Override
             public void onFileChanged(CppFile file) {
-                System.out.println("DEBUG: Header file changed: " + file.getFileName());
                 updateImplFileForHeaderChange(file);
                 notifyModelChanged();
             }
 
             @Override
             public void onFileNameChanged(String oldName, String newName) {
-                // ... 名前変更の処理 ...
+                String oldBaseName = oldName.replace(".h", "");
+                String newBaseName = newName.replace(".h", "");
+
+                // ヘッダーファイル更新
+                String headerCode = headerFile.getCode();
+                headerCode = headerCode
+                        .replace(oldBaseName.toUpperCase() + "_H", newBaseName.toUpperCase() + "_H")
+                        .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)", newBaseName + "$1")
+                        .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)",
+                                "~" + newBaseName + "$1");
+                headerFile.updateCode(headerCode);
+
+                CppFile implFile = implFiles.get(oldBaseName);
+                if (implFile != null) {
+                    implFile.updateFileName(newBaseName + ".cpp");
+
+                    String implCode = implFile.getCode();
+                    implCode = implCode
+                            .replace("#include \"" + oldName + "\"", "#include \"" + newName + "\"")
+                            .replace(oldBaseName + "::", newBaseName + "::")
+                            .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
+                                    newBaseName + "$1")
+                            .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
+                                    "~" + newBaseName + "$1");
+
+                    implFile.updateCode(implCode);
+                }
             }
         });
 
-        // ファイルの登録
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
 
-        // 初期化
-        headerFile.updateCode(generateHeaderTemplate(baseName));
-        implFile.updateCode(generateImplTemplate(baseName));
-
-        // コントローラーに通知
         if (codeController != null) {
             codeController.updateCodeTab(headerFile);
             codeController.updateCodeTab(implFile);
         }
         if (umlController != null) {
             umlController.updateDiagram(headerFile);
-        }
-    }
-
-    private String generateHeaderTemplate(String className) {
-        StringBuilder sb = new StringBuilder();
-        String guardName = className.toUpperCase() + "_H";
-
-        sb.append("#ifndef ").append(guardName).append("\n");
-        sb.append("#define ").append(guardName).append("\n\n");
-        sb.append("class ").append(className).append(" {\n");
-        sb.append("public:\n");
-        sb.append("    ").append(className).append("();\n");
-        sb.append("    virtual ~").append(className).append("();\n");
-        sb.append("\nprotected:\n");
-        sb.append("\nprivate:\n");
-        sb.append("};\n\n");
-        sb.append("#endif // ").append(guardName).append("\n");
-
-        return sb.toString();
-    }
-
-    private String generateImplTemplate(String className) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("#include \"").append(className).append(".h\"\n\n");
-        sb.append(className).append("::").append(className).append("() {\n}\n\n");
-        sb.append(className).append("::~").append(className).append("() {\n}\n");
-        return sb.toString();
-    }
-
-    public void addNewUmlClass(Class umlClass) {
-        String baseName = umlClass.getName();
-        CppFile headerFile = new CppFile(baseName + ".h", true);
-        CppFile implFile = new CppFile(baseName + ".cpp", false);
-
-        // UMLクラスからコードを生成
-        // 修正前: String headerCode =
-        // translator.translateUmlToCode(Collections.singletonList(umlClass));
-        String headerCode = translator.translateUmlToCode(Collections.singletonList(umlClass));
-        headerFile.updateCode(headerCode);
-
-        // ファイルの登録
-        headerFiles.put(baseName, headerFile);
-        implFiles.put(baseName, implFile);
-
-        notifyModelChanged();
-
-        // コントローラーに通知
-        if (umlController != null) {
-            umlController.updateDiagram(headerFile);
-        }
-        if (codeController != null) {
-            codeController.updateCodeTab(headerFile);
-            codeController.updateCodeTab(implFile);
         }
     }
 
@@ -168,26 +128,40 @@ public class CppModel {
 
         if (file.isHeader()) {
             updateHeaderFile(file, code, baseName);
-        } else {
-            updateImplementationFile(file, code);
-            CppFile headerFile = headerFiles.get(baseName);
-            if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
-                analyzeImplementationRelationships(headerFile, file);
-                // 図の更新をトリガー
-                if (umlController != null) {
-                    umlController.updateDiagram(headerFile);
-                }
+            // // 図の更新をトリガー
+            if (umlController != null) {
+                umlController.updateDiagram(file);
             }
+        } else {
+            // updateImplementationFile(file, code);
+            // CppFile headerFile = headerFiles.get(baseName);
+            // if (headerFile != null && !headerFile.getHeaderClasses().isEmpty()) {
+            // // analyzeImplementationRelationships(headerFile, file);
+            // // 図の更新をトリガー
+            // if (umlController != null) {
+            // umlController.updateDiagram(headerFile);
+            // }
+            // }
         }
+
         notifyModelChanged();
     }
 
     private void updateHeaderFile(CppFile headerFile, String code, String baseName) {
+        System.out.println("DEBUG: Updating header file");
+        System.out.println("DEBUG: Current classes before update: " + headerFiles.size());
         // 古いクラス名を保存
         String oldClassName = headerFile.getFileName().replace(".h", "");
 
         // コードを更新
         headerFile.updateCode(code);
+
+        List<CppHeaderClass> classes = headerFile.getHeaderClasses();
+        System.out.println("DEBUG: Classes after parsing: " + (classes != null ? classes.size() : "null"));
+        for (CppHeaderClass cls : classes) {
+            System.out.println("DEBUG: Class: " + cls.getName());
+            System.out.println("DEBUG: Operations: " + cls.getOperationList().size());
+        }
 
         // 新しいクラス名を取得
         Optional<String> newClassName = translator.extractClassName(code);
@@ -204,17 +178,19 @@ public class CppModel {
                 // 実装ファイルの更新
                 updateImplFileForClassNameChange(oldClassName, newName);
 
+                System.out.println("DEBUG: 実装ファイル更新あと！");
+
                 // コントローラーに通知（既存の処理を維持）
                 if (codeController != null) {
                     codeController.updateCodeTab(headerFile);
                 }
             }
         }
-        // 実装ファイルの関係解析
-        CppFile implFile = implFiles.get(baseName);
-        if (implFile != null) {
-            analyzeImplementationRelationships(headerFile, implFile);
-        }
+        // // 実装ファイルの関係解析
+        // CppFile implFile = implFiles.get(baseName);
+        // if (implFile != null) {
+        // analyzeImplementationRelationships(headerFile, implFile);
+        // }
     }
 
     private void updateImplFileForClassNameChange(String oldClassName, String newClassName) {
@@ -251,8 +227,8 @@ public class CppModel {
         implFile.updateCode(code);
 
         // ヘッダーファイルが存在する場合は関係を解析
-        if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
-            analyzeImplementationRelationships(headerFile, implFile);
+        if (headerFile != null && !headerFile.getHeaderClasses().isEmpty()) {
+            // analyzeImplementationRelationships(headerFile, implFile);
         }
 
         // 既存の通知処理を維持
@@ -261,125 +237,114 @@ public class CppModel {
         }
     }
 
-    private void analyzeImplementationRelationships(CppFile headerFile, CppFile implFile) {
-        if (!headerFile.getUmlClassList().isEmpty()) {
-            Class umlClass = headerFile.getUmlClassList().get(0);
-            try {
-                CharStream input = CharStreams.fromString(implFile.getCode());
-                CPP14Lexer lexer = new CPP14Lexer(input);
-                CommonTokenStream tokens = new CommonTokenStream(lexer);
-                CPP14Parser parser = new CPP14Parser(tokens);
+    // private void analyzeImplementationRelationships(CppFile headerFile, CppFile
+    // implFile) {
+    // if (!headerFile.getHeaderClasses().isEmpty()) {
+    // Class umlClass = headerFile.getUmlClassList().get(0);
+    // try {
+    // CharStream input = CharStreams.fromString(implFile.getCode());
+    // CPP14Lexer lexer = new CPP14Lexer(input);
+    // CommonTokenStream tokens = new CommonTokenStream(lexer);
+    // CPP14Parser parser = new CPP14Parser(tokens);
 
-                CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
-                ParseTreeWalker walker = new ParseTreeWalker();
-                walker.walk(analyzer, parser.translationUnit());
+    // CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClass);
+    // ParseTreeWalker walker = new ParseTreeWalker();
+    // walker.walk(analyzer, parser.translationUnit());
 
-                System.out.println("DEBUG: Analyzed implementation relationships for " + implFile.getFileName());
-            } catch (Exception e) {
-                System.err.println("Error analyzing implementation relationships: " + e.getMessage());
-            }
-        }
-    }
+    // System.out.println("DEBUG: Analyzed implementation relationships for " +
+    // implFile.getFileName());
+    // } catch (Exception e) {
+    // System.err.println("Error analyzing implementation relationships: " +
+    // e.getMessage());
+    // }
+    // }
+    // }
 
-    private void updateImplFileName(CppFile implFile, String newName) {
-        System.out.println("DEBUG: Updating implementation file name to " + newName);
-        String currentCode = implFile.getCode();
-        String oldHeaderName = implFile.getFileName().replace(".cpp", ".h");
-        String newHeaderName = newName.replace(".cpp", ".h");
+    // public void addAttribute(String className, Attribute attribute) {
+    // CppFile headerFile = headerFiles.get(className);
+    // if (headerFile == null)
+    // return;
 
-        // インクルード文の更新
-        String oldInclude = "#include \"" + oldHeaderName + "\"";
-        String newInclude = "#include \"" + newHeaderName + "\"";
-        String newCode = currentCode.replace(oldInclude, newInclude);
+    // try {
+    // // 型に基づいて必要なヘッダーを追加
+    // addRequiredIncludes(headerFile, attribute.getType().toString());
 
-        // ファイル名も更新
-        implFile.updateFileName(newName);
-        implFile.updateCode(newCode);
-    }
+    // // UMLクラスに属性を追加
+    // List<Class> umlClasses = headerFile.getUmlClassList();
+    // if (!umlClasses.isEmpty()) {
+    // Class targetClass = umlClasses.get(0);
+    // targetClass.addAttribute(attribute);
 
-    public void addAttribute(String className, Attribute attribute) {
-        CppFile headerFile = headerFiles.get(className);
-        if (headerFile == null)
-            return;
+    // // ヘッダーファイルを更新
+    // String headerCode =
+    // translator.translateUmlToCode(Collections.singletonList(targetClass));
+    // headerFile.updateCode(headerCode);
 
-        try {
-            // 型に基づいて必要なヘッダーを追加
-            addRequiredIncludes(headerFile, attribute.getType().toString());
+    // if (umlController != null) {
+    // umlController.updateDiagram(headerFile);
+    // }
+    // if (codeController != null) {
+    // codeController.updateCodeTab(headerFile);
+    // }
+    // }
+    // } catch (Exception e) {
+    // System.err.println("Failed to add attribute: " + e.getMessage());
+    // }
+    // }
 
-            // UMLクラスに属性を追加
-            List<Class> umlClasses = headerFile.getUmlClassList();
-            if (!umlClasses.isEmpty()) {
-                Class targetClass = umlClasses.get(0);
-                targetClass.addAttribute(attribute);
+    // public void addOperation(String className, Operation operation) {
+    // CppFile headerFile = headerFiles.get(className);
+    // CppFile implFile = implFiles.get(className);
+    // if (headerFile == null || implFile == null)
+    // return;
 
-                // ヘッダーファイルを更新
-                String headerCode = translator.translateUmlToCode(Collections.singletonList(targetClass));
-                headerFile.updateCode(headerCode);
+    // try {
+    // // UMLクラスに操作を追加
+    // List<Class> umlClasses = headerFile.getUmlClassList();
+    // if (!umlClasses.isEmpty()) {
+    // Class targetClass = umlClasses.get(0);
+    // targetClass.addOperation(operation);
 
-                if (umlController != null) {
-                    umlController.updateDiagram(headerFile);
-                }
-                if (codeController != null) {
-                    codeController.updateCodeTab(headerFile);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to add attribute: " + e.getMessage());
-        }
-    }
+    // // ヘッダーファイルを更新
+    // String headerCode =
+    // translator.translateUmlToCode(Collections.singletonList(targetClass));
+    // headerFile.updateCode(headerCode);
 
-    public void addOperation(String className, Operation operation) {
-        CppFile headerFile = headerFiles.get(className);
-        CppFile implFile = implFiles.get(className);
-        if (headerFile == null || implFile == null)
-            return;
+    // // 実装ファイルにメソッドの骨組みを追加
+    // StringBuilder implCodeBuilder = new StringBuilder();
+    // implCodeBuilder.append(toSourceCodeType(operation.getReturnType()))
+    // .append(" ")
+    // .append(targetClass.getName())
+    // .append("::")
+    // .append(operation.getName())
+    // .append("(");
 
-        try {
-            // UMLクラスに操作を追加
-            List<Class> umlClasses = headerFile.getUmlClassList();
-            if (!umlClasses.isEmpty()) {
-                Class targetClass = umlClasses.get(0);
-                targetClass.addOperation(operation);
+    // // パラメータの追加
+    // List<String> params = new ArrayList<>();
+    // operation.getParameters().forEach(param -> {
+    // params.add(String.format("%s %s",
+    // toSourceCodeType(param.getType()),
+    // param.getName()));
+    // });
+    // implCodeBuilder.append(String.join(", ", params))
+    // .append(") {\n // TODO: Implement this method\n}\n\n");
 
-                // ヘッダーファイルを更新
-                String headerCode = translator.translateUmlToCode(Collections.singletonList(targetClass));
-                headerFile.updateCode(headerCode);
+    // String currentImplCode = implFile.getCode();
+    // implFile.updateCode(currentImplCode + implCodeBuilder.toString());
 
-                // 実装ファイルにメソッドの骨組みを追加
-                StringBuilder implCodeBuilder = new StringBuilder();
-                implCodeBuilder.append(toSourceCodeType(operation.getReturnType()))
-                        .append(" ")
-                        .append(targetClass.getName())
-                        .append("::")
-                        .append(operation.getName())
-                        .append("(");
-
-                // パラメータの追加
-                List<String> params = new ArrayList<>();
-                operation.getParameters().forEach(param -> {
-                    params.add(String.format("%s %s",
-                            toSourceCodeType(param.getType()),
-                            param.getName()));
-                });
-                implCodeBuilder.append(String.join(", ", params))
-                        .append(") {\n    // TODO: Implement this method\n}\n\n");
-
-                String currentImplCode = implFile.getCode();
-                implFile.updateCode(currentImplCode + implCodeBuilder.toString());
-
-                // コントローラーに通知
-                if (umlController != null) {
-                    umlController.updateDiagram(headerFile);
-                }
-                if (codeController != null) {
-                    codeController.updateCodeTab(headerFile);
-                    codeController.updateCodeTab(implFile);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to add operation: " + e.getMessage());
-        }
-    }
+    // // コントローラーに通知
+    // if (umlController != null) {
+    // umlController.updateDiagram(headerFile);
+    // }
+    // if (codeController != null) {
+    // codeController.updateCodeTab(headerFile);
+    // codeController.updateCodeTab(implFile);
+    // }
+    // }
+    // } catch (Exception e) {
+    // System.err.println("Failed to add operation: " + e.getMessage());
+    // }
+    // }
 
     private void updateImplFileForHeaderChange(CppFile headerFile) {
         String baseName = getBaseName(headerFile.getFileName());
@@ -404,134 +369,112 @@ public class CppModel {
         }
     }
 
-    private void updateImplFileContent(CppFile implFile, String newCode) {
-        String baseName = getBaseName(implFile.getFileName());
-        CppFile existingImpl = implFiles.get(baseName);
-        if (existingImpl != null) {
-            System.out.println("DEBUG: Updating implementation file content for: " +
-                    implFile.getFileName());
-
-            // ヘッダーファイルのインクルードを保持
-            String headerInclude = "";
-            String currentCode = existingImpl.getCode();
-            String includePattern = "#include \".*?.h\"";
-            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(includePattern).matcher(currentCode);
-            if (matcher.find()) {
-                headerInclude = matcher.group() + "\n\n";
-            }
-
-            // 新しいコードの先頭にインクルード文を追加
-            if (!newCode.contains(headerInclude.trim())) {
-                newCode = headerInclude + newCode;
-            }
-
-            existingImpl.updateCode(newCode);
-        }
-    }
-
-    public List<Class> getUmlClassList() {
-        List<Class> allClasses = new ArrayList<>();
+    public List<CppHeaderClass> getHeaderClasses() {
+        List<CppHeaderClass> allClasses = new ArrayList<>();
         for (CppFile headerFile : headerFiles.values()) {
-            allClasses.addAll(headerFile.getUmlClassList());
+            allClasses.addAll(headerFile.getHeaderClasses());
         }
         System.out.println("CppModel classes: " + allClasses.size());
-        for (Class cls : allClasses) {
-            if (cls instanceof CppClass) {
-                CppClass cppClass = (CppClass) cls;
-                System.out.println("  Class: " + cppClass.getName());
-                System.out.println("  Attributes: " + cls.getAttributeList());
-                System.out.println("  Operations: " + cls.getOperationList());
-                System.out.println("  Dependencies: " + cppClass.getDependencies());
-                System.out.println("  Compositions: " + cppClass.getCompositions());
-                System.out.println("  Multiplicities: ");
-                for (String comp : cppClass.getCompositions()) {
-                    System.out.println("    " + comp + ": " + cppClass.getMultiplicity(comp));
+        for (CppHeaderClass cls : allClasses) {
+            CppHeaderClass cppHeaderClass = cls;
+            System.out.println("  Class: " + cppHeaderClass.getName());
+            System.out.println("  Attributes: " + cls.getAttributeList());
+            System.out.println("  Operations: " + cls.getOperationList());
+            System.out.println("  Relations: ");
+            for (RelationshipInfo relation : cppHeaderClass.getRelationships()) {
+                System.out.println("    " + relation.getTargetClass() +
+                        " (" + relation.getType() + ")");
+                for (RelationshipElement elem : relation.getElements()) {
+                    System.out.println("      - " + elem.getName() +
+                            " [" + elem.getMultiplicity() + "]");
                 }
             }
         }
         return Collections.unmodifiableList(allClasses);
     }
 
-    public void addGeneralization(String className, String superClassName) {
-        CppFile childFile = headerFiles.get(getBaseName(className));
-        CppFile parentFile = headerFiles.get(getBaseName(superClassName));
-        if (childFile == null || parentFile == null)
-            return;
+    // public void addGeneralization(String className, String superClassName) {
+    // CppFile childFile = headerFiles.get(getBaseName(className));
+    // CppFile parentFile = headerFiles.get(getBaseName(superClassName));
+    // if (childFile == null || parentFile == null)
+    // return;
 
-        try {
-            List<Class> childClasses = childFile.getUmlClassList();
-            List<Class> parentClasses = parentFile.getUmlClassList();
+    // try {
+    // List<Class> childClasses = childFile.getUmlClassList();
+    // List<Class> parentClasses = parentFile.getUmlClassList();
 
-            if (!childClasses.isEmpty() && !parentClasses.isEmpty()) {
-                // 継承関係を設定
-                Class childClass = childClasses.get(0);
-                childClass.setSuperClass(parentClasses.get(0));
+    // if (!childClasses.isEmpty() && !parentClasses.isEmpty()) {
+    // // 継承関係を設定
+    // Class childClass = childClasses.get(0);
+    // childClass.setSuperClass(parentClasses.get(0));
 
-                // 親クラスのヘッダーをインクルード
-                String includeStatement = "#include \"" + superClassName + ".h\"";
-                String currentCode = childFile.getCode();
-                if (!currentCode.contains(includeStatement)) {
-                    int insertPos = currentCode.indexOf("\n\nclass");
-                    if (insertPos != -1) {
-                        String newCode = currentCode.substring(0, insertPos) +
-                                "\n" + includeStatement +
-                                currentCode.substring(insertPos);
-                        childFile.updateCode(newCode);
-                    }
-                }
+    // // 親クラスのヘッダーをインクルード
+    // String includeStatement = "#include \"" + superClassName + ".h\"";
+    // String currentCode = childFile.getCode();
+    // if (!currentCode.contains(includeStatement)) {
+    // int insertPos = currentCode.indexOf("\n\nclass");
+    // if (insertPos != -1) {
+    // String newCode = currentCode.substring(0, insertPos) +
+    // "\n" + includeStatement +
+    // currentCode.substring(insertPos);
+    // childFile.updateCode(newCode);
+    // }
+    // }
 
-                // 更新されたUMLクラスリストからコードを生成
-                String headerCode = translator.translateUmlToCode(Collections.singletonList(childClass));
-                childFile.updateCode(headerCode);
+    // // 更新されたUMLクラスリストからコードを生成
+    // String headerCode =
+    // translator.translateUmlToCode(Collections.singletonList(childClass));
+    // childFile.updateCode(headerCode);
 
-                if (umlController != null) {
-                    umlController.updateDiagram(childFile);
-                }
-                if (codeController != null) {
-                    codeController.updateCodeTab(childFile);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Failed to add generalization: " + e.getMessage());
-        }
-    }
+    // if (umlController != null) {
+    // umlController.updateDiagram(childFile);
+    // }
+    // if (codeController != null) {
+    // codeController.updateCodeTab(childFile);
+    // }
+    // }
+    // } catch (Exception e) {
+    // System.err.println("Failed to add generalization: " + e.getMessage());
+    // }
+    // }
 
-    private void addRequiredIncludes(CppFile file, String type) {
-        Map<String, String> standardIncludes = Map.of(
-                "string", "<string>",
-                "vector", "<vector>",
-                "map", "<map>",
-                "set", "<set>");
+    // private void addRequiredIncludes(CppFile file, String type) {
+    // Map<String, String> standardIncludes = Map.of(
+    // "string", "<string>",
+    // "vector", "<vector>",
+    // "map", "<map>",
+    // "set", "<set>");
 
-        // テンプレート型の解析（例：vector<string>）
-        if (type.contains("<")) {
-            String baseType = type.substring(0, type.indexOf("<"));
-            if (standardIncludes.containsKey(baseType.toLowerCase())) {
-                addInclude(file, standardIncludes.get(baseType.toLowerCase()));
-            }
-            // 内部の型も再帰的にチェック
-            String innerType = type.substring(type.indexOf("<") + 1, type.lastIndexOf(">"));
-            addRequiredIncludes(file, innerType);
-        } else {
-            if (standardIncludes.containsKey(type.toLowerCase())) {
-                addInclude(file, standardIncludes.get(type.toLowerCase()));
-            }
-        }
-    }
+    // // テンプレート型の解析（例：vector<string>）
+    // if (type.contains("<")) {
+    // String baseType = type.substring(0, type.indexOf("<"));
+    // if (standardIncludes.containsKey(baseType.toLowerCase())) {
+    // addInclude(file, standardIncludes.get(baseType.toLowerCase()));
+    // }
+    // // 内部の型も再帰的にチェック
+    // String innerType = type.substring(type.indexOf("<") + 1,
+    // type.lastIndexOf(">"));
+    // addRequiredIncludes(file, innerType);
+    // } else {
+    // if (standardIncludes.containsKey(type.toLowerCase())) {
+    // addInclude(file, standardIncludes.get(type.toLowerCase()));
+    // }
+    // }
+    // }
 
-    private void addInclude(CppFile file, String include) {
-        String currentCode = file.getCode();
-        String includeStatement = "#include " + include;
-        if (!currentCode.contains(includeStatement)) {
-            int insertPos = currentCode.indexOf("\n\nclass");
-            if (insertPos != -1) {
-                String newCode = currentCode.substring(0, insertPos) +
-                        "\n" + includeStatement +
-                        currentCode.substring(insertPos);
-                file.updateCode(newCode);
-            }
-        }
-    }
+    // private void addInclude(CppFile file, String include) {
+    // String currentCode = file.getCode();
+    // String includeStatement = "#include " + include;
+    // if (!currentCode.contains(includeStatement)) {
+    // int insertPos = currentCode.indexOf("\n\nclass");
+    // if (insertPos != -1) {
+    // String newCode = currentCode.substring(0, insertPos) +
+    // "\n" + includeStatement +
+    // currentCode.substring(insertPos);
+    // file.updateCode(newCode);
+    // }
+    // }
+    // }
 
     public interface ModelChangeListener {
         void onModelChanged();
@@ -551,43 +494,42 @@ public class CppModel {
         }
     }
 
-    private String toSourceCodeType(Type type) {
-        return translator.translateType(type);
-    }
+    // private String toSourceCodeType(Type type) {
+    // return translator.translateType(type);
+    // }
 
-    public void updateCodeFile(ICodeFile changedCodeFile, String code) {
+    public void updateCodeFile(CppFile changedCodeFile, String code) {
         try {
-            if (changedCodeFile instanceof CppFile) {
-                CppFile file = (CppFile) changedCodeFile;
-                System.out.println("DEBUG: Updating code for file: " + file.getFileName());
+            CppFile file = changedCodeFile;
+            System.out.println("DEBUG: Updating code for file: " + file.getFileName());
 
-                updateCode(file, code);
+            updateCode(file, code);
 
-                // ヘッダーファイルでない場合、対応するヘッダーファイルの関係を再解析
-                if (!file.isHeader()) {
-                    String baseName = file.getBaseName();
-                    CppFile headerFile = headerFiles.get(baseName);
-                    if (headerFile != null && !headerFile.getUmlClassList().isEmpty()) {
-                        // 実装ファイルからの関係を解析
-                        analyzeImplementationRelationships(headerFile, file);
+            // ヘッダーファイルでない場合、対応するヘッダーファイルの関係を再解析
+            // if (!file.isHeader()) {
+            // String baseName = file.getBaseName();
+            // CppFile headerFile = headerFiles.get(baseName);
+            // if (headerFile != null && !headerFile.getHeaderClasses().isEmpty()) {
+            // // 実装ファイルからの関係を解析
+            // // analyzeImplementationRelationships(headerFile, file);
 
-                        // 図の更新をトリガー
-                        if (umlController != null) {
-                            umlController.updateDiagram(headerFile);
-                        }
-                    }
-                }
-            }
+            // // 図の更新をトリガー
+            // if (umlController != null) {
+            // umlController.updateDiagram(headerFile);
+            // }
+            // }
+            // }
+
         } catch (Exception e) {
             System.err.println("Failed to update code: " + e.getMessage());
         }
     }
 
-    public Optional<Class> findClass(String className) {
+    public Optional<CppHeaderClass> findClass(String className) {
         String baseName = getBaseName(className);
         CppFile headerFile = headerFiles.get(baseName);
         if (headerFile != null) {
-            List<Class> classes = headerFile.getUmlClassList();
+            List<CppHeaderClass> classes = headerFile.getHeaderClasses();
             if (!classes.isEmpty()) {
                 return Optional.of(classes.get(0));
             }
@@ -607,28 +549,29 @@ public class CppModel {
     /**
      * 指定されたクラスのメソッドのシーケンス図を生成
      */
-    public String generateSequenceDiagram(String className, String methodName) {
-        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        Optional<CppFile> implFileOpt = Optional.ofNullable(findImplFile(className));
+    // public String generateSequenceDiagram(String className, String methodName) {
+    // Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+    // Optional<CppFile> implFileOpt = Optional.ofNullable(findImplFile(className));
 
-        if (headerFileOpt.isPresent() && implFileOpt.isPresent()) {
-            CppFile headerFile = headerFileOpt.get();
-            CppFile implFile = implFileOpt.get();
+    // if (headerFileOpt.isPresent() && implFileOpt.isPresent()) {
+    // CppFile headerFile = headerFileOpt.get();
+    // CppFile implFile = implFileOpt.get();
 
-            // デバッグ出力
-            System.out.println("Generating sequence diagram for " + className + "::" + methodName);
-            System.out.println("Header file: " + headerFile.getFileName());
-            System.out.println("Implementation file: " + implFile.getFileName());
+    // // デバッグ出力
+    // System.out.println("Generating sequence diagram for " + className + "::" +
+    // methodName);
+    // System.out.println("Header file: " + headerFile.getFileName());
+    // System.out.println("Implementation file: " + implFile.getFileName());
 
-            return translator.generateSequenceDiagram(
-                    headerFile.getCode(),
-                    implFile.getCode(),
-                    methodName);
-        }
+    // return translator.generateSequenceDiagram(
+    // headerFile.getCode(),
+    // implFile.getCode(),
+    // methodName);
+    // }
 
-        System.err.println("Could not find necessary files for " + className);
-        return "";
-    }
+    // System.err.println("Could not find necessary files for " + className);
+    // return "";
+    // }
 
     /**
      * 実装ファイルを取得する

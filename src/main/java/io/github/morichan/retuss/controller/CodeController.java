@@ -11,7 +11,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
@@ -132,16 +131,15 @@ public class CodeController {
 
                 AnchorPane anchorPane = (AnchorPane) targetTab.getContent();
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
-                int caretPosition = codeArea.getCaretPosition();
-
-                if (!codeArea.getText().equals(file.getCode())) {
-                    codeArea.replaceText(file.getCode());
-                    Platform.runLater(() -> {
+                Platform.runLater(() -> {
+                    int caretPosition = codeArea.getCaretPosition();
+                    if (!codeArea.getText().equals(file.getCode())) {
+                        codeArea.replaceText(file.getCode());
                         int newPosition = Math.min(caretPosition, codeArea.getLength());
                         codeArea.moveTo(newPosition);
                         codeArea.requestFollowCaret();
-                    });
-                }
+                    }
+                });
             } else {
                 Tab newTab = createCppCodeTab(file);
                 codeTabPane.getTabs().add(newTab);
@@ -227,7 +225,6 @@ public class CodeController {
         CodeArea codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
 
-        // キー入力時の処理
         codeArea.setOnKeyTyped(event -> {
             int caretPosition = codeArea.getCaretPosition();
             updateCppCodeFile();
@@ -251,8 +248,25 @@ public class CodeController {
         updateTabTitle(codeTab, cppFile);
         codeTab.setClosable(false);
 
-        cppFileTabList.add(new Pair<>(cppFile, codeTab));
+        cppFile.addChangeListener(new CppFile.FileChangeListener() {
+            @Override
+            public void onFileChanged(CppFile file) {
+                Platform.runLater(() -> {
+                    CodeArea area = (CodeArea) ((AnchorPane) codeTab.getContent()).getChildren().get(0);
+                    area.replaceText(file.getCode());
+                });
+            }
 
+            @Override
+            public void onFileNameChanged(String oldName, String newName) {
+                Platform.runLater(() -> {
+                    codeTab.setText(newName);
+                    updateTabTitle(codeTab, cppFile);
+                });
+            }
+        });
+
+        cppFileTabList.add(new Pair<>(cppFile, codeTab));
         return codeTab;
     }
 
@@ -294,7 +308,7 @@ public class CodeController {
 
                 // UMLコントローラーに直接通知して関係抽出を行う
                 if (umlController != null) {
-                    umlController.handleCodeUpdate(targetCodeFile);
+                    // umlController.handleCodeUpdate(targetCodeFile);
                 }
 
                 cppModel.updateCodeFile(targetCodeFile, code);
