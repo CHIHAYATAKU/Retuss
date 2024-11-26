@@ -1,12 +1,13 @@
 package io.github.morichan.retuss.translator.cpp.analyzers.base;
 
-import io.github.morichan.retuss.model.uml.CppClass;
+import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.translator.cpp.util.CppTypeMapper;
 import io.github.morichan.retuss.translator.cpp.util.CppVisibilityMapper;
 import java.util.*;
 
 public class AnalyzerContext {
-    private CppClass currentClass;
+    private CppHeaderClass currentHeaderClass;
+    private CppImplClass currentImplClass;
     private String currentVisibility = "private";
     private final Map<String, Set<String>> relationships = new HashMap<>();
     private final CppTypeMapper typeMapper;
@@ -19,12 +20,20 @@ public class AnalyzerContext {
         this.visibilityMapper = new CppVisibilityMapper();
     }
 
-    public CppClass getCurrentClass() {
-        return currentClass;
+    public CppHeaderClass getCurrentHeaderClass() {
+        return currentHeaderClass;
     }
 
-    public void setCurrentClass(CppClass currentClass) {
-        this.currentClass = currentClass;
+    public CppHeaderClass getCurrentimplClass() {
+        return currentHeaderClass;
+    }
+
+    public void setCurrentHeaderClass(CppHeaderClass currentHeaderClass) {
+        this.currentHeaderClass = currentHeaderClass;
+    }
+
+    public void setCurrentImplClass(CppImplClass currentImplClass) {
+        this.currentImplClass = currentImplClass;
     }
 
     public String getCurrentVisibility() {
@@ -49,9 +58,5 @@ public class AnalyzerContext {
 
     public void addRelationship(String source, String target) {
         relationships.computeIfAbsent(source, k -> new HashSet<>()).add(target);
-    }
-
-    public Map<String, Set<String>> getRelationships() {
-        return Collections.unmodifiableMap(relationships);
     }
 }

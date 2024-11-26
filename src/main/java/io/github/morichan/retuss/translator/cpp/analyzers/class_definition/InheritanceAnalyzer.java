@@ -1,8 +1,8 @@
 package io.github.morichan.retuss.translator.cpp.analyzers.class_definition;
 
 import io.github.morichan.fescue.feature.visibility.Visibility;
-import io.github.morichan.retuss.model.uml.CppClass;
-import io.github.morichan.retuss.model.uml.CppClass.RelationshipInfo;
+import io.github.morichan.retuss.model.uml.cpp.*;
+import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.analyzers.base.AbstractAnalyzer;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -21,7 +21,7 @@ public class InheritanceAnalyzer extends AbstractAnalyzer {
     @Override
     protected void analyzeInternal(ParserRuleContext context) {
         CPP14Parser.ClassSpecifierContext ctx = (CPP14Parser.ClassSpecifierContext) context;
-        CppClass currentClass = this.context.getCurrentClass();
+        CppHeaderClass currentClass = this.context.getCurrentHeaderClass();
 
         if (currentClass == null || ctx.classHead().baseClause() == null) {
             return;
@@ -40,7 +40,7 @@ public class InheritanceAnalyzer extends AbstractAnalyzer {
 
     private void handleBaseSpecifier(
             CPP14Parser.BaseSpecifierContext baseSpec,
-            CppClass currentClass) {
+            CppHeaderClass currentClass) {
 
         String baseClassName = baseSpec.baseTypeSpecifier().getText();
         String accessSpecifier = baseSpec.accessSpecifier() != null
@@ -60,15 +60,12 @@ public class InheritanceAnalyzer extends AbstractAnalyzer {
                 visibility = Visibility.Private;
         }
 
-        CppClass superClass = new CppClass(baseClassName, false);
-        currentClass.setSuperClass(superClass);
-
         RelationshipInfo relation = new RelationshipInfo(
                 baseClassName,
-                RelationshipInfo.RelationType.INHERITANCE);
+                RelationType.INHERITANCE);
         relation.addElement(
-                "extends",
-                RelationshipInfo.ElementType.ATTRIBUTE,
+                "",
+                ElementType.ATTRIBUTE,
                 "1",
                 visibility);
         currentClass.addRelationship(relation);

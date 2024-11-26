@@ -1,15 +1,16 @@
 package io.github.morichan.retuss.translator.cpp;
 
+import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import io.github.morichan.retuss.translator.common.UmlToCodeTranslator;
 import io.github.morichan.retuss.translator.cpp.util.CppTypeMapper;
 import io.github.morichan.retuss.translator.cpp.util.CppVisibilityMapper;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.visibility.Visibility;
-import io.github.morichan.retuss.model.uml.Class;
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class UmlToCppTranslator implements UmlToCodeTranslator {
+public class UmlToCppTranslator {
     private final CppTypeMapper typeMapper;
     private final CppVisibilityMapper visibilityMapper;
 
@@ -18,8 +19,7 @@ public class UmlToCppTranslator implements UmlToCodeTranslator {
         this.visibilityMapper = new CppVisibilityMapper();
     }
 
-    @Override
-    public String translate(List<Class> classes) {
+    public String translate(List<CppHeaderClass> classes) {
         StringBuilder code = new StringBuilder();
         addHeaders(code, classes);
         addHeaderGuard(code, classes);
@@ -28,7 +28,7 @@ public class UmlToCppTranslator implements UmlToCodeTranslator {
         return code.toString();
     }
 
-    private void addHeaders(StringBuilder code, List<Class> classes) {
+    private void addHeaders(StringBuilder code, List<CppHeaderClass> classes) {
         Set<String> includes = collectRequiredIncludes(classes);
         for (String include : includes) {
             code.append("#include ").append(include).append("\n");
@@ -36,11 +36,11 @@ public class UmlToCppTranslator implements UmlToCodeTranslator {
         code.append("\n");
     }
 
-    private Set<String> collectRequiredIncludes(List<Class> classes) {
+    private Set<String> collectRequiredIncludes(List<CppHeaderClass> classes) {
         Set<String> includes = new HashSet<>();
         includes.add("<string>");
 
-        for (Class cls : classes) {
+        for (CppHeaderClass cls : classes) {
             for (Attribute attr : cls.getAttributeList()) {
                 String type = attr.getType().toString();
                 if (type.contains("vector"))
@@ -53,7 +53,7 @@ public class UmlToCppTranslator implements UmlToCodeTranslator {
         return includes;
     }
 
-    private void addHeaderGuard(StringBuilder code, List<Class> classes) {
+    private void addHeaderGuard(StringBuilder code, List<CppHeaderClass> classes) {
         if (!classes.isEmpty()) {
             String guardName = classes.get(0).getName().toUpperCase() + "_H";
             code.append("#ifndef ").append(guardName).append("\n");
@@ -61,7 +61,7 @@ public class UmlToCppTranslator implements UmlToCodeTranslator {
         }
     }
 
-    private void closeHeaderGuard(StringBuilder code, List<Class> classes) {
+    private void closeHeaderGuard(StringBuilder code, List<CppHeaderClass> classes) {
         if (!classes.isEmpty()) {
             code.append("#endif // ")
                     .append(classes.get(0).getName().toUpperCase())
@@ -69,13 +69,13 @@ public class UmlToCppTranslator implements UmlToCodeTranslator {
         }
     }
 
-    private void addClassDefinitions(StringBuilder code, List<Class> classes) {
-        for (Class cls : classes) {
+    private void addClassDefinitions(StringBuilder code, List<CppHeaderClass> classes) {
+        for (CppHeaderClass cls : classes) {
             code.append(translateClass(cls)).append("\n\n");
         }
     }
 
-    private String translateClass(Class umlClass) {
+    private String translateClass(CppHeaderClass umlClass) {
         StringBuilder builder = new StringBuilder();
 
         // クラスコメント（アクティブクラスの場合）
@@ -85,11 +85,13 @@ public class UmlToCppTranslator implements UmlToCodeTranslator {
 
         // クラス宣言
         builder.append("class ").append(umlClass.getName());
-
-        // 継承
-        if (umlClass.getSuperClass().isPresent()) {
-            builder.append(" : public ")
-                    .append(umlClass.getSuperClass().get().getName());
+        // 継承（複数対応）
+        if (!umlClass.getSuperClasses().isEmpty()) {
+            builder.append(" : ");
+            List<String> inheritances = umlClass.getSuperClasses().stream()
+                    .map(cls -> "public " + cls.getName())
+                    .collect(Collectors.toList());
+            builder.append(String.join(", ", inheritances));
         }
 
         builder.append(" {\n");

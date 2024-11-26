@@ -1,7 +1,6 @@
 package io.github.morichan.retuss.translator.cpp.listeners;
 
-import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.model.uml.CppClass;
+import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.parser.cpp.CPP14ParserBaseListener;
 import io.github.morichan.retuss.translator.cpp.analyzers.base.AnalyzerContext;
 import io.github.morichan.retuss.translator.cpp.analyzers.base.IAnalyzer;
@@ -14,21 +13,24 @@ import java.util.*;
 public class ClassExtractorListener extends CPP14ParserBaseListener {
     private final List<IAnalyzer> analyzers;
     private final AnalyzerContext context;
-    private final List<Class> extractedClasses;
+    private final List<CppHeaderClass> extractedHeaderClasses;
     private final boolean isHeaderFile;
 
     public ClassExtractorListener(boolean isHeaderFile) {
         this.isHeaderFile = isHeaderFile;
         this.context = new AnalyzerContext(isHeaderFile);
-        this.extractedClasses = new ArrayList<>();
+        this.extractedHeaderClasses = new ArrayList<>();
 
-        // 全てのアナライザを初期化
-        this.analyzers = Arrays.asList(
-                new ClassAnalyzer(),
-                new InheritanceAnalyzer(),
-                new VisibilityAnalyzer(),
-                new AttributeAnalyzer(),
-                new OperationAnalyzer());
+        if (isHeaderFile()) {
+            this.analyzers = Arrays.asList(
+                    new ClassAnalyzer(),
+                    new InheritanceAnalyzer(),
+                    new VisibilityAnalyzer(),
+                    new AttributeAnalyzer(),
+                    new OperationAnalyzer());
+        } else {
+            this.analyzers = Arrays.asList(new OperationAnalyzer());
+        }
     }
 
     public boolean isHeaderFile() {
@@ -45,10 +47,10 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         }
 
         // 新しいクラスが作成された場合、リストに追加
-        if (context.getCurrentClass() != null) {
-            CppClass currentClass = context.getCurrentClass();
-            if (!extractedClasses.contains(currentClass)) {
-                extractedClasses.add(currentClass);
+        if (context.getCurrentHeaderClass() != null) {
+            CppHeaderClass currentClass = context.getCurrentHeaderClass();
+            if (!extractedHeaderClasses.contains(currentClass)) {
+                extractedHeaderClasses.add(currentClass);
                 System.out.println("DEBUG: Added new class to extracted classes: " +
                         currentClass.getName());
             }
@@ -63,7 +65,7 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
 
     @Override
     public void enterMemberdeclaration(CPP14Parser.MemberdeclarationContext ctx) {
-        if (context.getCurrentClass() == null)
+        if (context.getCurrentHeaderClass() == null)
             return;
 
         System.out.println("DEBUG: Processing member declaration");
@@ -84,8 +86,8 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
         }
     }
 
-    public List<Class> getExtractedClasses() {
-        return Collections.unmodifiableList(extractedClasses);
+    public List<CppHeaderClass> getExtractedClasses() {
+        return Collections.unmodifiableList(extractedHeaderClasses);
     }
 
     @Override
@@ -96,24 +98,22 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
     @Override
     public void exitTranslationUnit(CPP14Parser.TranslationUnitContext ctx) {
         System.out.println("DEBUG: Completed C++ code analysis");
-        System.out.println("DEBUG: Extracted " + extractedClasses.size() + " classes");
+        System.out.println("DEBUG: Extracted " + extractedHeaderClasses.size() + " classes");
 
         // クラス情報のダンプ（デバッグ用）
-        for (Class cls : extractedClasses) {
-            if (cls instanceof CppClass) {
-                CppClass cppClass = (CppClass) cls;
-                System.out.println("\nClass: " + cppClass.getName());
-                System.out.println("Attributes: " + cppClass.getAttributeList().size());
-                System.out.println("Operations: " + cppClass.getOperationList().size());
+        for (CppHeaderClass cls : extractedHeaderClasses) {
+            CppHeaderClass cppClass = cls;
+            System.out.println("\nClass: " + cppClass.getName());
+            System.out.println("Attributes: " + cppClass.getAttributeList().size());
+            System.out.println("Operations: " + cppClass.getOperationList().size());
 
-                // // 関係情報の出力
-                // System.out.println("Relationship: " + rel.getTargetClass() +
-                // " (" + rel.getType() + ")");
-                // for (RelationshipInfo.RelationshipElement elem : rel.getElements()) {
-                // System.out.println(" Element: " + elem.getName() +
-                // " [" + elem.getMultiplicity() + "]");
-                // }
-            }
+            // // 関係情報の出力
+            // System.out.println("Relationship: " + rel.getTargetClass() +
+            // " (" + rel.getType() + ")");
+            // for (RelationshipInfo.RelationshipElement elem : rel.getElements()) {
+            // System.out.println(" Element: " + elem.getName() +
+            // " [" + elem.getMultiplicity() + "]");
+            // }
         }
     }
 
