@@ -11,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.IndexRange;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
@@ -131,15 +132,36 @@ public class CodeController {
 
                 AnchorPane anchorPane = (AnchorPane) targetTab.getContent();
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
-                Platform.runLater(() -> {
+                // コードが実際に変更された場合のみ更新
+                if (!codeArea.getText().equals(file.getCode())) {
+                    // エディタの状態を保存
                     int caretPosition = codeArea.getCaretPosition();
-                    if (!codeArea.getText().equals(file.getCode())) {
-                        codeArea.replaceText(file.getCode());
-                        int newPosition = Math.min(caretPosition, codeArea.getLength());
-                        codeArea.moveTo(newPosition);
-                        codeArea.requestFollowCaret();
-                    }
-                });
+                    IndexRange selection = codeArea.getSelection();
+                    double scrollY = codeArea.estimatedScrollYProperty().getValue();
+
+                    Platform.runLater(() -> {
+                        try {
+                            codeArea.replaceText(file.getCode());
+
+                            // カーソル位置を復元
+                            int newPosition = Math.min(caretPosition, codeArea.getLength());
+                            codeArea.moveTo(newPosition);
+
+                            // 選択範囲を復元
+                            if (selection.getLength() > 0) {
+                                int newStart = Math.min(selection.getStart(), codeArea.getLength());
+                                int newEnd = Math.min(selection.getEnd(), codeArea.getLength());
+                                codeArea.selectRange(newStart, newEnd);
+                            }
+
+                            // スクロール位置を復元
+                            codeArea.estimatedScrollYProperty().setValue(scrollY);
+                            codeArea.requestFollowCaret();
+                        } catch (Exception e) {
+                            System.err.println("Error restoring editor state: " + e.getMessage());
+                        }
+                    });
+                }
             } else {
                 Tab newTab = createCppCodeTab(file);
                 codeTabPane.getTabs().add(newTab);
@@ -227,11 +249,30 @@ public class CodeController {
 
         codeArea.setOnKeyTyped(event -> {
             int caretPosition = codeArea.getCaretPosition();
+            IndexRange selection = codeArea.getSelection();
+            double scrollY = codeArea.estimatedScrollYProperty().getValue();
+
             updateCppCodeFile();
+
             Platform.runLater(() -> {
-                int newPosition = Math.min(caretPosition, codeArea.getLength());
-                codeArea.moveTo(newPosition);
-                codeArea.requestFollowCaret();
+                try {
+                    // カーソル位置を復元
+                    int newPosition = Math.min(caretPosition, codeArea.getLength());
+                    codeArea.moveTo(newPosition);
+
+                    // 選択範囲を復元
+                    if (selection.getLength() > 0) {
+                        int newStart = Math.min(selection.getStart(), codeArea.getLength());
+                        int newEnd = Math.min(selection.getEnd(), codeArea.getLength());
+                        codeArea.selectRange(newStart, newEnd);
+                    }
+
+                    // スクロール位置を復元
+                    codeArea.estimatedScrollYProperty().setValue(scrollY);
+                    codeArea.requestFollowCaret();
+                } catch (Exception e) {
+                    System.err.println("Error restoring editor state: " + e.getMessage());
+                }
             });
         });
 
@@ -251,10 +292,8 @@ public class CodeController {
         cppFile.addChangeListener(new CppFile.FileChangeListener() {
             @Override
             public void onFileChanged(CppFile file) {
-                Platform.runLater(() -> {
-                    CodeArea area = (CodeArea) ((AnchorPane) codeTab.getContent()).getChildren().get(0);
-                    area.replaceText(file.getCode());
-                });
+                // カーソル位置等の保持は updateCodeTab メソッドで行う
+                Platform.runLater(() -> updateCodeTab(file));
             }
 
             @Override
@@ -302,20 +341,37 @@ public class CodeController {
                 AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
 
+                // カーソル位置、選択範囲、スクロール位置を保存
                 int caretPosition = codeArea.getCaretPosition();
+                IndexRange selection = codeArea.getSelection();
+                double scrollY = codeArea.estimatedScrollYProperty().getValue();
+
+                // コード更新
                 String code = codeArea.getText();
                 System.out.println("DEBUG: Updating code for " + targetCodeFile.getFileName());
 
                 // UMLコントローラーに直接通知して関係抽出を行う
-                if (umlController != null) {
-                    // umlController.handleCodeUpdate(targetCodeFile);
-                }
+                // if (umlController != null) {
+                // // umlController.handleCodeUpdate(targetCodeFile);
+                // }
 
                 cppModel.updateCodeFile(targetCodeFile, code);
 
                 Platform.runLater(() -> {
                     try {
-                        codeArea.moveTo(caretPosition);
+                        // カーソル位置を復元（範囲チェック付き）
+                        int newPosition = Math.min(caretPosition, codeArea.getLength());
+                        codeArea.moveTo(newPosition);
+
+                        // 選択範囲を復元
+                        if (selection.getLength() > 0) {
+                            int newStart = Math.min(selection.getStart(), codeArea.getLength());
+                            int newEnd = Math.min(selection.getEnd(), codeArea.getLength());
+                            codeArea.selectRange(newStart, newEnd);
+                        }
+
+                        // スクロール位置を復元
+                        codeArea.estimatedScrollYProperty().setValue(scrollY);
                         codeArea.requestFollowCaret();
                     } catch (Exception e) {
                         System.err.println("Error updating caret position: " + e.getMessage());
