@@ -7,13 +7,17 @@ import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
 import io.github.morichan.retuss.translator.cpp.CppTranslator;
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class CppFile {
     private final ExecutorService analysisExecutor = Executors.newSingleThreadExecutor(); // 解析用の専用スレッド
     private final ScheduledExecutorService updateExecutor = Executors.newSingleThreadScheduledExecutor(); // 更新用のスレッド
+    private Future<?> lastTask; // 最後の非同期タスクを追跡
+    private final Object updateLock = new Object(); // 同期処理用ロック
     private final UUID ID = UUID.randomUUID();
     private String fileName = "";
     private String sourceCode;
@@ -119,61 +123,87 @@ public class CppFile {
     }
 
     public void updateCode(String code) {
-        if (!code.equals(this.sourceCode)) {
+        // 入力コードの即時反映
+        synchronized (updateLock) {
+            if (code.equals(this.sourceCode)) {
+                return; // 変更がなければスキップ
+            }
             this.sourceCode = code;
+        }
 
-            if (isHeader) {
-                System.out.println("DEBUG: Updating header file code");
-                // クラス名の更新を先に行う
-                Optional<String> newClassName = translator.extractClassName(code);
-                if (newClassName.isPresent()) {
-                    String className = newClassName.get();
-                    String expectedFileName = className + ".h";
-                    if (!expectedFileName.equals(this.fileName)) {
-                        String oldFileName = this.fileName;
-                        this.fileName = expectedFileName;
-                        notifyFileNameChanged(oldFileName, expectedFileName);
+        // 古いタスクをキャンセル
+        if (lastTask != null && !lastTask.isDone()) {
+            lastTask.cancel(true);
+        }
+        // 新しい非同期タスクを登録
+        lastTask = analysisExecutor.submit(() -> {
+            try {
+                if (isHeader) {
+                    System.out.println("DEBUG: Updating header file code");
+                    // クラス名の更新を先に行う
+                    Optional<String> newClassName = translator.extractClassName(code);
+                    if (newClassName.isPresent()) {
+                        String className = newClassName.get();
+                        String expectedFileName = className + ".h";
+                        if (!expectedFileName.equals(this.fileName)) {
+                            String oldFileName = this.fileName;
+                            this.fileName = expectedFileName;
+                            notifyFileNameChanged(oldFileName, expectedFileName);
+                        }
                     }
-                }
 
-                // ヘッダーのUMLクラスリストの更新
-                List<CppHeaderClass> newUmlClassList = translator.translateCodeToUml(code);
-                System.out.println(
-                        "DEBUG: Parsed classes: " + (newUmlClassList != null ? newUmlClassList.size() : "null"));
-                if (!newUmlClassList.isEmpty()) {
-                    this.headerClasses = newUmlClassList;
-                    for (CppHeaderClass cls : this.headerClasses) {
-                        if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
-                            boolean allAbstract = true;
-                            for (Operation op : cls.getOperationList()) {
-                                if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.ABSTRACT)) {
-                                    allAbstract = false;
-                                    cls.setInterface(false);
-                                    break; // 一度でも修飾子に ABTRACT が含まれていない場合、ループを終了
+                    // ヘッダーのUMLクラスリストの更新
+                    List<CppHeaderClass> newUmlClassList = translator.translateCodeToUml(code);
+                    System.out.println(
+                            "DEBUG: Parsed classes: " + (newUmlClassList != null ? newUmlClassList.size() : "null"));
+                    if (!newUmlClassList.isEmpty()) {
+                        this.headerClasses = newUmlClassList;
+                        for (CppHeaderClass cls : this.headerClasses) {
+                            if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
+                                boolean allAbstract = true;
+                                for (Operation op : cls.getOperationList()) {
+                                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.ABSTRACT)) {
+                                        allAbstract = false;
+                                        cls.setInterface(false);
+                                        break; // 一度でも修飾子に ABTRACT が含まれていない場合、ループを終了
+                                    }
+                                }
+                                if (allAbstract) {
+                                    System.out.println("すべての操作が抽象です。");
+                                    cls.setInterface(true);
                                 }
                             }
-                            if (allAbstract) {
-                                System.out.println("すべての操作が抽象です。");
-                                cls.setInterface(true);
-                            }
+
                         }
 
+                        // 対応する実装ファイルからの関係も解析
+                        String baseName = getBaseName();
+                        CppFile implFile = CppModel.getInstance().findImplFile(baseName);
+                        // if (implFile != null) {
+                        // analyzeImplementationFile(implFile);
+                        // }
                     }
-
-                    // 対応する実装ファイルからの関係も解析
-                    String baseName = getBaseName();
-                    CppFile implFile = CppModel.getInstance().findImplFile(baseName);
-                    // if (implFile != null) {
-                    // analyzeImplementationFile(implFile);
-                    // }
                 }
-            }
 
-            // UMLコントローラーに通知
-            if (umlController != null) {
-                umlController.updateDiagram(this);
+                // UMLコントローラーに通知
+                if (umlController != null) {
+                    umlController.updateDiagram(this);
+                }
+                notifyFileChanged();
+            } catch (
+
+            CancellationException e) {
+                System.out.println("DEBUG: Task was canceled");
+            } catch (Exception e) {
+                System.err.println("Error during async code update: " + e.getMessage());
+                e.printStackTrace();
             }
-            notifyFileChanged();
+        });
+        try {
+            // 非同期タスクが完了するまで待つ
+            lastTask.get(); // タスクの完了を待機
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
