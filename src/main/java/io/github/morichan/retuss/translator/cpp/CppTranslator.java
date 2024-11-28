@@ -36,10 +36,6 @@ public class CppTranslator {
         return cppToUmlTranslator.translate(code);
     }
 
-    public String translateUmlToCode(List<CppHeaderClass> classes) {
-        return umlToCppTranslator.translate(classes);
-    }
-
     public String translateVisibility(Visibility visibility) {
         return visibilityMapper.toSourceCode(visibility);
     }
@@ -137,6 +133,54 @@ public class CppTranslator {
 
     protected UmlToCppTranslator createUmlToCodeTranslator() {
         return new UmlToCppTranslator();
+    }
+
+    // CppTranslator.java に追加
+    public String addAttribute(String existingCode, CppHeaderClass cls, Attribute attribute) {
+        return umlToCppTranslator.addAttribute(existingCode, cls, attribute);
+    }
+
+    public String addOperation(String existingCode, CppHeaderClass cls, Operation operation) {
+        return umlToCppTranslator.addOperation(existingCode, cls, operation);
+    }
+
+    public String addInheritance(String existingCode, String derivedClassName, String baseClassName) {
+        return umlToCppTranslator.addInheritance(existingCode, derivedClassName, baseClassName);
+    }
+
+    public String addRealization(String existingCode, String interfaceName) {
+        return umlToCppTranslator.addRealization(existingCode, interfaceName);
+    }
+
+    public String addComposition(String existingCode, String componentName, String memberName, Visibility visibility) {
+        return umlToCppTranslator.addComposition(existingCode, componentName, memberName, visibility);
+    }
+
+    public String addCompositionWithAnnotation(String existingCode, String componentName, String memberName,
+            Visibility visibility) {
+        return umlToCppTranslator.addCompositionWithAnnotation(existingCode, componentName, memberName, visibility);
+    }
+
+    public String addAggregation(String existingCode, String componentName, String memberName, Visibility visibility) {
+        return umlToCppTranslator.addAggregation(existingCode, componentName, memberName, visibility);
+    }
+
+    public String addAggregationWithAnnotation(String existingCode, String componentName, String memberName,
+            Visibility visibility) {
+        return umlToCppTranslator.addAggregationWithAnnotation(existingCode, componentName, memberName, visibility);
+    }
+
+    public String addAssociation(String existingCode, String targetClassName, String memberName,
+            Visibility visibility) {
+        return umlToCppTranslator.addAssociation(existingCode, targetClassName, memberName, visibility);
+    }
+
+    public String removeOperation(String existingCode, Operation operation) {
+        return umlToCppTranslator.removeOperation(existingCode, operation);
+    }
+
+    public String removeAttribute(String existingCode, Attribute attribute) {
+        return umlToCppTranslator.removeAttribute(existingCode, attribute);
     }
 
     // public String generateClassDiagram(List<Class> classes) {

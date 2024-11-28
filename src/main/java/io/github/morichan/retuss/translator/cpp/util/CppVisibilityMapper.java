@@ -4,15 +4,12 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 
 public class CppVisibilityMapper {
     public String toSourceCode(Visibility visibility) {
-        if (visibility == null)
-            return "private";
-
-        switch (visibility.toString().toUpperCase()) {
-            case "PUBLIC":
+        switch (visibility) {
+            case Public:
                 return "public";
-            case "PROTECTED":
+            case Protected:
                 return "protected";
-            case "PRIVATE":
+            case Private:
                 return "private";
             default:
                 return "private";

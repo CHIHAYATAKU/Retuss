@@ -281,8 +281,13 @@ public class UmlController {
     @FXML
     private void showAttributeDialog() {
         try {
+            System.out.println("Opening Attribute Dialog");
+            System.out.println("Java checkbox state: " + isJavaSelected());
+            System.out.println("C++ checkbox state: " + isCppSelected());
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/attributeDialog.fxml"));
             Parent parent = fxmlLoader.load();
+            AttributeDialogController attrDialogController = fxmlLoader.getController();
+            attrDialogController.setUmlController(this);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("New Attribute Dialog");
@@ -297,8 +302,13 @@ public class UmlController {
     @FXML
     private void showOperationDialog() {
         try {
+            System.out.println("Opening Operation Dialog");
+            System.out.println("Java checkbox state: " + isJavaSelected());
+            System.out.println("C++ checkbox state: " + isCppSelected());
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/operationDialog.fxml"));
             Parent parent = fxmlLoader.load();
+            OperationDialogController operDialogController = fxmlLoader.getController();
+            operDialogController.setUmlController(this);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("New Operation Dialog");
@@ -313,8 +323,11 @@ public class UmlController {
     @FXML
     private void showRelationshipDialog() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/relationshipDialog.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("relationshipDialog.fxml"));
             Parent parent = fxmlLoader.load();
+            System.out.println("relationshipDialog.fxml loaded!");
+            RelationshipDialogController relationShipDialogController = fxmlLoader.getController();
+            relationShipDialogController.setUmlController(this);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("New Relationship Dialog");
@@ -322,7 +335,8 @@ public class UmlController {
             stage.setScene(scene);
             stage.showAndWait();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println("Error loading FXML: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

@@ -233,31 +233,65 @@ public class CppFile {
         updateExecutor.shutdown();
     }
 
-    public void addUmlClass(CppHeaderClass headerClass) {
-        if (!isHeader)
-            return;
+    // public void addUmlClass(CppHeaderClass headerClass) {
+    // if (!isHeader)
+    // return;
 
-        headerClasses.add(headerClass);
-        // 修正前: String newCode =
-        // translator.translateUmlToCode(Collections.singletonList(umlClass));
-        // 修正後:
-        String newCode = translator.translateUmlToCode(Collections.singletonList(headerClass));
-        updateCode(newCode);
-    }
+    // headerClasses.add(headerClass);
+    // // 修正前: String newCode =
+    // // translator.translateUmlToCode(Collections.singletonList(umlClass));
+    // // 修正後:
+    // String newCode =
+    // translator.translateUmlToCode(Collections.singletonList(headerClass));
+    // updateCode(newCode);
+    // }
 
-    public void removeClass(CppHeaderClass headerClass) {
-        if (!isHeader)
-            return;
+    // public void removeClass(CppHeaderClass headerClass) {
+    // if (!isHeader)
+    // return;
 
-        headerClasses.remove(headerClass);
-        if (!headerClasses.isEmpty()) {
-            String newCode = translator.translateUmlToCode(headerClasses);
-            updateCode(newCode);
-        }
-    }
+    // headerClasses.remove(headerClass);
+    // if (!headerClasses.isEmpty()) {
+    // String newCode = translator.translateUmlToCode(headerClasses);
+    // updateCode(newCode);
+    // }
+    // }
 
     public boolean isHeader() {
         return isHeader;
+    }
+
+    public void removeClass(CppHeaderClass cls) {
+        this.headerClasses.remove(cls);
+
+        // クラス定義全体を削除
+        List<String> lines = new ArrayList<>(Arrays.asList(this.sourceCode.split("\n")));
+        int classStart = -1;
+        int classEnd = -1;
+
+        // クラスの開始位置を探す
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).contains("class " + cls.getName())) {
+                classStart = i;
+                break;
+            }
+        }
+
+        // クラスの終了位置を探す
+        if (classStart != -1) {
+            for (int i = classStart; i < lines.size(); i++) {
+                if (lines.get(i).trim().equals("};")) {
+                    classEnd = i;
+                    break;
+                }
+            }
+        }
+
+        // クラス定義を削除
+        if (classStart != -1 && classEnd != -1) {
+            lines.subList(classStart, classEnd + 1).clear();
+            this.sourceCode = String.join("\n", lines);
+        }
     }
 
     public void addChangeListener(FileChangeListener listener) {

@@ -1,5 +1,9 @@
 package io.github.morichan.retuss.model;
 
+import io.github.morichan.fescue.feature.Attribute;
+import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.fescue.feature.parameter.Parameter;
+import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.cpp.*;
@@ -255,6 +259,381 @@ public class CppModel {
     // }
     // }
 
+    public void addAttribute(String className, Attribute attribute) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        CppFile headerFile = headerFileOpt.get();
+        try {
+            if (!headerFile.getHeaderClasses().isEmpty()) {
+                CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+                String currentCode = headerFile.getCode();
+                String newCode = translator.addAttribute(currentCode, targetClass, attribute);
+                headerFile.updateCode(newCode);
+
+                if (umlController != null) {
+                    umlController.updateDiagram(headerFile);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add attribute: " + e.getMessage());
+        }
+    }
+
+    public void addOperation(String className, Operation operation) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        CppFile headerFile = headerFileOpt.get();
+        // try {
+        CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+        String currentCode = headerFile.getCode();
+        String newCode = addRequiredIncludes(currentCode, operation.getReturnType().toString());
+
+        // パラメータの型のインクルードも追加
+        for (Parameter param : operation.getParameters()) {
+            newCode = addRequiredIncludes(newCode, param.getType().toString());
+        }
+
+        System.err.println("トランスレータ―まえ: \n" + newCode);
+        newCode = translator.addOperation(newCode, targetClass, operation);
+        System.err.println("トランスレータ―あと: \n" + newCode);
+        headerFile.updateCode(newCode);
+        notifyModelChanged();
+        // } catch (Exception e) {
+        // System.err.println("Failed to add operation: " + e.getMessage());
+        // }
+    }
+
+    public void delete(String className) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            headerFile.removeClass(headerFile.getHeaderClasses().get(0));
+        } catch (Exception e) {
+            System.err.println("Failed to delete class: " + e.getMessage());
+        }
+    }
+
+    public void delete(String className, Attribute attribute) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+            // データ構造から属性を削除
+            targetClass.removeAttribute(attribute);
+
+            // コードから属性を削除
+            String currentCode = headerFile.getCode();
+            List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
+            String attrName = attribute.getName().getNameText();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (line.contains(attrName) && line.endsWith(";") && !line.contains("(")) {
+                    lines.remove(i);
+                    if (i > 0 && lines.get(i - 1).trim().startsWith("//")) {
+                        // 関連するコメント（アノテーション）も削除
+                        lines.remove(i - 1);
+                    }
+                    break;
+                }
+            }
+
+            headerFile.updateCode(String.join("\n", lines));
+        } catch (Exception e) {
+            System.err.println("Failed to delete attribute: " + e.getMessage());
+        }
+    }
+
+    public void delete(String className, Operation operation) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+            // データ構造から操作を削除
+            targetClass.removeOperation(operation);
+
+            // コードから操作を削除
+            String currentCode = headerFile.getCode();
+            List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
+            String opName = operation.getName().getNameText();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (line.contains(opName) && line.contains("(") && line.endsWith(";")) {
+                    lines.remove(i);
+                    break;
+                }
+            }
+
+            headerFile.updateCode(String.join("\n", lines));
+        } catch (Exception e) {
+            System.err.println("Failed to delete operation: " + e.getMessage());
+        }
+    }
+
+    private String addRequiredIncludes(String code, String type) {
+        if (type == null || type.isEmpty())
+            return code;
+
+        StringBuilder sb = new StringBuilder(code);
+        int insertPos = findIncludeInsertPosition(code);
+
+        // STL
+        if (type.contains("string"))
+            addInclude(sb, insertPos, "<string>");
+        if (type.contains("vector"))
+            addInclude(sb, insertPos, "<vector>");
+        if (type.contains("map"))
+            addInclude(sb, insertPos, "<map>");
+        if (type.contains("set"))
+            addInclude(sb, insertPos, "<set>");
+        if (type.contains("shared_ptr"))
+            addInclude(sb, insertPos, "<memory>");
+
+        // ユーザー定義型
+        String baseType = type.replaceAll("<.*>", "").trim();
+        if (findHeaderFileByClassName(baseType).isPresent()) {
+            addInclude(sb, insertPos, "\"" + baseType + ".h\"");
+        }
+
+        return sb.toString();
+    }
+
+    private void addInclude(StringBuilder code, int position, String include) {
+        String includeStatement = "#include " + include + "\n";
+        if (!code.toString().contains(includeStatement)) {
+            code.insert(position, includeStatement);
+        }
+    }
+
+    public void addInheritance(String derivedClassName, String baseClassName) {
+        Optional<CppFile> derivedFileOpt = findHeaderFileByClassName(derivedClassName);
+        Optional<CppFile> baseFileOpt = findHeaderFileByClassName(baseClassName);
+
+        if (derivedFileOpt.isEmpty() || baseFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile derivedFile = derivedFileOpt.get();
+            CppHeaderClass derivedClass = derivedFile.getHeaderClasses().get(0);
+            CppHeaderClass baseClass = baseFileOpt.get().getHeaderClasses().get(0);
+
+            derivedClass.setSuperClass(baseClass);
+            String newCode = translator.addInheritance(derivedFile.getCode(), derivedClassName, baseClassName);
+            derivedFile.updateCode(newCode);
+
+            if (umlController != null) {
+                umlController.updateDiagram(derivedFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add inheritance: " + e.getMessage());
+        }
+    }
+
+    public void addComposition(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase();
+            String newCode = translator.addComposition(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addComposition(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add composition: " + e.getMessage());
+        }
+    }
+
+    public void addCompositionWithAnnotation(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addCompositionWithAnnotation(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addComposition(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add annotated composition: " + e.getMessage());
+        }
+    }
+
+    public void addAggregation(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addAggregation(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addAggregation(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add aggregation: " + e.getMessage());
+        }
+    }
+
+    public void addAggregationWithAnnotation(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addAggregationWithAnnotation(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addAggregation(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add annotated aggregation: " + e.getMessage());
+        }
+    }
+
+    public void addAssociation(String sourceClassName, String targetClassName, Visibility visibility) {
+        Optional<CppFile> sourceFileOpt = findHeaderFileByClassName(sourceClassName);
+        if (sourceFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile sourceFile = sourceFileOpt.get();
+            CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
+
+            String memberName = targetClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addAssociation(
+                    sourceFile.getCode(),
+                    targetClassName,
+                    memberName,
+                    visibility);
+
+            sourceClass.getRelationshipManager().addAssociation(
+                    targetClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            sourceFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(sourceFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add association: " + e.getMessage());
+        }
+    }
+
+    public void addRealization(String sourceClassName, String interfaceName) {
+        Optional<CppFile> sourceFileOpt = findHeaderFileByClassName(sourceClassName);
+        if (sourceFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile sourceFile = sourceFileOpt.get();
+            CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
+
+            String newCode = translator.addRealization(
+                    sourceFile.getCode(),
+                    interfaceName);
+
+            sourceClass.getRelationshipManager().addRealization(interfaceName);
+
+            sourceFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(sourceFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add realization: " + e.getMessage());
+        }
+    }
+
+    private int findIncludeInsertPosition(String code) {
+        int lastInclude = code.lastIndexOf("#include");
+        if (lastInclude == -1)
+            return 0;
+
+        int endOfLine = code.indexOf('\n', lastInclude);
+        return endOfLine == -1 ? code.length() : endOfLine + 1;
+    }
     // public void addAttribute(String className, Attribute attribute) {
     // CppFile headerFile = headerFiles.get(className);
     // if (headerFile == null)

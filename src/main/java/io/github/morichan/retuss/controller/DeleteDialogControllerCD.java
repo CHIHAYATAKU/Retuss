@@ -3,8 +3,13 @@ package io.github.morichan.retuss.controller;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.type.Type;
+import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
+import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
+import io.github.morichan.retuss.model.uml.cpp.utils.RelationshipElement;
+import io.github.morichan.retuss.model.uml.cpp.utils.RelationshipInfo;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.SelectionMode;
@@ -14,11 +19,15 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DeleteDialogControllerCD {
     @FXML
     TreeView cdTreeView;
-    private JavaModel model = JavaModel.getInstance();
+    private JavaModel javaModel = JavaModel.getInstance();
+    private CppModel cppModel = CppModel.getInstance();
+    private UmlController umlController;
     private ArrayList cdTreeItemList = new ArrayList();
 
     public void initialize() {
@@ -26,33 +35,44 @@ public class DeleteDialogControllerCD {
         root.setExpanded(true);
         cdTreeItemList.add("Class List");
 
-        List<Class> umlClassList = model.getUmlClassList();
+        if (umlController.isJavaSelected()) {
+            // 既存のJava用の処理
+            initializeJavaTree(root);
+        } else if (umlController.isCppSelected()) {
+            // C++用の処理を追加
+            initializeCppTree(root);
+        }
+
+        cdTreeView.setRoot(root);
+        cdTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+    }
+
+    private void initializeJavaTree(TreeItem<String> root) {
+        // 既存のJavaの処理をそのまま移動
+        List<Class> umlClassList = javaModel.getUmlClassList();
         for (Class umlClass : umlClassList) {
-            // クラス
             cdTreeItemList.add(umlClass);
             TreeItem<String> classTreeItem = new TreeItem<>(umlClass.getName());
             classTreeItem.setExpanded(false);
-            // 属性またはコンポジション関係
+
             for (Attribute attribute : umlClass.getAttributeList()) {
                 cdTreeItemList.add(attribute);
                 if (isComposition(attribute.getType())) {
-                    // コンポジション関係
                     TreeItem<String> compositionTreeItem = new TreeItem<>(
                             String.format("Composition : %s", attribute.getType().getName()));
                     classTreeItem.getChildren().add(compositionTreeItem);
                 } else {
-                    // 属性
                     TreeItem<String> attributeTreeItem = new TreeItem<>(attribute.toString());
                     classTreeItem.getChildren().add(attributeTreeItem);
                 }
             }
-            // 操作
+
             for (Operation operation : umlClass.getOperationList()) {
                 cdTreeItemList.add(operation);
                 TreeItem<String> operationTreeItem = new TreeItem<>(operation.toString());
                 classTreeItem.getChildren().add(operationTreeItem);
             }
-            // 汎化関係
+
             if (umlClass.getSuperClass().isPresent()) {
                 cdTreeItemList.add("Generalization");
                 TreeItem<String> generalizationTreeItem = new TreeItem<>(
@@ -62,56 +82,160 @@ public class DeleteDialogControllerCD {
 
             root.getChildren().add(classTreeItem);
         }
+    }
 
-        cdTreeView.setRoot(root);
-        cdTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+    private void initializeCppTree(TreeItem<String> root) {
+        List<CppHeaderClass> cppClasses = cppModel.getHeaderClasses();
+        for (CppHeaderClass cppClass : cppClasses) {
+            cdTreeItemList.add(cppClass);
+            TreeItem<String> classTreeItem = new TreeItem<>(cppClass.getName());
+            classTreeItem.setExpanded(false);
+
+            // 属性
+            for (Attribute attribute : cppClass.getAttributeList()) {
+                cdTreeItemList.add(attribute);
+                TreeItem<String> attributeTreeItem = new TreeItem<>(
+                        formatAttribute(attribute, cppClass));
+                classTreeItem.getChildren().add(attributeTreeItem);
+            }
+
+            // 操作
+            for (Operation operation : cppClass.getOperationList()) {
+                cdTreeItemList.add(operation);
+                TreeItem<String> operationTreeItem = new TreeItem<>(
+                        formatOperation(operation, cppClass));
+                classTreeItem.getChildren().add(operationTreeItem);
+            }
+
+            // 関係
+            for (RelationshipInfo relation : cppClass.getRelationshipManager().getAllRelationships()) {
+                cdTreeItemList.add(relation);
+                TreeItem<String> relationItem = new TreeItem<>(formatRelationship(relation));
+                classTreeItem.getChildren().add(relationItem);
+            }
+
+            root.getChildren().add(classTreeItem);
+        }
     }
 
     @FXML
     private void delete() {
         ObservableList<Integer> selectedIndices = cdTreeView.getSelectionModel().getSelectedIndices();
-        // 未選択または"Class List"を選択している場合
         if (selectedIndices.size() == 0 || selectedIndices.get(0) == 0) {
             return;
         }
 
-        // 削除対象クラス名の探索
+        if (umlController.isJavaSelected()) {
+            deleteJavaElement(selectedIndices);
+        } else if (umlController.isCppSelected()) {
+            deleteCppElement(selectedIndices);
+        }
+
+        Stage stage = (Stage) cdTreeView.getScene().getWindow();
+        stage.close();
+    }
+
+    private void deleteJavaElement(ObservableList<Integer> selectedIndices) {
+        // 既存のJava用削除処理をそのまま移動
         String className = "";
         if (cdTreeItemList.get(selectedIndices.get(0)) instanceof Class) {
-            // クラスを削除する場合
             className = ((Class) cdTreeItemList.get(selectedIndices.get(0))).getName();
-            model.delete(className);
+            javaModel.delete(className);
         } else {
-            // 属性・操作を削除する場合
-            // 対象のクラスを探索
             for (int i = selectedIndices.get(0) - 1; i > 0; i--) {
                 if (cdTreeItemList.get(i) instanceof Class) {
                     className = ((Class) cdTreeItemList.get(i)).getName();
                     break;
                 }
             }
-            // 削除
             if (cdTreeItemList.get(selectedIndices.get(0)) instanceof Attribute) {
-                // 属性またはコンポジション関係の削除
-                model.delete(className, (Attribute) cdTreeItemList.get(selectedIndices.get(0)));
+                javaModel.delete(className, (Attribute) cdTreeItemList.get(selectedIndices.get(0)));
             } else if (cdTreeItemList.get(selectedIndices.get(0)) instanceof Operation) {
-                // 操作の削除
-                model.delete(className, (Operation) cdTreeItemList.get(selectedIndices.get(0)));
+                javaModel.delete(className, (Operation) cdTreeItemList.get(selectedIndices.get(0)));
             } else if (cdTreeItemList.get(selectedIndices.get(0)).equals("Generalization")) {
-                // 汎化関係の削除
-                model.deleteSuperClass(className);
+                javaModel.deleteSuperClass(className);
             }
         }
+    }
 
-        // ダイアログを閉じる
-        Stage stage = (Stage) cdTreeView.getScene().getWindow();
-        stage.close();
+    private void deleteCppElement(ObservableList<Integer> selectedIndices) {
+        String className = "";
+        Object selectedItem = cdTreeItemList.get(selectedIndices.get(0));
+
+        if (selectedItem instanceof CppHeaderClass) {
+            className = ((CppHeaderClass) selectedItem).getName();
+            cppModel.delete(className);
+        } else {
+            // 対象クラスの探索
+            for (int i = selectedIndices.get(0) - 1; i > 0; i--) {
+                if (cdTreeItemList.get(i) instanceof CppHeaderClass) {
+                    className = ((CppHeaderClass) cdTreeItemList.get(i)).getName();
+                    break;
+                }
+            }
+
+            if (selectedItem instanceof Attribute) {
+                cppModel.delete(className, (Attribute) selectedItem);
+            } else if (selectedItem instanceof Operation) {
+                cppModel.delete(className, (Operation) selectedItem);
+            } else if (selectedItem instanceof RelationshipInfo) {
+                // RelationshipInfo relation = (RelationshipInfo) selectedItem;
+                // switch (relation.getType()) {
+                // case INHERITANCE:
+                // cppModel.deleteSuperClass(className);
+                // break;
+                // case REALIZATION:
+                // cppModel.deleteRealization(className, relation.getTargetClass());
+                // break;
+                // default:
+                // // コンポジション、集約、関連は属性の削除として処理
+                // if (!relation.getElements().isEmpty()) {
+                // RelationshipElement elem = relation.getElements().iterator().next();
+                // Attribute attr = new Attribute(new Name(elem.getName()));
+                // attr.setType(new Type(relation.getTargetClass()));
+                // cppModel.delete(className, attr);
+                // }
+                // break;
+            }
+        }
+    }
+
+    // フォーマットメソッド群
+    private String formatAttribute(Attribute attr, CppHeaderClass cls) {
+        StringBuilder sb = new StringBuilder(attr.toString());
+        Set<Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
+        if (!modifiers.isEmpty()) {
+            sb.append(" {")
+                    // .append(modifiers.stream()
+                    // .map(Modifier::getCppText(false))
+                    // .collect(Collectors.joining(", ")))
+                    .append("}");
+        }
+        return sb.toString();
+    }
+
+    private String formatOperation(Operation op, CppHeaderClass cls) {
+        StringBuilder sb = new StringBuilder(op.toString());
+        Set<Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
+        if (!modifiers.isEmpty()) {
+            sb.append(" {")
+                    .append(modifiers.stream()
+                            .map(mod -> mod.getCppText(false))
+                            .collect(Collectors.joining(", ")))
+                    .append("}");
+        }
+        return sb.toString();
+    }
+
+    private String formatRelationship(RelationshipInfo relation) {
+        return String.format("%s : %s",
+                relation.getType().name(),
+                relation.getTargetClass());
     }
 
     private Boolean isComposition(Type type) {
-        // typeがユーザ定義のクラス名と同一ならば、そのクラスとコンポジション関係とする
-        // 同一名のクラスが存在することは考慮しない
-        for (Class umlClass : model.getUmlClassList()) {
+        // 既存のメソッドをそのまま維持
+        for (Class umlClass : javaModel.getUmlClassList()) {
             if (type.getName().getNameText().equals(umlClass.getName())) {
                 return Boolean.TRUE;
             }
