@@ -19,6 +19,11 @@ public class CppRelationshipManager {
                 .add(relationship);
     }
 
+    public void addRealization(String interfaceName) {
+        RelationshipInfo relation = new RelationshipInfo(interfaceName, RelationType.REALIZATION);
+        addRelationship(relation);
+    }
+
     // 継承関係の追加
     public void addInheritance(String targetClass) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.INHERITANCE);
@@ -28,22 +33,20 @@ public class CppRelationshipManager {
     // コンポジション関係の追加
     public void addComposition(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.COMPOSITION);
-        relation.addElement(
-                memberName,
-                ElementType.ATTRIBUTE,
-                multiplicity,
-                visibility);
+        relation.addElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
         addRelationship(relation);
     }
 
     // 集約関係の追加
     public void addAggregation(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.AGGREGATION);
-        relation.addElement(
-                memberName,
-                ElementType.ATTRIBUTE,
-                multiplicity,
-                visibility);
+        relation.addElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
+        addRelationship(relation);
+    }
+
+    public void addAssociation(String targetClass, String memberName, String multiplicity, Visibility visibility) {
+        RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.ASSOCIATION);
+        relation.addElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
         addRelationship(relation);
     }
 

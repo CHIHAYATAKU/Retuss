@@ -1,0 +1,37 @@
+.switch-button {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-padding: 5 15;
+    -fx-font-size: 12px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 0, 1);
+}
+
+.switch-button:hover {
+    -fx-background-color: #2980b9;
+}
+
+.code-area {
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 13px;
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: #d4d4d4;
+    -fx-padding: 10px;
+}
+
+.code-area .content {
+    -fx-background-color: #1e1e1e;
+}
+
+.code-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.code-area .scroll-bar:vertical {
+    -fx-background-color: #2d2d2d;
+}
+
+.code-area .scroll-bar:vertical .thumb {
+    -fx-background-color: #4d4d4d;
+}

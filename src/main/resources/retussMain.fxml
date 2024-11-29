@@ -11,10 +11,19 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.web.WebView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="960.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.morichan.retuss.controller.UmlController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+    prefHeight="960.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/11.0.1"
+    xmlns:fx="http://javafx.com/fxml/1" stylesheets="@styles.css"
+    fx:controller="io.github.morichan.retuss.controller.UmlController">
     <children>
-        <BorderPane layoutX="212.0" layoutY="114.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <BorderPane layoutX="212.0" layoutY="114.0" prefHeight="400.0" prefWidth="600.0"
+            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+            AnchorPane.topAnchor="0.0">
             <top>
                 <BorderPane>
                     <top>
@@ -24,8 +33,10 @@
                                     <items>
                                         <Menu mnemonicParsing="false" text="Import File">
                                             <items>
-                                                <MenuItem mnemonicParsing="false" onAction="#importJavaFile" text="Java" />
-                                                <MenuItem mnemonicParsing="false" onAction="#importCppFile" text="C++" />
+                                                <MenuItem mnemonicParsing="false"
+                                                    onAction="#importJavaFile" text="Java" />
+                                                <MenuItem mnemonicParsing="false"
+                                                    onAction="#importCppFile" text="C++" />
                                             </items>
                                         </Menu>
                                     </items>
@@ -38,11 +49,11 @@
                         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                             <items>
                                 <CheckBox fx:id="javaCheckBox" text="Java" selected="true"
-                                          onAction="#toggleJavaSelection"
-                                          styleClass="custom-radio-check-box"/>
+                                    onAction="#toggleJavaSelection"
+                                    styleClass="custom-radio-check-box" />
                                 <CheckBox fx:id="cppCheckBox" text="C++"
-                                          onAction="#toggleCppSelection"
-                                          styleClass="custom-radio-check-box"/>
+                                    onAction="#toggleCppSelection"
+                                    styleClass="custom-radio-check-box" />
                             </items>
                         </ToolBar>
                     </center>
@@ -51,65 +62,135 @@
             <center>
                 <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                     <children>
-                            <TabPane prefHeight="933.0" prefWidth="955.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                <tabs>
-                                    <Tab fx:id="classDiagramTab" onSelectionChanged="#selectClassDiagramTab" text="Class Diargam">
-                                        <content>
-                                            <AnchorPane prefHeight="200.0" prefWidth="200.0">
-                                                <children>
-                                                    <BorderPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                        <top>
-                                                            <ToolBar prefHeight="20.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                                                                <items>
-                                                                    <Button fx:id="classBtn" mnemonicParsing="false" onAction="#showClassDialog" text="Class" />
-                                                                    <Button fx:id="attributeBtn" mnemonicParsing="false" onAction="#showAttributeDialog" text="Attribute" />
-                                                                    <Button fx:id="operationBtn" mnemonicParsing="false" onAction="#showOperationDialog" text="Operation" />
-                                                <Button fx:id="relationshipBtn" mnemonicParsing="false" onAction="#showRelationshipDialog" text="Relationship" />
-                                                                    <Button fx:id="deleteBtn" mnemonicParsing="false" onAction="#showDeleteDialogCD" text="Delete" />
-                                                                </items>
-                                                            </ToolBar>
-                                                        </top>
-                                                        <center>
-                                                            <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                                             <children>
-                                                <WebView fx:id="classDiagramWebView" minHeight="-Infinity" minWidth="-Infinity" prefHeight="859.5" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                             </children>
-                                                            </AnchorPane>
-                                                        </center>
+                        <TabPane prefHeight="933.0" prefWidth="955.0" tabClosingPolicy="UNAVAILABLE"
+                            AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <tabs>
+                                <Tab fx:id="classDiagramTab"
+                                    onSelectionChanged="#selectClassDiagramTab" text="Class Diagram">
+                                    <content>
+                                        <AnchorPane prefHeight="200.0" prefWidth="200.0">
+                                            <children>
+                                                <VBox AnchorPane.bottomAnchor="0.0"
+                                                    AnchorPane.leftAnchor="0.0"
+                                                    AnchorPane.rightAnchor="0.0"
+                                                    AnchorPane.topAnchor="0.0">
+                                                    <!-- ツールバー -->
+                                                    <ToolBar prefHeight="20.0" prefWidth="200.0">
+                                                        <items>
+                                                            <Button fx:id="classBtn"
+                                                                mnemonicParsing="false"
+                                                                onAction="#showClassDialog"
+                                                                text="Class" />
+                                                            <Button fx:id="attributeBtn"
+                                                                mnemonicParsing="false"
+                                                                onAction="#showAttributeDialog"
+                                                                text="Attribute" />
+                                                            <Button fx:id="operationBtn"
+                                                                mnemonicParsing="false"
+                                                                onAction="#showOperationDialog"
+                                                                text="Operation" />
+                                                            <Button fx:id="relationshipBtn"
+                                                                mnemonicParsing="false"
+                                                                onAction="#showRelationshipDialog"
+                                                                text="Relationship" />
+                                                            <Button fx:id="deleteBtn"
+                                                                mnemonicParsing="false"
+                                                                onAction="#showDeleteDialogCD"
+                                                                text="Delete" />
+                                                        </items>
+                                                    </ToolBar>
+
+                                                    <!-- 切り替えボタンエリア -->
+                                                    <BorderPane>
+                                                        <right>
+                                                            <Button fx:id="toggleViewBtn"
+                                                                mnemonicParsing="false"
+                                                                onAction="#toggleDiagramView"
+                                                                text="Show Code"
+                                                                styleClass="switch-button">
+                                                                <BorderPane.margin>
+                                                                    <Insets right="10.0" top="5.0"
+                                                                        bottom="5.0" />
+                                                                </BorderPane.margin>
+                                                            </Button>
+                                                        </right>
                                                     </BorderPane>
-                                                </children>
-                                            </AnchorPane>
-                                        </content>
-                        </Tab>
-                        <Tab fx:id="sequenceDiagramTab" onSelectionChanged="#selectSequenceDiagramTab" text="Sequence Diagram">
-                          <content>
-                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                                 <children>
-                                    <BorderPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                       <top>
-                                          <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                                            <items>
-                                                <Button fx:id="normalButtonInSD" mnemonicParsing="false" onAction="#normalMessageInSD" text="Normal" />
-                                                <Button fx:id="messageButtonInSD" mnemonicParsing="false" onAction="#showCreateMessageDialog" text="Message" />
-                                                <Button fx:id="cfButtonInSD" mnemonicParsing="false" onAction="#showCreateCombinedFragmentDialog" text="Combined Fragment" />
-                                                <Button fx:id="deleteButtonInSD" mnemonicParsing="false" onAction="#showDeleteDialogSD" text="Delete" />
-                                            </items>
-                                          </ToolBar>
-                                       </top>
-                                       <center>
-                                          <AnchorPane prefHeight="839.0" prefWidth="955.0" BorderPane.alignment="CENTER">
-                                             <children>
-                                                <TabPane fx:id="tabPaneInSequenceTab" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                             </children>
-                                          </AnchorPane>
-                                       </center>
-                                    </BorderPane>
-                                 </children>
-                              </AnchorPane>
-                          </content>
-                        </Tab>
-                                </tabs>
-                            </TabPane>
+
+                                                    <!-- 図とコードの表示エリア -->
+                                                    <StackPane VBox.vgrow="ALWAYS">
+                                                        <children>
+                                                            <WebView fx:id="classDiagramWebView"
+                                                                visible="true" />
+                                                            <TextArea fx:id="plantUmlCodeArea"
+                                                                visible="false"
+                                                                styleClass="code-area" />
+                                                        </children>
+                                                    </StackPane>
+                                                </VBox>
+                                            </children>
+                                        </AnchorPane>
+                                    </content>
+                                </Tab>
+                                <Tab fx:id="sequenceDiagramTab"
+                                    onSelectionChanged="#selectSequenceDiagramTab"
+                                    text="Sequence Diagram">
+                                    <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0"
+                                            prefHeight="180.0" prefWidth="200.0">
+                                            <children>
+                                                <BorderPane prefHeight="200.0" prefWidth="200.0"
+                                                    AnchorPane.bottomAnchor="0.0"
+                                                    AnchorPane.leftAnchor="0.0"
+                                                    AnchorPane.rightAnchor="0.0"
+                                                    AnchorPane.topAnchor="0.0">
+                                                    <top>
+                                                        <ToolBar prefHeight="40.0" prefWidth="200.0"
+                                                            BorderPane.alignment="CENTER">
+                                                            <items>
+                                                                <Button fx:id="normalButtonInSD"
+                                                                    mnemonicParsing="false"
+                                                                    onAction="#normalMessageInSD"
+                                                                    text="Normal" />
+                                                                <Button fx:id="messageButtonInSD"
+                                                                    mnemonicParsing="false"
+                                                                    onAction="#showCreateMessageDialog"
+                                                                    text="Message" />
+                                                                <Button fx:id="cfButtonInSD"
+                                                                    mnemonicParsing="false"
+                                                                    onAction="#showCreateCombinedFragmentDialog"
+                                                                    text="Combined Fragment" />
+                                                                <Button fx:id="deleteButtonInSD"
+                                                                    mnemonicParsing="false"
+                                                                    onAction="#showDeleteDialogSD"
+                                                                    text="Delete" />
+                                                            </items>
+                                                        </ToolBar>
+                                                    </top>
+                                                    <center>
+                                                        <AnchorPane prefHeight="839.0"
+                                                            prefWidth="955.0"
+                                                            BorderPane.alignment="CENTER">
+                                                            <children>
+                                                                <TabPane
+                                                                    fx:id="tabPaneInSequenceTab"
+                                                                    prefHeight="200.0"
+                                                                    prefWidth="200.0"
+                                                                    tabClosingPolicy="UNAVAILABLE"
+                                                                    AnchorPane.bottomAnchor="0.0"
+                                                                    AnchorPane.leftAnchor="0.0"
+                                                                    AnchorPane.rightAnchor="0.0"
+                                                                    AnchorPane.topAnchor="0.0" />
+                                                            </children>
+                                                        </AnchorPane>
+                                                    </center>
+                                                </BorderPane>
+                                            </children>
+                                        </AnchorPane>
+                                    </content>
+                                </Tab>
+                            </tabs>
+                        </TabPane>
                     </children>
                 </AnchorPane>
             </center>

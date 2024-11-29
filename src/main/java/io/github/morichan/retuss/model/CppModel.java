@@ -1,5 +1,9 @@
 package io.github.morichan.retuss.model;
 
+import io.github.morichan.fescue.feature.Attribute;
+import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.fescue.feature.parameter.Parameter;
+import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.cpp.*;
@@ -14,6 +18,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 public class CppModel {
+    private final UmlModel umlModel;
     private static final CppModel model = new CppModel();
     private final Map<String, CppFile> headerFiles = new HashMap<>();
     private final Map<String, CppFile> implFiles = new HashMap<>();
@@ -23,6 +28,7 @@ public class CppModel {
     private final List<ModelChangeListener> changeListeners = new ArrayList<>();
 
     private CppModel() {
+        this.umlModel = UmlModel.getInstance();
         this.translator = createTranslator();
     }
 
@@ -260,6 +266,508 @@ public class CppModel {
     // }
     // }
 
+    public void addAttribute(String className, Attribute attribute) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        CppFile headerFile = headerFileOpt.get();
+        try {
+            if (!headerFile.getHeaderClasses().isEmpty()) {
+                CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+                String currentCode = headerFile.getCode();
+                String newCode = translator.addAttribute(currentCode, targetClass, attribute);
+                headerFile.updateCode(newCode);
+
+                if (umlController != null) {
+                    umlController.updateDiagram(headerFile);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add attribute: " + e.getMessage());
+        }
+    }
+
+    public void addOperation(String className, Operation operation) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+            String currentCode = headerFile.getCode();
+            String newCode = translator.addOperation(currentCode, targetClass, operation);
+            headerFile.updateCode(newCode);
+            notifyModelChanged();
+        } catch (Exception e) {
+            System.err.println("Failed to add operation: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(String className) {
+        System.out.println("Attempting to delete class: " + className);
+
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty()) {
+            System.out.println("Header file not found for class: " + className);
+            return;
+        }
+
+        try {
+            System.out.println("Found header file, proceeding with deletion");
+            CppFile headerFile = headerFileOpt.get();
+
+            // ヘッダーファイルのクラスリストをチェック
+            System.out.println("Header classes count: " + headerFile.getHeaderClasses().size());
+
+            if (!headerFile.getHeaderClasses().isEmpty()) {
+                System.out.println("Removing class from header file");
+                headerFile.removeClass(headerFile.getHeaderClasses().get(0));
+            }
+
+            // 実装ファイルの削除
+            CppFile implFile = findImplFile(className);
+            if (implFile != null) {
+                System.out.println("Removing implementation file");
+                implFiles.remove(className);
+            }
+
+            // ヘッダーファイルの削除
+            System.out.println("Removing header file");
+            headerFiles.remove(className);
+
+            // コントローラーへの通知
+            if (umlController != null) {
+                System.out.println("Notifying UML controller");
+                umlController.onClassDeleted(className);
+            }
+            if (codeController != null) {
+                System.out.println("Notifying code controller");
+                codeController.onClassDeleted(className);
+            }
+
+            System.out.println("Notifying model change");
+            notifyModelChanged();
+
+        } catch (Exception e) {
+            System.err.println("Error during class deletion:");
+            System.err.println("Error type: " + e.getClass().getName());
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // エラーを再スローして上位で処理できるようにする
+        }
+    }
+
+    public void delete(String className, Attribute attribute) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty()) {
+            System.out.println("Header file not found for class: " + className);
+            return;
+        }
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+            System.out.println("Attempting to delete attribute: " + attribute.getName().getNameText() + " from class: "
+                    + className);
+
+            // コードから属性を削除
+            String currentCode = headerFile.getCode();
+            List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
+            String attrName = attribute.getName().getNameText();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (line.contains(attrName) && line.endsWith(";") && !line.contains("(")) {
+                    lines.remove(i);
+                    if (i > 0 && lines.get(i - 1).trim().startsWith("//")) {
+                        // 関連するコメント（アノテーション）も削除
+                        lines.remove(i - 1);
+                    }
+                    break;
+                }
+            }
+
+            headerFile.updateCode(String.join("\n", lines));
+        } catch (Exception e) {
+            System.err.println("Failed to delete attribute: " + e.getMessage());
+        }
+    }
+
+    public void delete(String className, Operation operation) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty()) {
+            System.out.println("Header file not found for class: " + className);
+            return;
+        }
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+
+            System.out.println("Attempting to delete operation: " + operation.getName().getNameText() + " from class: "
+                    + className);
+
+            // コードから操作を削除
+            String currentCode = headerFile.getCode();
+            List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
+            String opName = operation.getName().getNameText();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (line.contains(opName) && line.contains("(") && line.endsWith(";")) {
+                    lines.remove(i);
+                    break;
+                }
+            }
+
+            headerFile.updateCode(String.join("\n", lines));
+        } catch (Exception e) {
+            System.err.println("Failed to delete operation: " + e.getMessage());
+        }
+    }
+
+    public void addInheritance(String derivedClassName, String baseClassName) {
+        Optional<CppFile> derivedFileOpt = findHeaderFileByClassName(derivedClassName);
+        Optional<CppFile> baseFileOpt = findHeaderFileByClassName(baseClassName);
+
+        if (derivedFileOpt.isEmpty() || baseFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile derivedFile = derivedFileOpt.get();
+            CppHeaderClass derivedClass = derivedFile.getHeaderClasses().get(0);
+            CppHeaderClass baseClass = baseFileOpt.get().getHeaderClasses().get(0);
+
+            // derivedClass.setSuperClass(baseClass);
+            String newCode = translator.addInheritance(derivedFile.getCode(), derivedClassName, baseClassName);
+            derivedFile.updateCode(newCode);
+        } catch (Exception e) {
+            System.err.println("Failed to add inheritance: " + e.getMessage());
+        }
+    }
+
+    private int findClassEndPosition(List<String> lines) {
+        // 後ろから検索してクラスの終了位置を見つける
+        for (int i = lines.size() - 1; i >= 0; i--) {
+            if (lines.get(i).trim().equals("};")) {
+                return i;
+            }
+        }
+        return lines.size() - 1;
+    }
+
+    public void addRealization(String sourceClassName, String interfaceName) {
+        Optional<CppFile> sourceFileOpt = findHeaderFileByClassName(sourceClassName);
+        Optional<CppFile> interfaceFileOpt = findHeaderFileByClassName(interfaceName);
+
+        if (sourceFileOpt.isEmpty() || interfaceFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile sourceFile = sourceFileOpt.get();
+            CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
+            CppHeaderClass interfaceClass = interfaceFileOpt.get().getHeaderClasses().get(0);
+
+            String newCode = translator.addInheritance(
+                    sourceFile.getCode(), sourceClassName,
+                    interfaceName);
+
+            List<String> lines = new ArrayList<>(Arrays.asList(newCode.split("\n")));
+            int classStart = -1;
+            int classEnd = findClassEndPosition(lines);
+
+            for (int i = 0; i < lines.size(); i++) {
+                if (lines.get(i).contains("class " + sourceClassName)) {
+                    classStart = i;
+                    break;
+                }
+            }
+
+            for (Operation op : interfaceClass.getOperationList()) {
+                // 重複チェック
+                if (isDuplicateMethod(op, lines, classStart, classEnd)) {
+                    System.out.println("Skipping duplicate method: " + op.getName().getNameText());
+                    continue;
+                }
+
+                Operation implementedOp = new Operation(op.getName());
+                implementedOp.setReturnType(op.getReturnType());
+                implementedOp.setVisibility(Visibility.Public);
+                implementedOp.setParameters(new ArrayList<>()); // 空のパラメータリストで初期化
+
+                // 安全にパラメータを取得してコピー
+                List<Parameter> params = safeGetParameters(op);
+                for (Parameter param : params) {
+                    implementedOp.addParameter(param);
+                }
+
+                System.out.println("Adding method: " + implementedOp.getName().getNameText());
+                sourceClass.addMemberModifier(implementedOp.getName().getNameText(), Modifier.OVERRIDE);
+                newCode = translator.addOperation(newCode, sourceClass, implementedOp);
+            }
+
+            // sourceClass.getRelationshipManager().addRealization(interfaceName);
+            sourceFile.updateCode(newCode);
+
+            if (umlController != null) {
+                umlController.updateDiagram(sourceFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add realization: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private List<Parameter> safeGetParameters(Operation op) {
+        try {
+            return op.getParameters() != null ? op.getParameters() : new ArrayList<>();
+        } catch (IllegalStateException e) {
+            System.out.println("No parameters initialized for method: " + op.getName().getNameText());
+            return new ArrayList<>();
+        }
+    }
+
+    public void addComposition(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase();
+            String newCode = translator.addComposition(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addComposition(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add composition: " + e.getMessage());
+        }
+    }
+
+    public void addCompositionWithAnnotation(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addCompositionWithAnnotation(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addComposition(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add annotated composition: " + e.getMessage());
+        }
+    }
+
+    public void addAggregation(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addAggregation(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addAggregation(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add aggregation: " + e.getMessage());
+        }
+    }
+
+    public void addAggregationWithAnnotation(String ownerClassName, String componentClassName, Visibility visibility) {
+        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
+        if (ownerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile ownerFile = ownerFileOpt.get();
+            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
+
+            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addAggregationWithAnnotation(
+                    ownerFile.getCode(),
+                    componentClassName,
+                    memberName,
+                    visibility);
+
+            ownerClass.getRelationshipManager().addAggregation(
+                    componentClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            ownerFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(ownerFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add annotated aggregation: " + e.getMessage());
+        }
+    }
+
+    public void addAssociation(String sourceClassName, String targetClassName, Visibility visibility) {
+        Optional<CppFile> sourceFileOpt = findHeaderFileByClassName(sourceClassName);
+        if (sourceFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile sourceFile = sourceFileOpt.get();
+            CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
+
+            String memberName = targetClassName.toLowerCase() + "Ptr";
+            String newCode = translator.addAssociation(
+                    sourceFile.getCode(),
+                    targetClassName,
+                    memberName,
+                    visibility);
+
+            sourceClass.getRelationshipManager().addAssociation(
+                    targetClassName,
+                    memberName,
+                    "1",
+                    visibility);
+
+            sourceFile.updateCode(newCode);
+            if (umlController != null) {
+                umlController.updateDiagram(sourceFile);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to add association: " + e.getMessage());
+        }
+    }
+
+    private boolean isDuplicateMethod(Operation newOp, List<String> lines, int startLine, int endLine) {
+        // メソッドのシグネチャを作成
+        String signature = getMethodSignature(newOp);
+        System.out.println("Checking for duplicate: " + signature);
+
+        // 既存のコードで同じシグネチャを持つメソッドを探す
+        for (int i = startLine; i < endLine; i++) {
+            String line = lines.get(i).trim();
+            if (line.endsWith(";") && line.contains("(")) {
+                // 既存メソッドのシグネチャを抽出して比較
+                String existingMethod = line.substring(0, line.indexOf(";"))
+                        .replaceAll("\\s+", "")
+                        .replaceAll("override", "")
+                        .replaceAll("virtual", "");
+                System.out.println("Comparing with: " + existingMethod);
+
+                if (existingMethod.contains(signature)) {
+                    System.out.println("Found duplicate: " + existingMethod);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private String getMethodSignature(Operation op) {
+        StringBuilder signature = new StringBuilder();
+        signature.append(op.getReturnType().toString())
+                .append(op.getName().getNameText())
+                .append("(");
+
+        List<Parameter> params = safeGetParameters(op);
+        if (!params.isEmpty()) {
+            List<String> paramTypes = new ArrayList<>();
+            for (Parameter param : params) {
+                paramTypes.add(param.getType().toString());
+            }
+            signature.append(String.join(",", paramTypes));
+        }
+        signature.append(")");
+
+        return signature.toString().replaceAll("\\s+", "");
+    }
+
+    public void removeInheritance(String className, String baseClassName) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            String newCode = translator.removeInheritance(headerFile.getCode(), baseClassName);
+            headerFile.updateCode(newCode);
+        } catch (Exception e) {
+            System.err.println("Failed to remove inheritance: " + e.getMessage());
+        }
+    }
+
+    public void removeRealization(String className, String interfaceName) {
+        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
+        if (headerFileOpt.isEmpty())
+            return;
+
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            String newCode = translator.removeInheritance(headerFile.getCode(), interfaceName);
+            headerFile.updateCode(newCode);
+        } catch (Exception e) {
+            System.err.println("Failed to remove realization: " + e.getMessage());
+        }
+    }
+
+    private int findIncludeInsertPosition(String code) {
+        int lastInclude = code.lastIndexOf("#include");
+        if (lastInclude == -1)
+            return 0;
+
+        int endOfLine = code.indexOf('\n', lastInclude);
+        return endOfLine == -1 ? code.length() : endOfLine + 1;
+    }
     // public void addAttribute(String className, Attribute attribute) {
     // CppFile headerFile = headerFiles.get(className);
     // if (headerFile == null)

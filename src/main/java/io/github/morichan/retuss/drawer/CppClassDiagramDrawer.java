@@ -5,9 +5,11 @@ import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.parameter.Parameter;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.CppModel;
+import io.github.morichan.retuss.model.UmlModel;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import javafx.application.Platform;
+import javafx.scene.control.TextArea;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
@@ -27,14 +29,18 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class CppClassDiagramDrawer {
     private final CppModel model;
+    private final UmlModel umlModel;
     private WebView webView;
+    private TextArea codeArea;
     private final ExecutorService diagramExecutor = Executors.newSingleThreadExecutor();
     private final AtomicReference<String> lastSvg = new AtomicReference<>();
     private volatile boolean isUpdating = false;
 
     public CppClassDiagramDrawer(WebView webView) {
         this.model = CppModel.getInstance();
+        this.umlModel = UmlModel.getInstance();
         this.webView = webView;
+        this.codeArea = codeArea;
         System.out.println("CppClassDiagramDrawer initialized");
     }
 
@@ -170,7 +176,8 @@ public class CppClassDiagramDrawer {
                     pumlBuilder.append(String.join(", ", paramStrings));
                 }
             } catch (Exception e) {
-                System.err.println("Error processing parameters for " + op.getName() + ": " + e.getMessage());
+                // System.err.println("Error processing parameters for " + op.getName() + ": " +
+                // e.getMessage());
             }
 
             pumlBuilder.append(")");
@@ -256,6 +263,9 @@ public class CppClassDiagramDrawer {
                 pumlBuilder.append("@enduml\n");
                 String puml = pumlBuilder.toString();
                 System.out.println("Generated PlantUML:\n" + puml);
+
+                // UMLModelの更新
+                umlModel.setPlantUml(puml);
 
                 // SVG生成と表示, キャッシュと比較して変更がなければスキップ
                 String currentSvg = lastSvg.get();

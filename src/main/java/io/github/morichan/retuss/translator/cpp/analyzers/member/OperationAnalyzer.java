@@ -73,13 +73,23 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         System.out.println("DEBUG: Return type: " + returnType);
         System.out.println("DEBUG: Modifiers: " + modifiers);
 
+        // コンストラクタ/デストラクタの判定
+        boolean isConstructor = methodName.equals(currentHeaderClass.getName());
+        boolean isDestructor = methodName.startsWith("~") &&
+                methodName.substring(1).equals(currentHeaderClass.getName());
+
         Operation operation = new Operation(new Name(methodName));
-        // 通常のメソッドは戻り値型を処理
-        String processedType = processOperationType(returnType);
-        operation.setReturnType(new Type(processedType));
+        if (isConstructor || isDestructor) {
+            // コンストラクタ/デストラクタは戻り値型を空文字列に
+            operation.setReturnType(new Type(""));
+        } else {
+            // 通常のメソッドは戻り値型を処理
+            String processedType = processOperationType(returnType);
+            operation.setReturnType(new Type(processedType));
+        }
         operation.setVisibility(convertVisibility(context.getCurrentVisibility()));
 
-        // パラメータ処理
+        // パラメータ処理の既存コード
         CPP14Parser.DeclaratorContext declarator = memberDec.declarator();
         System.out.println("DEBUG: Declarator: " + (declarator != null ? declarator.getText() : "null"));
         System.out
@@ -216,16 +226,16 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                                 relation.setType(RelationType.REALIZATION);
 
                                 // 要素の追加
-                                relation.addElement(
-                                        methodName,
-                                        ElementType.OPERATION,
-                                        "1",
-                                        operation.getVisibility(),
-                                        null,
-                                        returnType,
-                                        null,
-                                        modifiers.contains(Modifier.PURE_VIRTUAL),
-                                        modifiers);
+                                // relation.addElement(
+                                // methodName,
+                                // ElementType.OPERATION,
+                                // "1",
+                                // operation.getVisibility(),
+                                // null,
+                                // returnType,
+                                // null,
+                                // modifiers.contains(Modifier.PURE_VIRTUAL),
+                                // modifiers);
                             }
                         });
             }
