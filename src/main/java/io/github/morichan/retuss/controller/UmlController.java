@@ -345,6 +345,9 @@ public class UmlController {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/deleteDialogCD.fxml"));
             Parent parent = fxmlLoader.load();
+            DeleteDialogControllerCD dialogController = fxmlLoader.getController();
+            // UmlControllerの参照を設定
+            dialogController.setUmlController(this);
             Scene scene = new Scene(parent);
             Stage stage = new Stage();
             stage.setTitle("Delete Dialog");
@@ -354,6 +357,22 @@ public class UmlController {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public void onClassDeleted(String className) {
+        Platform.runLater(() -> {
+            // クラス図の更新
+            if (cppCheckBox.isSelected()) {
+                cppClassDiagramDrawer.clearCache();
+                cppClassDiagramDrawer.draw();
+            }
+
+            // シーケンス図のタブを削除
+            if (tabPaneInSequenceTab != null) {
+                tabPaneInSequenceTab.getTabs().removeIf(tab -> tab.getText().equals(className + ".h") ||
+                        tab.getText().equals(className + ".cpp"));
+            }
+        });
     }
 
     public void updateDiagram(CppFile cppFile) {

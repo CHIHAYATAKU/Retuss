@@ -172,6 +172,22 @@ public class CodeController {
         }
     }
 
+    public void onClassDeleted(String className) {
+        Platform.runLater(() -> {
+            // C++のファイルタブを削除
+            cppFileTabList.removeIf(pair -> {
+                CppFile file = pair.getKey();
+                Tab tab = pair.getValue();
+                boolean shouldRemove = file.getFileName().equals(className + ".h") ||
+                        file.getFileName().equals(className + ".cpp");
+                if (shouldRemove) {
+                    codeTabPane.getTabs().remove(tab);
+                }
+                return shouldRemove;
+            });
+        });
+    }
+
     private void updateTabTitle(Tab tab, CppFile file) {
         String fileName = file.getFileName();
         String extension = file.isHeader() ? ".h" : ".cpp";

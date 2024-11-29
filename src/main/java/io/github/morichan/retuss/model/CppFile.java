@@ -21,7 +21,7 @@ public class CppFile {
     private final UUID ID = UUID.randomUUID();
     private String fileName = "";
     private String sourceCode;
-    private List<CppHeaderClass> headerClasses = new ArrayList<>();
+    private final List<CppHeaderClass> headerClasses = new ArrayList<>();
     private CppImplClass implClass;
     private CppTranslator translator;
     private final boolean isHeader;
@@ -54,7 +54,8 @@ public class CppFile {
 
         // 初期化後にUMLクラスリストを更新（ヘッダーファイルのみ）
         if (isHeader && sourceCode != null) {
-            this.headerClasses = translator.translateCodeToUml(sourceCode);
+            headerClasses.clear();
+            headerClasses.addAll(translator.translateCodeToUml(sourceCode));
         }
     }
 
@@ -157,7 +158,9 @@ public class CppFile {
                     System.out.println(
                             "DEBUG: Parsed classes: " + (newUmlClassList != null ? newUmlClassList.size() : "null"));
                     if (!newUmlClassList.isEmpty()) {
-                        this.headerClasses = newUmlClassList;
+                        // リストの内容を更新
+                        headerClasses.clear();
+                        headerClasses.addAll(newUmlClassList);
                         for (CppHeaderClass cls : this.headerClasses) {
                             if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
                                 boolean allAbstract = true;
@@ -207,22 +210,6 @@ public class CppFile {
         }
     }
 
-    // private void analyzeImplementationFile(CppFile implFile) {
-    // if (!umlClassList.isEmpty()) {
-    // try {
-    // CharStream input = CharStreams.fromString(implFile.getCode());
-    // CPP14Lexer lexer = new CPP14Lexer(input);
-    // CommonTokenStream tokens = new CommonTokenStream(lexer);
-    // CPP14Parser parser = new CPP14Parser(tokens);
-
-    // CppMethodAnalyzer analyzer = new CppMethodAnalyzer(umlClassList.get(0));
-    // ParseTreeWalker.DEFAULT.walk(analyzer, parser.translationUnit());
-    // } catch (Exception e) {
-    // System.err.println("Error analyzing implementation file: " + e.getMessage());
-    // }
-    // }
-    // }
-
     public String getBaseName() {
         return fileName.replaceAll("\\.(h|hpp|cpp)$", "");
     }
@@ -233,36 +220,14 @@ public class CppFile {
         updateExecutor.shutdown();
     }
 
-    // public void addUmlClass(CppHeaderClass headerClass) {
-    // if (!isHeader)
-    // return;
-
-    // headerClasses.add(headerClass);
-    // // 修正前: String newCode =
-    // // translator.translateUmlToCode(Collections.singletonList(umlClass));
-    // // 修正後:
-    // String newCode =
-    // translator.translateUmlToCode(Collections.singletonList(headerClass));
-    // updateCode(newCode);
-    // }
-
-    // public void removeClass(CppHeaderClass headerClass) {
-    // if (!isHeader)
-    // return;
-
-    // headerClasses.remove(headerClass);
-    // if (!headerClasses.isEmpty()) {
-    // String newCode = translator.translateUmlToCode(headerClasses);
-    // updateCode(newCode);
-    // }
-    // }
-
     public boolean isHeader() {
         return isHeader;
     }
 
     public void removeClass(CppHeaderClass cls) {
-        this.headerClasses.remove(cls);
+        System.out.println("Removing class: " + cls.getName());
+        // リストの内容を変更
+        headerClasses.clear();
 
         // クラス定義全体を削除
         List<String> lines = new ArrayList<>(Arrays.asList(this.sourceCode.split("\n")));
@@ -289,9 +254,15 @@ public class CppFile {
 
         // クラス定義を削除
         if (classStart != -1 && classEnd != -1) {
+            System.out.println("Removing class definition from lines " + classStart + " to " + classEnd);
             lines.subList(classStart, classEnd + 1).clear();
             this.sourceCode = String.join("\n", lines);
+
+            // コードを更新
+            updateCode(this.sourceCode);
         }
+
+        System.out.println("Class removal completed");
     }
 
     public void addChangeListener(FileChangeListener listener) {

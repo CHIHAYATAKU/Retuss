@@ -17,48 +17,57 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import javax.management.relation.RelationType;
+
 public class RelationshipDialogController {
     @FXML
     private Label messageLabel;
     @FXML
-    private ComboBox relationshipComboBox;
+    private ComboBox<String> relationshipComboBox;
     @FXML
-    private ComboBox class1ComboBox;
+    private ComboBox<String> class1ComboBox;
     @FXML
-    private ComboBox class2ComboBox;
+    private ComboBox<String> class2ComboBox;
     @FXML
-    private ComboBox visibilityComboBox;
+    private ComboBox<String> visibilityComboBox;
     @FXML
     private ImageView relationshipImageView;
     @FXML
     private Button createBtn;
+
     private JavaModel javaModel = JavaModel.getInstance();
     private CppModel cppModel = CppModel.getInstance();
     private UmlController umlController;
-    // private final List<String> relationshipTypes = Arrays.asList(
-    // "Composition (Value Type)",
-    // "Composition (Annotated Pointer)",
-    // "Association (Pointer)",
-    // "Aggregation (Annotated Pointer)",
-    // "Inheritance",
-    // "Realization");
-    private final List<String> relationshipTypes = Arrays.asList(
-            "Composition", "Aggregation");
+    private final List<String> javaRelationshipTypes = Arrays.asList(
+            "Composition", "Generalization");
+    private final List<String> cppRelationshipTypes = Arrays.asList(
+            "Composition (Value Type)",
+            "Composition with Annotation",
+            "Association (Pointer)",
+            "Aggregation with Annotation",
+            "Inheritance",
+            "Realization");
+
+    public void initialize() {
+        // まず可視性コンボボックスを初期化
+        visibilityComboBox.getItems().addAll("public", "protected", "private");
+        visibilityComboBox.setValue("private");
+        visibilityComboBox.setVisible(false); // デフォルトでは非表示
+    }
 
     public void setUmlController(UmlController controller) {
         this.umlController = controller;
-        initialize();
-    }
 
-    public void initialize() {
-        relationshipTypes.forEach(type -> relationshipComboBox.getItems().add(type));
-        relationshipComboBox.setValue(relationshipTypes.get(0));
-
-        visibilityComboBox.getItems().addAll("public", "protected", "private");
-        visibilityComboBox.setValue("private");
-
-        // 初期状態では可視性選択を非表示に
-        visibilityComboBox.setVisible(false);
+        // 言語に応じて関係タイプを設定
+        if (umlController.isJavaSelected()) {
+            relationshipComboBox.getItems().addAll(javaRelationshipTypes);
+            relationshipComboBox.setValue(javaRelationshipTypes.get(0));
+            visibilityComboBox.setVisible(false);
+        } else if (umlController.isCppSelected()) {
+            relationshipComboBox.getItems().addAll(cppRelationshipTypes);
+            relationshipComboBox.setValue(cppRelationshipTypes.get(0));
+            visibilityComboBox.setVisible(true);
+        }
 
         initializeClassList();
         updateRelationshipImage();
@@ -69,14 +78,14 @@ public class RelationshipDialogController {
         class2ComboBox.getItems().clear();
 
         if (umlController.isJavaSelected()) {
-            for (Class cls : javaModel.getUmlClassList()) {
+            List<Class> classes = javaModel.getUmlClassList();
+            for (Class cls : classes) {
                 class1ComboBox.getItems().add(cls.getName());
                 class2ComboBox.getItems().add(cls.getName());
             }
         } else if (umlController.isCppSelected()) {
-            String selectedType = relationshipComboBox.getValue().toString();
-            if (selectedType.equals("Realization")) {
-                // Realizationの場合は、インターフェースクラスのみを表示
+            String selectedType = relationshipComboBox.getValue();
+            if ("Realization".equals(selectedType)) {
                 for (CppHeaderClass cls : cppModel.getHeaderClasses()) {
                     if (cls.getInterface()) {
                         class2ComboBox.getItems().add(cls.getName());
@@ -85,76 +94,8 @@ public class RelationshipDialogController {
                     }
                 }
             } else {
-                for (CppHeaderClass cls : cppModel.getHeaderClasses()) {
-                    class1ComboBox.getItems().add(cls.getName());
-                    class2ComboBox.getItems().add(cls.getName());
-                }
-            }
-        }
-
-        if (!class1ComboBox.getItems().isEmpty()) {
-            class1ComboBox.setValue(class1ComboBox.getItems().get(0));
-            class2ComboBox.setValue(class2ComboBox.getItems().get(0));
-        }
-    }
-
-    @FXML
-    private void updateRelationshipImage() {
-        String selectedType = relationshipComboBox.getValue().toString();
-
-        // 可視性選択の表示/非表示を制御
-        boolean needsVisibility = !selectedType.equals("Inheritance") &&
-                !selectedType.equals("Realization");
-        visibilityComboBox.setVisible(needsVisibility);
-
-        // 画像の更新
-        String imageName;
-        switch (selectedType) {
-            case "Composition (Value Type)":
-            case "Composition (Annotated Pointer)":
-                imageName = "composition.png";
-                break;
-            case "Association (Pointer)":
-                imageName = "association.png";
-                break;
-            case "Aggregation (Annotated Pointer)":
-                imageName = "aggregation.png";
-                break;
-            case "Inheritance":
-                imageName = "generalization.png";
-                break;
-            case "Realization":
-                imageName = "realization.png";
-                break;
-            default:
-                imageName = "association.png";
-                break;
-        }
-
-        relationshipImageView.setImage(new Image(imageName));
-
-        // クラスリストの更新
-        refreshClassList();
-    }
-
-    private void refreshClassList() {
-        class1ComboBox.getItems().clear();
-        class2ComboBox.getItems().clear();
-
-        if (umlController.isCppSelected()) {
-            String selectedType = relationshipComboBox.getValue().toString();
-            if (selectedType.equals("Realization")) {
-                // Realizationの場合のみインターフェース判定
-                for (CppHeaderClass cls : cppModel.getHeaderClasses()) {
-                    if (cls.getInterface()) {
-                        class2ComboBox.getItems().add(cls.getName());
-                    } else {
-                        class1ComboBox.getItems().add(cls.getName());
-                    }
-                }
-            } else {
-                // その他の場合は全クラスを表示
-                for (CppHeaderClass cls : cppModel.getHeaderClasses()) {
+                List<CppHeaderClass> classes = cppModel.getHeaderClasses();
+                for (CppHeaderClass cls : classes) {
                     class1ComboBox.getItems().add(cls.getName());
                     class2ComboBox.getItems().add(cls.getName());
                 }
@@ -170,20 +111,70 @@ public class RelationshipDialogController {
     }
 
     @FXML
+    private void updateRelationshipImage() {
+        if (relationshipComboBox.getValue() == null)
+            return;
+
+        String selectedType = relationshipComboBox.getValue();
+        String imageName;
+
+        if (selectedType.contains("Composition") || selectedType.equals("Composition")) {
+            imageName = "composition.png";
+        } else if (selectedType.equals("Generalization") ||
+                selectedType.contains("Inheritance")) {
+            imageName = "generalization.png";
+        } else if (selectedType.contains("Association")) {
+            imageName = "association.png";
+        } else if (selectedType.contains("Aggregation")) {
+            imageName = "aggregation.png";
+        } else if (selectedType.contains("Realization")) {
+            imageName = "realization.png";
+        } else {
+            imageName = "composition.png";
+        }
+
+        relationshipImageView.setImage(new Image(imageName));
+
+        if (umlController != null && umlController.isCppSelected()) {
+            boolean needsVisibility = !selectedType.equals("Inheritance") &&
+                    !selectedType.equals("Realization");
+            visibilityComboBox.setVisible(needsVisibility);
+
+            if (selectedType.equals("Realization")) {
+                class1ComboBox.getItems().clear();
+                class2ComboBox.getItems().clear();
+                for (CppHeaderClass cls : cppModel.getHeaderClasses()) {
+                    if (cls.getInterface()) {
+                        class2ComboBox.getItems().add(cls.getName());
+                    } else {
+                        class1ComboBox.getItems().add(cls.getName());
+                    }
+                }
+            }
+        }
+
+        initializeClassList(); // クラスリストの更新
+    }
+
+    @FXML
     private void createRelationship() {
         try {
-            String sourceClass = class1ComboBox.getValue().toString();
-            String targetClass = class2ComboBox.getValue().toString();
-            String relationType = relationshipComboBox.getValue().toString();
-            Visibility visibility = getSelectedVisibility();
+            String sourceClass = class1ComboBox.getValue();
+            String targetClass = class2ComboBox.getValue();
+            String relationType = relationshipComboBox.getValue();
 
             if (umlController.isJavaSelected()) {
-                addJavaRelationship(sourceClass, targetClass, relationType);
+                if ("Composition".equals(relationType)) {
+                    javaModel.addComposition(sourceClass, targetClass);
+                } else if ("Generalization".equals(relationType)) {
+                    javaModel.addGeneralization(sourceClass, targetClass);
+                }
             } else if (umlController.isCppSelected()) {
+                Visibility visibility = getSelectedVisibility();
                 addCppRelationship(sourceClass, targetClass, relationType, visibility);
             }
 
-            Stage stage = (Stage) class1ComboBox.getScene().getWindow();
+            Stage stage = (Stage) createBtn.getScene().getWindow();
             stage.close();
         } catch (Exception e) {
             messageLabel.setText("Failed to create relationship: " + e.getMessage());
@@ -196,13 +187,13 @@ public class RelationshipDialogController {
             case "Composition (Value Type)":
                 cppModel.addComposition(sourceClass, targetClass, visibility);
                 break;
-            case "Composition (Annotated Pointer)":
+            case "Composition with Annotation":
                 cppModel.addCompositionWithAnnotation(sourceClass, targetClass, visibility);
                 break;
             case "Association (Pointer)":
                 cppModel.addAssociation(sourceClass, targetClass, visibility);
                 break;
-            case "Aggregation (Annotated Pointer)":
+            case "Aggregation with Annotation":
                 cppModel.addAggregationWithAnnotation(sourceClass, targetClass, visibility);
                 break;
             case "Inheritance":
@@ -216,33 +207,18 @@ public class RelationshipDialogController {
 
     private Visibility getSelectedVisibility() {
         String visibility = visibilityComboBox.getValue().toString();
+        Visibility selectedVisibility;
         switch (visibility) {
             case "public":
-                return Visibility.Public;
+                selectedVisibility = Visibility.Public;
+                break;
             case "protected":
-                return Visibility.Protected;
+                selectedVisibility = Visibility.Protected;
+                break;
             default:
-                return Visibility.Private;
-        }
-    }
-
-    private void addJavaRelationship(String sourceClass, String targetClass, String relationType) {
-        switch (relationType) {
-            case "Composition":
-                javaModel.addComposition(sourceClass, targetClass);
-                break;
-            case "Aggregation":
-                // Java doesn't distinguish between composition and aggregation
-                javaModel.addComposition(sourceClass, targetClass);
-                break;
-            case "Association":
-                // Handle as composition in Java
-                javaModel.addComposition(sourceClass, targetClass);
-                break;
-            case "Inheritance":
-                javaModel.addGeneralization(sourceClass, targetClass);
+                selectedVisibility = Visibility.Private;
                 break;
         }
+        return selectedVisibility;
     }
-
 }

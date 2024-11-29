@@ -287,38 +287,87 @@ public class CppModel {
         if (headerFileOpt.isEmpty())
             return;
 
-        CppFile headerFile = headerFileOpt.get();
-        // try {
-        CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+        try {
+            CppFile headerFile = headerFileOpt.get();
+            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
 
-        String currentCode = headerFile.getCode();
-        String newCode = addRequiredIncludes(currentCode, operation.getReturnType().toString());
+            String currentCode = headerFile.getCode();
+            String newCode = addRequiredIncludes(currentCode, operation.getReturnType().toString());
 
-        // パラメータの型のインクルードも追加
-        for (Parameter param : operation.getParameters()) {
-            newCode = addRequiredIncludes(newCode, param.getType().toString());
+            // パラメータの型のインクルードを追加（null チェック付き）
+            List<Parameter> parameters = new ArrayList<>();
+            try {
+                parameters = operation.getParameters();
+            } catch (IllegalStateException e) {
+                System.out.println("No parameters found, using empty list");
+            }
+
+            for (Parameter param : parameters) {
+                newCode = addRequiredIncludes(newCode, param.getType().toString());
+            }
+
+            System.err.println("トランスレータ―まえ: \n" + newCode);
+            newCode = translator.addOperation(newCode, targetClass, operation);
+            System.err.println("トランスレータ―あと: \n" + newCode);
+            headerFile.updateCode(newCode);
+            notifyModelChanged();
+        } catch (Exception e) {
+            System.err.println("Failed to add operation: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        System.err.println("トランスレータ―まえ: \n" + newCode);
-        newCode = translator.addOperation(newCode, targetClass, operation);
-        System.err.println("トランスレータ―あと: \n" + newCode);
-        headerFile.updateCode(newCode);
-        notifyModelChanged();
-        // } catch (Exception e) {
-        // System.err.println("Failed to add operation: " + e.getMessage());
-        // }
     }
 
     public void delete(String className) {
+        System.out.println("Attempting to delete class: " + className);
+
         Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        if (headerFileOpt.isEmpty())
+        if (headerFileOpt.isEmpty()) {
+            System.out.println("Header file not found for class: " + className);
             return;
+        }
 
         try {
+            System.out.println("Found header file, proceeding with deletion");
             CppFile headerFile = headerFileOpt.get();
-            headerFile.removeClass(headerFile.getHeaderClasses().get(0));
+
+            // ヘッダーファイルのクラスリストをチェック
+            System.out.println("Header classes count: " + headerFile.getHeaderClasses().size());
+
+            if (!headerFile.getHeaderClasses().isEmpty()) {
+                System.out.println("Removing class from header file");
+                headerFile.removeClass(headerFile.getHeaderClasses().get(0));
+            }
+
+            // 実装ファイルの削除
+            CppFile implFile = findImplFile(className);
+            if (implFile != null) {
+                System.out.println("Removing implementation file");
+                implFiles.remove(className);
+            }
+
+            // ヘッダーファイルの削除
+            System.out.println("Removing header file");
+            headerFiles.remove(className);
+
+            // コントローラーへの通知
+            if (umlController != null) {
+                System.out.println("Notifying UML controller");
+                umlController.onClassDeleted(className);
+            }
+            if (codeController != null) {
+                System.out.println("Notifying code controller");
+                codeController.onClassDeleted(className);
+            }
+
+            System.out.println("Notifying model change");
+            notifyModelChanged();
+
         } catch (Exception e) {
-            System.err.println("Failed to delete class: " + e.getMessage());
+            System.err.println("Error during class deletion:");
+            System.err.println("Error type: " + e.getClass().getName());
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // エラーを再スローして上位で処理できるようにする
         }
     }
 
