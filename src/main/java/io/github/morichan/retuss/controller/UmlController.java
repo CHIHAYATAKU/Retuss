@@ -7,6 +7,7 @@ import io.github.morichan.retuss.model.CodeFile;
 import io.github.morichan.retuss.model.CppFile;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.JavaModel;
+import io.github.morichan.retuss.model.UmlModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
@@ -23,6 +24,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -53,7 +56,14 @@ public class UmlController {
     private Button deleteBtn;
     @FXML
     private WebView classDiagramWebView;
+    @FXML
+    private TextArea plantUmlCodeArea;
+    @FXML
+    private StackPane diagramContainer;
+    @FXML
+    private Button toggleViewBtn;
 
+    private boolean showingDiagram = true;
     @FXML
     private Tab sequenceDiagramTab;
     @FXML
@@ -85,6 +95,7 @@ public class UmlController {
     private JavaClassDiagramDrawer javaClassDiagramDrawer;
     private CppClassDiagramDrawer cppClassDiagramDrawer;
     private SequenceDiagramDrawer sequenceDiagramDrawer;
+    private UmlModel umlModel;
     // private CppSequenceDiagramDrawer cppSequenceDiagramDrawer;
     private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
 
@@ -106,12 +117,41 @@ public class UmlController {
         javaClassDiagramDrawer = new JavaClassDiagramDrawer(classDiagramWebView);
         cppClassDiagramDrawer = new CppClassDiagramDrawer(classDiagramWebView);
         sequenceDiagramDrawer = new SequenceDiagramDrawer(tabPaneInSequenceTab);
+        umlModel = UmlModel.getInstance();
+        umlModel.addChangeListener(newPlantUml -> {
+            Platform.runLater(() -> {
+                plantUmlCodeArea.setText(newPlantUml);
+            });
+        });
+
+        // TextAreaの設定
+        plantUmlCodeArea.setEditable(false);
+        plantUmlCodeArea.setWrapText(false);
+
+        // Toggle ボタンのテキスト設定
+        toggleViewBtn.setText("Show Code");
         // cppSequenceDiagramDrawer = new
         // CppSequenceDiagramDrawer(tabPaneInSequenceTab);
 
         // チェックボックスにカスタムスタイルを適用
         javaCheckBox.getStyleClass().add("custom-radio-check-box");
         cppCheckBox.getStyleClass().add("custom-radio-check-box");
+    }
+
+    @FXML
+    private void toggleDiagramView() {
+        showingDiagram = !showingDiagram;
+        classDiagramWebView.setVisible(showingDiagram);
+        plantUmlCodeArea.setVisible(!showingDiagram);
+        toggleViewBtn.setText(showingDiagram ? "Show Code" : "Show Diagram");
+
+        if (!showingDiagram) {
+            // コード表示に切り替えたとき、最新のPlantUMLコードを表示
+            String currentPlantUml = umlModel.getPlantUml();
+            if (currentPlantUml != null && !currentPlantUml.isEmpty()) {
+                plantUmlCodeArea.setText(currentPlantUml);
+            }
+        }
     }
 
     public void setCodeController(CodeController controller) {

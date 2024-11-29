@@ -18,8 +18,10 @@ import javafx.scene.control.TreeView;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import io.github.morichan.fescue.feature.name.Name;
+import io.github.morichan.fescue.feature.parameter.Parameter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -104,42 +106,50 @@ public class DeleteDialogControllerCD {
 
         for (CppHeaderClass cls : cppClasses) {
             System.out.println("Processing class: " + cls.getName()); // デバッグ用
+
             cdTreeItemList.add(cls);
             TreeItem<String> classTreeItem = new TreeItem<>(cls.getName());
             classTreeItem.setExpanded(false);
 
-            // 属性
+            // 属性ノード
+            cdTreeItemList.add("Attributes");
+            TreeItem<String> attributesNode = new TreeItem<>("Attributes");
             System.out.println("Attributes found in " + cls.getName() + ": " + cls.getAttributeList().size()); // デバッグ用
             for (Attribute attr : cls.getAttributeList()) {
                 System.out.println("Adding attribute: " + attr.getName()); // デバッグ用
                 cdTreeItemList.add(attr);
                 TreeItem<String> attrItem = new TreeItem<>(formatCppAttribute(attr, cls));
-                classTreeItem.getChildren().add(attrItem);
+                attributesNode.getChildren().add(attrItem);
             }
+            classTreeItem.getChildren().add(attributesNode);
 
-            // 操作
+            // 操作ノード
+            cdTreeItemList.add("Operations");
+            TreeItem<String> operationsNode = new TreeItem<>("Operations");
             System.out.println("Operations found in " + cls.getName() + ": " + cls.getOperationList().size()); // デバッグ用
             for (Operation op : cls.getOperationList()) {
                 System.out.println("Adding operation: " + op.getName()); // デバッグ用
                 cdTreeItemList.add(op);
                 TreeItem<String> opItem = new TreeItem<>(formatCppOperation(op, cls));
-                classTreeItem.getChildren().add(opItem);
+                operationsNode.getChildren().add(opItem);
             }
+            classTreeItem.getChildren().add(operationsNode);
 
-            // 関係
-            // System.out.println("Relationships found in " + cls.getName() + ": "
-            // + cls.getRelationshipManager().getAllRelationships().size()); // デバッグ用
-            // for (RelationshipInfo relation :
-            // cls.getRelationshipManager().getAllRelationships()) {
-            // System.out
-            // .println("Adding relationship: " + relation.getType() + " -> "
-            // + relation.getTargetClass().toString()); // デバッグ用
-            // cdTreeItemList.add(relation);
-            // TreeItem<String> relationItem = new
-            // TreeItem<>(formatCppRelationship(relation));
-            // classTreeItem.getChildren().add(relationItem);
-            // }
+            // 関係ノード
+            cdTreeItemList.add("relations");
+            TreeItem<String> relationsNode = new TreeItem<>("Relations");
+            for (RelationshipInfo relation : cls.getRelationshipManager().getAllRelationships()) {
+                String relationText = formatCppRelationship(relation);
+                if (relationText != null) {
+                    System.out.println("Adding relation: " + relationText); // デバッグ用
+                    cdTreeItemList.add(relation);
+                    TreeItem<String> relationItem = new TreeItem<>(relationText);
+                    relationsNode.getChildren().add(relationItem);
+                }
+            }
+            classTreeItem.getChildren().add(relationsNode);
 
+            // クラスをルートに追加
             root.getChildren().add(classTreeItem);
             System.out.println("Finished processing class: " + cls.getName()); // デバッグ用
         }
@@ -147,20 +157,52 @@ public class DeleteDialogControllerCD {
 
     @FXML
     private void delete() {
+        // 選択されたインデックスのリストを取得
         ObservableList<Integer> selectedIndices = cdTreeView.getSelectionModel().getSelectedIndices();
-        if (selectedIndices.isEmpty() || selectedIndices.get(0) == 0)
+
+        // インデックスが空でないか、無効なインデックスでないか確認
+        if (selectedIndices.isEmpty() || selectedIndices.get(0) == 0) {
+            System.out.println("No valid selection for deletion.");
             return;
+        }
+
+        System.out.println("cdTreeItemList contents:");
+        for (int i = 0; i < cdTreeItemList.size(); i++) {
+            Object item = cdTreeItemList.get(i);
+            System.out.println("Index " + i + ": " + item);
+        }
+
+        // 選択されたインデックスとその中身を表示
+        System.out.println("Selected indices: " + selectedIndices); // インデックスの表示
+        for (int index : selectedIndices) {
+            Object selectedItem = cdTreeItemList.get(index);
+            System.out.println("Item at index " + index + ": " + selectedItem); // 各インデックスの中身を表示
+        }
 
         try {
+            // 言語がJavaかC++に応じて削除処理を呼び出す
             if (umlController.isJavaSelected()) {
                 deleteJavaElement(selectedIndices);
             } else if (umlController.isCppSelected()) {
                 deleteCppElement(selectedIndices);
             }
 
+            // 削除後にツリーを再構築
+            initialize();
+
+            if (!cdTreeItemList.isEmpty()) {
+                // 削除したアイテムの次のアイテムや前のアイテムを選択するなどのロジック
+                int nextIndex = selectedIndices.get(0) < cdTreeItemList.size() ? selectedIndices.get(0)
+                        : cdTreeItemList.size() - 1;
+                cdTreeView.getSelectionModel().select(nextIndex);
+            }
+
+            // 閉じる
             Stage stage = (Stage) cdTreeView.getScene().getWindow();
             stage.close();
         } catch (Exception e) {
+            System.out.println("Deletion failed: " + e.getMessage());
+            e.printStackTrace();
             messageLabel.setText("Failed to delete: " + e.getMessage());
         }
     }
@@ -190,32 +232,100 @@ public class DeleteDialogControllerCD {
     }
 
     private void deleteCppElement(ObservableList<Integer> selectedIndices) {
-        String className = "";
-        Object selectedItem = cdTreeItemList.get(selectedIndices.get(0));
+        // チェック: 選択項目がない、または無効なインデックスの場合は終了
+        if (selectedIndices.isEmpty() || selectedIndices.get(0) == 0) {
+            System.out.println("No valid selection or invalid index. Exiting deletion.");
+            return;
+        }
 
+        // 最初の選択された項目を取得
+        int selectedIndex = selectedIndices.get(0);
+        System.out.println("Selected index: " + selectedIndex); // 選択されたインデックスを表示
+        Object selectedItem = cdTreeItemList.get(selectedIndex); // 選択されたアイテムを取得
+        String className = "";
+
+        // 選択された項目に応じた削除処理
         if (selectedItem instanceof CppHeaderClass) {
+            // クラス全体を削除
             className = ((CppHeaderClass) selectedItem).getName();
+            System.out.println("Attempting to delete class: " + className); // クラス名を表示
             cppModel.delete(className);
         } else {
-            for (int i = selectedIndices.get(0) - 1; i > 0; i--) {
-                if (cdTreeItemList.get(i) instanceof CppHeaderClass) {
-                    className = ((CppHeaderClass) cdTreeItemList.get(i)).getName();
-                    break;
-                }
+            // 親クラスを取得
+            className = findParentClassName(selectedIndex);
+            if (className.isEmpty()) {
+                System.out.println("Parent class name is empty. Exiting deletion.");
+                return;
             }
+
             if (selectedItem instanceof Attribute) {
-                cppModel.delete(className, (Attribute) selectedItem);
-            } else if (selectedItem instanceof Operation) {
-                cppModel.delete(className, (Operation) selectedItem);
-            } else if (selectedItem instanceof RelationshipInfo) {
-                RelationshipInfo relation = (RelationshipInfo) selectedItem;
-                if (!relation.getElements().isEmpty()) {
-                    RelationshipElement elem = relation.getElements().iterator().next();
-                    Attribute attr = new Attribute(new Name(elem.getName()));
-                    attr.setType(new Type(relation.getTargetClass()));
-                    cppModel.delete(className, attr);
+                // 属性の削除
+                // インデックスを2つ戻す
+                int adjustedIndex = selectedIndex;
+                if (adjustedIndex >= 0) {
+                    Attribute selectedAttribute = (Attribute) cdTreeItemList.get(adjustedIndex); // 修正されたインデックスを使用
+                    System.out.println("Attempting to delete attribute: " + selectedAttribute.getName().getNameText()
+                            + " from class: " + className); // 属性名を表示
+                    cppModel.delete(className, selectedAttribute);
                 }
+            } else if (selectedItem instanceof Operation) {
+                // 操作の削除
+                // インデックスを2つ戻す
+                int adjustedIndex = selectedIndex;
+                if (adjustedIndex >= 0) {
+                    Operation selectedOperation = (Operation) cdTreeItemList.get(adjustedIndex); // 修正されたインデックスを使用
+                    System.out.println("Attempting to delete operation: " + selectedOperation.getName().getNameText()
+                            + " from class: " + className); // 操作名を表示
+                    cppModel.delete(className, selectedOperation);
+                }
+            } else if (selectedItem instanceof RelationshipInfo) {
+                // 関係の削除
+                // インデックスを3つ戻す（関係の場合はさらに戻す必要がある）
+                int adjustedIndex = selectedIndex;
+                if (adjustedIndex >= 0) {
+                    RelationshipInfo selectedRelationship = (RelationshipInfo) cdTreeItemList.get(adjustedIndex); // 修正されたインデックスを使用
+                    System.out.println("Attempting to delete relationship involving class: " + className); // 関係を表示
+                    handleRelationshipDeletion(className, selectedRelationship);
+                }
+            } else {
+                System.out.println("Unknown item type selected. No action taken.");
             }
+        }
+    }
+
+    /**
+     * 上位クラス (CppHeaderClass) の名前を取得する。
+     *
+     * @param currentIndex 現在の選択インデックス
+     * @return クラス名 (見つからない場合は空文字)
+     */
+    private String findParentClassName(int currentIndex) {
+        for (int i = currentIndex - 1; i > 0; i--) {
+            Object item = cdTreeItemList.get(i);
+            if (item instanceof CppHeaderClass) {
+                return ((CppHeaderClass) item).getName();
+            }
+        }
+        return "";
+    }
+
+    /**
+     * RelationshipInfo を基に関係の削除を実行する。
+     *
+     * @param className 関係元のクラス名
+     * @param relation  RelationshipInfo オブジェクト
+     */
+    private void handleRelationshipDeletion(String className, RelationshipInfo relation) {
+        switch (relation.getType()) {
+            case INHERITANCE:
+                cppModel.removeInheritance(className, relation.getTargetClass());
+                break;
+            case REALIZATION:
+                cppModel.removeRealization(className, relation.getTargetClass());
+                break;
+            default:
+                System.out.println("Unhandled relationship type: " + relation.getType());
+                break;
         }
     }
 
@@ -239,28 +349,65 @@ public class DeleteDialogControllerCD {
     }
 
     private String formatCppOperation(Operation op, CppHeaderClass cls) {
+        if (op == null || cls == null) {
+            System.out.println("Error: Null operation or class passed to formatCppOperation");
+            return "Error: Null Operation or Class";
+        }
+
         StringBuilder sb = new StringBuilder();
-        sb.append(op.getVisibility())
-                .append(" ")
-                .append(op.getName())
-                .append("(");
+        try {
+            // 可視性
+            String visibility = (op.getVisibility() != null) ? op.getVisibility().toString() : "Unknown";
+            sb.append(visibility).append(" ");
 
-        if (!op.getParameters().isEmpty()) {
-            sb.append(op.getParameters().stream()
-                    .map(param -> param.getType() + " " + param.getName())
-                    .collect(Collectors.joining(", ")));
-        }
-        sb.append(") : ")
-                .append(op.getReturnType());
+            // 名前
+            String name = (op.getName() != null) ? op.getName().getNameText() : "Unnamed";
+            sb.append(name).append("(");
 
-        Set<Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
-        if (!modifiers.isEmpty()) {
-            sb.append(" {")
-                    .append(modifiers.stream()
-                            .map(mod -> mod.getCppText(false)) // メソッド参照を修正
-                            .collect(Collectors.joining(", ")))
-                    .append("}");
+            // パラメータ
+            List<Parameter> parameters = null;
+            try {
+                parameters = op.getParameters();
+                if (parameters == null) {
+                    System.out.println("Parameters are null for operation: " + name);
+                    parameters = Collections.emptyList();
+                }
+            } catch (Exception e) {
+                System.out.println("Exception while fetching parameters for operation: " + name);
+                e.printStackTrace();
+                parameters = Collections.emptyList();
+            }
+
+            if (!parameters.isEmpty()) {
+                sb.append(parameters.stream()
+                        .map(param -> {
+                            String type = (param.getType() != null) ? param.getType().toString() : "UnknownType";
+                            String paramName = (param.getName() != null) ? param.getName().getNameText() : "Unnamed";
+                            return type + " " + paramName;
+                        })
+                        .collect(Collectors.joining(", ")));
+            }
+            sb.append(")");
+
+            // 戻り値
+            String returnType = (op.getReturnType() != null) ? op.getReturnType().toString() : "void";
+            sb.append(" : ").append(returnType);
+
+            // 修飾子
+            Set<Modifier> modifiers = cls.getModifiers(name);
+            if (modifiers != null && !modifiers.isEmpty()) {
+                sb.append(" {")
+                        .append(modifiers.stream()
+                                .map(mod -> mod.getCppText(false))
+                                .collect(Collectors.joining(", ")))
+                        .append("}");
+            }
+        } catch (Exception e) {
+            System.out.println("Exception in formatCppOperation: " + e.getMessage());
+            e.printStackTrace();
+            return "Error formatting operation: " + e.getMessage();
         }
+
         return sb.toString();
     }
 

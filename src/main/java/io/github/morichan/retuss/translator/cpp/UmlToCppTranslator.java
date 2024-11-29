@@ -1,5 +1,6 @@
 package io.github.morichan.retuss.translator.cpp;
 
+import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
 import io.github.morichan.retuss.translator.common.UmlToCodeTranslator;
@@ -351,27 +352,29 @@ public class UmlToCppTranslator {
         builder.append("(");
         List<String> params = new ArrayList<>();
         try {
-            for (Parameter param : operation.getParameters()) {
-                StringBuilder paramBuilder = new StringBuilder();
-                String paramType = param.getType().toString();
-                String baseType = processType(paramType);
+            if (operation.getParameters() != null && !operation.getParameters().isEmpty()) {
+                for (Parameter param : operation.getParameters()) {
+                    StringBuilder paramBuilder = new StringBuilder();
+                    String paramType = param.getType().toString();
+                    String baseType = processType(paramType);
 
-                // 配列の処理
-                if (paramType.contains("[")) {
-                    String arraySize = paramType.substring(paramType.indexOf("["));
-                    paramBuilder.append(baseType)
-                            .append(" ")
-                            .append(param.getName().getNameText())
-                            .append(arraySize); // 配列サイズを名前の後ろに追加
-                } else {
-                    paramBuilder.append(baseType)
-                            .append(" ")
-                            .append(param.getName().getNameText());
+                    // 配列の処理
+                    if (paramType.contains("[")) {
+                        String arraySize = paramType.substring(paramType.indexOf("["));
+                        paramBuilder.append(baseType)
+                                .append(" ")
+                                .append(param.getName().getNameText())
+                                .append(arraySize);
+                    } else {
+                        paramBuilder.append(baseType)
+                                .append(" ")
+                                .append(param.getName().getNameText());
+                    }
+                    params.add(paramBuilder.toString());
                 }
-                params.add(paramBuilder.toString());
             }
         } catch (IllegalStateException e) {
-            System.out.println("No parameters found or parameters not initialized");
+            System.out.println("No parameters for method: " + operation.getName().getNameText());
         }
 
         builder.append(String.join(", ", params));
@@ -393,6 +396,85 @@ public class UmlToCppTranslator {
         return builder.toString();
     }
 
+    public String addRealization(String existingCode, String interfaceName) {
+        try {
+            List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
+
+            // クラス定義行を見つける
+            int classDefLine = -1;
+            String className = ""; // クラス名は既存のコードから抽出
+            Pattern classPattern = Pattern.compile("class\\s+(\\w+)");
+
+            for (int i = 0; i < lines.size(); i++) {
+                Matcher matcher = classPattern.matcher(lines.get(i));
+                if (matcher.find()) {
+                    className = matcher.group(1);
+                    classDefLine = i;
+                    break;
+                }
+            }
+
+            if (classDefLine == -1)
+                return existingCode;
+            // 継承関係の追加
+            String currentLine = lines.get(classDefLine);
+            if (currentLine.contains(":")) {
+                int colonPos = currentLine.indexOf(":");
+                String beforeColon = currentLine.substring(0, colonPos + 1);
+                String afterColon = currentLine.substring(colonPos + 1);
+                lines.set(classDefLine, beforeColon + " public " + interfaceName + "," + afterColon);
+            } else {
+                lines.set(classDefLine, currentLine.replace("{", ": public " + interfaceName + " {"));
+            }
+
+            // インターフェースのメソッドを取得して追加
+            Optional<CppHeaderClass> interfaceClass = CppModel.getInstance().findClass(interfaceName);
+            if (interfaceClass.isPresent()) {
+                // publicセクションを探す
+                int publicSection = findInsertPositionForOperation(lines, Visibility.Public);
+
+                // 各メソッドを追加
+                for (Operation op : interfaceClass.get().getOperationList()) {
+                    StringBuilder methodBuilder = new StringBuilder();
+                    methodBuilder.append("    ").append(op.getReturnType()).append(" ");
+                    methodBuilder.append(op.getName().getNameText()).append("(");
+
+                    // パラメータリストの構築
+                    List<String> params = new ArrayList<>();
+                    for (Parameter param : op.getParameters()) {
+                        params.add(param.getType() + " " + param.getName().getNameText());
+                    }
+                    methodBuilder.append(String.join(", ", params));
+                    methodBuilder.append(") override;");
+
+                    lines.add(publicSection + 1, methodBuilder.toString());
+                }
+            }
+
+            return String.join("\n", lines);
+        } catch (Exception e) {
+            System.err.println("Failed to add realization: " + e.getMessage());
+            return existingCode;
+        }
+    }
+
+    private boolean hasInheritance(List<String> lines, String className, String baseClassName) {
+        Pattern classPattern = Pattern.compile("class\\s+" + className + "\\s*:([^{]+)\\{");
+
+        for (String line : lines) {
+            Matcher matcher = classPattern.matcher(line);
+            if (matcher.find()) {
+                String inheritanceList = matcher.group(1);
+                // public や private などの修飾子を含めてチェック
+                if (inheritanceList.contains(baseClassName)) {
+                    System.out.println("Found existing inheritance: " + inheritanceList.trim());
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public String addInheritance(String existingCode, String derivedClassName, String baseClassName) {
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
@@ -410,11 +492,17 @@ public class UmlToCppTranslator {
             if (classDefLine == -1)
                 return existingCode;
 
-            String includeStatement = "#include \"" + baseClassName + ".h\"";
-            if (!existingCode.contains(includeStatement)) {
-                int includePos = findLastIncludePosition(lines);
-                lines.add(includePos + 1, includeStatement);
+            // 既に継承関係が存在するかチェック
+            if (hasInheritance(lines, derivedClassName, baseClassName)) {
+                System.out.println("Inheritance already exists, skipping addition");
+                return existingCode;
             }
+
+            // String includeStatement = "#include \"" + baseClassName + ".h\"";
+            // if (!existingCode.contains(includeStatement)) {
+            // int includePos = findLastIncludePosition(lines);
+            // lines.add(includePos + 1, includeStatement);
+            // }
 
             String currentLine = lines.get(classDefLine);
             if (currentLine.contains(":")) {
@@ -443,7 +531,6 @@ public class UmlToCppTranslator {
             String declaration = "    " + targetClassName + "* " + memberName + ";";
             lines.add(insertPosition + 1, declaration);
 
-            addRequiredIncludes(lines, targetClassName + ".h");
             return String.join("\n", lines);
         } catch (Exception e) {
             System.err.println("Failed to add association: " + e.getMessage());
@@ -453,17 +540,14 @@ public class UmlToCppTranslator {
 
     public String addComposition(String existingCode, String componentName, String memberName, Visibility visibility) {
         try {
-            // コンポジション用の属性作成（メンバ変数として保持）
-            Attribute attribute = new Attribute(new Name(memberName));
-            attribute.setType(new Type(componentName));
-            attribute.setVisibility(visibility);
-
-            // インクルードの追加とコードへの反映
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
-            addRequiredIncludes(lines, componentName);
-            String code = String.join("\n", lines);
+            int insertPosition = findInsertPositionForAttribute(lines, visibility);
 
-            return addAttribute(code, null, attribute);
+            // コンポジション用のメンバ変数を追加
+            String declaration = "    " + componentName + " " + memberName + ";";
+            lines.add(insertPosition + 1, declaration);
+
+            return String.join("\n", lines);
         } catch (Exception e) {
             System.err.println("Failed to add composition: " + e.getMessage());
             return existingCode;
@@ -482,7 +566,6 @@ public class UmlToCppTranslator {
             String declaration = "    " + componentName + "* " + memberName + ";";
             lines.add(insertPosition + 2, declaration);
 
-            addRequiredIncludes(lines, componentName + ".h");
             return String.join("\n", lines);
         } catch (Exception e) {
             System.err.println("Failed to add composition with annotation: " + e.getMessage());
@@ -499,7 +582,6 @@ public class UmlToCppTranslator {
             String declaration = "    std::shared_ptr<" + componentName + "> " + memberName + ";";
             lines.add(insertPosition + 1, declaration);
 
-            addRequiredIncludes(lines, componentName + ".h");
             lines.add(0, "#include <memory>");
             return String.join("\n", lines);
         } catch (Exception e) {
@@ -520,7 +602,6 @@ public class UmlToCppTranslator {
             String declaration = "    std::shared_ptr<" + componentName + "> " + memberName + ";";
             lines.add(insertPosition + 2, declaration);
 
-            addRequiredIncludes(lines, componentName + ".h");
             lines.add(0, "#include <memory>"); // shared_ptr用
             return String.join("\n", lines);
         } catch (Exception e) {
@@ -557,46 +638,71 @@ public class UmlToCppTranslator {
         return String.join("\n", lines);
     }
 
-    public String addRealization(String existingCode, String interfaceName) {
+    public String removeInheritance(String existingCode, String baseClassName) {
+        System.out.println("Removing inheritance/realization for base class: " + baseClassName);
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
 
             // クラス定義行を見つける
-            Pattern classDefPattern = Pattern.compile("class\\s+\\w+\\s*(?::|\\{)");
-            int classDefLine = -1;
             for (int i = 0; i < lines.size(); i++) {
-                if (classDefPattern.matcher(lines.get(i)).find()) {
-                    classDefLine = i;
+                String line = lines.get(i);
+                if (line.contains("class ") && line.contains(": ")) {
+                    System.out.println("Found class definition line: " + line);
+
+                    // 継承リストを処理
+                    int colonPos = line.indexOf(":");
+                    String beforeColon = line.substring(0, colonPos);
+                    String afterColon = line.substring(colonPos + 1);
+
+                    // 継承リストをカンマで分割して処理
+                    String[] inheritances = afterColon.split(",");
+                    List<String> remainingInheritances = new ArrayList<>();
+
+                    for (String inheritance : inheritances) {
+                        String trimmed = inheritance.trim();
+                        // public や private のスコープも含めてチェック
+                        if (!trimmed.contains(baseClassName)) {
+                            remainingInheritances.add(trimmed);
+                        } else {
+                            System.out.println("Removing inheritance: " + trimmed);
+                        }
+                    }
+
+                    // 継承リストを再構築
+                    if (remainingInheritances.isEmpty()) {
+                        String newLine = beforeColon + " {";
+                        System.out.println("Updated line (no inheritance): " + newLine);
+                        lines.set(i, newLine);
+                    } else {
+                        String newLine = beforeColon + ": " + String.join(", ", remainingInheritances) + " {";
+                        System.out.println("Updated line (with remaining inheritance): " + newLine);
+                        lines.set(i, newLine);
+                    }
                     break;
                 }
             }
 
-            if (classDefLine == -1)
-                return existingCode;
-
-            // インクルードの追加
-            addRequiredIncludes(lines, interfaceName + ".h");
-
-            // 継承関係の追加
-            String currentLine = lines.get(classDefLine);
-            if (currentLine.contains(":")) {
-                int colonPos = currentLine.indexOf(":");
-                String beforeColon = currentLine.substring(0, colonPos + 1);
-                String afterColon = currentLine.substring(colonPos + 1);
-                lines.set(classDefLine, beforeColon + " public " + interfaceName + ", " + afterColon);
-            } else {
-                String newLine = currentLine.replace("{", ": public " + interfaceName + " {");
-                lines.set(classDefLine, newLine);
+            // インクルードの削除
+            // まずインクルードを見つける
+            for (int i = lines.size() - 1; i >= 0; i--) {
+                String line = lines.get(i).trim();
+                if (line.equals("#include \"" + baseClassName + ".h\"")) {
+                    System.out.println("Removing include line: " + line);
+                    lines.remove(i);
+                    break;
+                }
             }
 
-            return String.join("\n", lines);
+            String result = String.join("\n", lines);
+            System.out.println("Inheritance removal completed");
+            return result;
         } catch (Exception e) {
-            System.err.println("Failed to add realization: " + e.getMessage());
+            System.err.println("Failed to remove inheritance: " + e.getMessage());
+            e.printStackTrace();
             return existingCode;
         }
     }
 
-    // このクラスで使用する補助メソッド
     private void addRequiredIncludes(List<String> lines, String type) {
         Set<String> includes = new HashSet<>();
 

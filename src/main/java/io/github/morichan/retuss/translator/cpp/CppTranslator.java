@@ -73,12 +73,15 @@ public class CppTranslator {
                 .append(operation.getName())
                 .append("(");
 
-        // パラメータ
-        List<String> params = new ArrayList<>();
-        operation.getParameters().forEach(param -> params.add(String.format("%s %s",
-                translateType(param.getType()),
-                param.getName())));
-        sb.append(String.join(", ", params));
+        if (!operation.getParameters().isEmpty() && operation.getParameters() != null) {
+            // パラメータ
+            List<String> params = new ArrayList<>();
+
+            operation.getParameters().forEach(param -> params.add(String.format("%s %s",
+                    translateType(param.getType()),
+                    param.getName())));
+            sb.append(String.join(", ", params));
+        }
 
         sb.append(")");
 
@@ -148,8 +151,12 @@ public class CppTranslator {
         return umlToCppTranslator.addInheritance(existingCode, derivedClassName, baseClassName);
     }
 
-    public String addRealization(String existingCode, String interfaceName) {
-        return umlToCppTranslator.addRealization(existingCode, interfaceName);
+    public String addRealization(String code, String interfaceName) {
+        return umlToCppTranslator.addRealization(code, interfaceName);
+    }
+
+    public String removeInheritance(String code, String baseClassName) {
+        return umlToCppTranslator.removeInheritance(code, baseClassName);
     }
 
     public String addComposition(String existingCode, String componentName, String memberName, Visibility visibility) {

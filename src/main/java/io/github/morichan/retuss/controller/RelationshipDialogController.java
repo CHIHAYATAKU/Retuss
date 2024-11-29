@@ -69,7 +69,7 @@ public class RelationshipDialogController {
             visibilityComboBox.setVisible(true);
         }
 
-        initializeClassList();
+        // initializeClassList();
         updateRelationshipImage();
     }
 

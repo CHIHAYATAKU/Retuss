@@ -226,16 +226,16 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                                 relation.setType(RelationType.REALIZATION);
 
                                 // 要素の追加
-                                relation.addElement(
-                                        methodName,
-                                        ElementType.OPERATION,
-                                        "1",
-                                        operation.getVisibility(),
-                                        null,
-                                        returnType,
-                                        null,
-                                        modifiers.contains(Modifier.PURE_VIRTUAL),
-                                        modifiers);
+                                // relation.addElement(
+                                // methodName,
+                                // ElementType.OPERATION,
+                                // "1",
+                                // operation.getVisibility(),
+                                // null,
+                                // returnType,
+                                // null,
+                                // modifiers.contains(Modifier.PURE_VIRTUAL),
+                                // modifiers);
                             }
                         });
             }
