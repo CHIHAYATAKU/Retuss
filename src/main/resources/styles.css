@@ -35,3 +35,19 @@
 .code-area .scroll-bar:vertical .thumb {
     -fx-background-color: #4d4d4d;
 }
+
+.slider .track {
+    -fx-background-color: #ddd;
+}
+
+.slider .thumb {
+    -fx-background-color: #3498db;
+}
+
+.slider .thumb:hover {
+    -fx-background-color: #2980b9;
+}
+
+.slider .axis {
+    -fx-tick-label-fill: #666;
+}

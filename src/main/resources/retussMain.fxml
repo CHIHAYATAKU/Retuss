@@ -15,6 +15,13 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
     prefHeight="960.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/11.0.1"
@@ -48,12 +55,15 @@
                         <!-- 言語選択ツールバー -->
                         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                             <items>
-                                <CheckBox fx:id="javaCheckBox" text="Java" selected="true"
-                                    onAction="#toggleJavaSelection"
-                                    styleClass="custom-radio-check-box" />
-                                <CheckBox fx:id="cppCheckBox" text="C++"
-                                    onAction="#toggleCppSelection"
-                                    styleClass="custom-radio-check-box" />
+                                <ComboBox fx:id="languageSelector" promptText="Select Language"
+                                    onAction="#handleLanguageSelection">
+                                    <items>
+                                        <FXCollections fx:factory="observableArrayList">
+                                            <String fx:value="Java" />
+                                            <String fx:value="C++" />
+                                        </FXCollections>
+                                    </items>
+                                </ComboBox>
                             </items>
                         </ToolBar>
                     </center>
@@ -104,16 +114,25 @@
                                                     <!-- 切り替えボタンエリア -->
                                                     <BorderPane>
                                                         <right>
-                                                            <Button fx:id="toggleViewBtn"
-                                                                mnemonicParsing="false"
-                                                                onAction="#toggleDiagramView"
-                                                                text="Show Code"
-                                                                styleClass="switch-button">
-                                                                <BorderPane.margin>
+                                                            <HBox spacing="10"
+                                                                alignment="CENTER_RIGHT">
+                                                                <padding>
                                                                     <Insets right="10.0" top="5.0"
                                                                         bottom="5.0" />
-                                                                </BorderPane.margin>
-                                                            </Button>
+                                                                </padding>
+                                                                <Label text="Scale:" />
+                                                                <Slider fx:id="scaleSlider"
+                                                                    min="0.5" max="2.0" value="1.0"
+                                                                    blockIncrement="0.1"
+                                                                    showTickLabels="true"
+                                                                    showTickMarks="true"
+                                                                    prefWidth="150" />
+                                                                <Button fx:id="toggleViewBtn"
+                                                                    mnemonicParsing="false"
+                                                                    onAction="#toggleDiagramView"
+                                                                    text="Show Code"
+                                                                    styleClass="switch-button" />
+                                                            </HBox>
                                                         </right>
                                                     </BorderPane>
 
