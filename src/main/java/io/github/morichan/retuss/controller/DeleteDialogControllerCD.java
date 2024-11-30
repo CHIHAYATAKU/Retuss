@@ -190,12 +190,13 @@ public class DeleteDialogControllerCD {
             // 削除後にツリーを再構築
             initialize();
 
-            if (!cdTreeItemList.isEmpty()) {
-                // 削除したアイテムの次のアイテムや前のアイテムを選択するなどのロジック
-                int nextIndex = selectedIndices.get(0) < cdTreeItemList.size() ? selectedIndices.get(0)
-                        : cdTreeItemList.size() - 1;
-                cdTreeView.getSelectionModel().select(nextIndex);
-            }
+            // if (!cdTreeItemList.isEmpty()) {
+            // // 削除したアイテムの次のアイテムや前のアイテムを選択するなどのロジック
+            // int nextIndex = selectedIndices.get(0) < cdTreeItemList.size() ?
+            // selectedIndices.get(0)
+            // : cdTreeItemList.size() - 1;
+            // cdTreeView.getSelectionModel().select(nextIndex);
+            // }
 
             // 閉じる
             Stage stage = (Stage) cdTreeView.getScene().getWindow();

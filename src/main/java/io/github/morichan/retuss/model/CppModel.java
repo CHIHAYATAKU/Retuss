@@ -12,6 +12,11 @@ import io.github.morichan.retuss.translator.cpp.CppTranslator;
 
 import java.util.*;
 
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+
 public class CppModel {
     private final UmlModel umlModel;
     private static final CppModel model = new CppModel();
@@ -51,7 +56,9 @@ public class CppModel {
 
     public void addNewFile(String fileName) {
         String baseName = fileName.replaceAll("\\.(h|hpp|cpp)$", "");
-        createCppFiles(baseName, Optional.empty());
+        if (!headerFiles.containsKey(baseName)) {
+            createCppFiles(baseName, Optional.empty());
+        }
     }
 
     public void addNewFileFromUml(CppHeaderClass headerClass) {
@@ -59,6 +66,10 @@ public class CppModel {
     }
 
     private void createCppFiles(String baseName, Optional<CppHeaderClass> headerClass) {
+        if (headerFiles.containsKey(baseName)) {
+            System.out.println("Files already exist for baseName: " + baseName);
+            return;
+        }
         // ヘッダーファイル作成
         CppFile headerFile = new CppFile(baseName + ".h", true);
         if (headerClass.isPresent()) {

@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CppClassDiagramDrawer {
+    private double currentScale = 1.0;
     private final CppModel model;
     private final UmlModel umlModel;
     private WebView webView;
@@ -34,6 +36,14 @@ public class CppClassDiagramDrawer {
     private final ExecutorService diagramExecutor = Executors.newSingleThreadExecutor();
     private final AtomicReference<String> lastSvg = new AtomicReference<>();
     private volatile boolean isUpdating = false;
+
+    public void setScale(double scale) {
+        if (this.currentScale != scale) { // 値が実際に変化した場合のみ
+            this.currentScale = scale;
+            clearCache(); // キャッシュをクリアして
+            draw(); // 再描画
+        }
+    }
 
     public CppClassDiagramDrawer(WebView webView) {
         this.model = CppModel.getInstance();
@@ -247,10 +257,11 @@ public class CppClassDiagramDrawer {
 
                 StringBuilder pumlBuilder = new StringBuilder("@startuml\n");
                 pumlBuilder.append("skinparam style strictuml\n");
-                pumlBuilder.append("skinparam linetype polyline\n");
+                pumlBuilder.append(" skinparam linetype ortho\n");
+                // pumlBuilder.append("skinparam linetype polyline\n");
                 pumlBuilder.append("skinparam classAttributeIconSize 0\n");
-                // 関係線の設定
-                pumlBuilder.append("skinparam LineThickness 1.5\n"); // 線の太さ
+                pumlBuilder.append("skinparam LineThickness 1.5\n");
+                pumlBuilder.append("scale ").append(String.format("%.2f", currentScale)).append("\n");
 
                 for (CppHeaderClass cls : classes) {
                     System.out.println("Processing class: " + cls.getName());

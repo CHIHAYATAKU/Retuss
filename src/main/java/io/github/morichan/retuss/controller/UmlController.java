@@ -16,23 +16,32 @@ import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -69,24 +78,11 @@ public class UmlController {
     @FXML
     private TabPane tabPaneInSequenceTab;
     @FXML
-    private CheckBox javaCheckBox;
-
+    private ComboBox<String> languageSelector;
     @FXML
-    private CheckBox cppCheckBox;
+    private Slider scaleSlider;
 
-    @FXML
-    private void toggleJavaSelection() {
-        if (javaCheckBox.isSelected()) {
-            cppCheckBox.setSelected(false); // Javaを選択時にC++のチェックを外す
-        }
-    }
-
-    @FXML
-    private void toggleCppSelection() {
-        if (cppCheckBox.isSelected()) {
-            javaCheckBox.setSelected(false); // C++を選択時にJavaのチェックを外す
-        }
-    }
+    private String currentLanguage = "Java";
 
     private long lastUpdateTime = 0;
     private static final long MIN_UPDATE_INTERVAL = 100;
@@ -114,6 +110,8 @@ public class UmlController {
     private void initialize() {
         javaModel.setUmlController(this);
         cppModel.setUmlController(this);
+        languageSelector.setValue("Java");
+        currentLanguage = "Java";
         javaClassDiagramDrawer = new JavaClassDiagramDrawer(classDiagramWebView);
         cppClassDiagramDrawer = new CppClassDiagramDrawer(classDiagramWebView);
         sequenceDiagramDrawer = new SequenceDiagramDrawer(tabPaneInSequenceTab);
@@ -123,19 +121,38 @@ public class UmlController {
                 plantUmlCodeArea.setText(newPlantUml);
             });
         });
+        scaleSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (isJavaSelected()) {
+                // javaClassDiagramDrawer.setScale(newVal.doubleValue());
+            } else if (isCppSelected()) {
+                cppClassDiagramDrawer.setScale(newVal.doubleValue());
+            }
+        });
 
         // TextAreaの設定
-        plantUmlCodeArea.setEditable(false);
+        plantUmlCodeArea.setEditable(true);
         plantUmlCodeArea.setWrapText(false);
 
         // Toggle ボタンのテキスト設定
         toggleViewBtn.setText("Show Code");
         // cppSequenceDiagramDrawer = new
         // CppSequenceDiagramDrawer(tabPaneInSequenceTab);
+    }
 
-        // チェックボックスにカスタムスタイルを適用
-        javaCheckBox.getStyleClass().add("custom-radio-check-box");
-        cppCheckBox.getStyleClass().add("custom-radio-check-box");
+    @FXML
+    private void handleLanguageSelection(ActionEvent event) {
+        String selectedLanguage = languageSelector.getValue();
+        if (selectedLanguage != null) {
+            currentLanguage = selectedLanguage;
+            System.out.println("Selected language: " + selectedLanguage);
+
+            // 図の更新
+            if ("Java".equals(currentLanguage)) {
+                javaClassDiagramDrawer.draw();
+            } else if ("C++".equals(currentLanguage)) {
+                cppClassDiagramDrawer.draw();
+            }
+        }
     }
 
     @FXML
@@ -157,15 +174,6 @@ public class UmlController {
     public void setCodeController(CodeController controller) {
         this.codeController = controller;
         System.out.println("CodeController set in UmlController");
-    }
-
-    // getterメソッドの追加
-    public CheckBox getJavaCheckBox() {
-        return javaCheckBox;
-    }
-
-    public CheckBox getCppCheckBox() {
-        return cppCheckBox;
     }
 
     @FXML
@@ -309,13 +317,12 @@ public class UmlController {
         }
     }
 
-    // チェックボックスの状態を取得するメソッド
     public boolean isJavaSelected() {
-        return javaCheckBox.isSelected();
+        return "Java".equals(currentLanguage);
     }
 
     public boolean isCppSelected() {
-        return cppCheckBox.isSelected();
+        return "C++".equals(currentLanguage);
     }
 
     @FXML
@@ -402,7 +409,7 @@ public class UmlController {
     public void onClassDeleted(String className) {
         Platform.runLater(() -> {
             // クラス図の更新
-            if (cppCheckBox.isSelected()) {
+            if (isCppSelected()) {
                 cppClassDiagramDrawer.clearCache();
                 cppClassDiagramDrawer.draw();
             }

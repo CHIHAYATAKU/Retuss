@@ -80,7 +80,11 @@ public class RetussWindow extends Application {
         double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
 
         Scene codeScene = new Scene(codeRoot);
-        codeScene.getStylesheets().add(getClass().getResource("/custom-radio.css").toExternalForm());
+        // コード用のスタイルシートを追加
+        codeScene.getStylesheets().addAll(
+                getClass().getResource("/custom-radio.css").toExternalForm(),
+                getClass().getResource("/styles.css").toExternalForm() // コード用のスタイル
+        );
 
         Stage codeStage = new Stage();
         codeStage.initOwner(mainStage);
@@ -92,6 +96,20 @@ public class RetussWindow extends Application {
         codeStage.setHeight(screenHeight);
         codeStage.setX(screenWidth / 2);
         codeStage.setY(0.0);
+
+        // ステージ表示前の初期化
+        codeStage.setOnShowing(event -> {
+            if (codeController != null) {
+                Platform.runLater(() -> {
+                    try {
+                        codeController.postInitialize(); // 追加した初期化メソッドを呼び出し
+                    } catch (Exception e) {
+                        showError("Failed to initialize code window", e);
+                    }
+                });
+            }
+        });
+
         codeStage.show();
     }
 

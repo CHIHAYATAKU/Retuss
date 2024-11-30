@@ -1,37 +1,33 @@
-.switch-button {
-    -fx-background-color: #3498db;
-    -fx-text-fill: white;
-    -fx-background-radius: 20;
-    -fx-border-radius: 20;
-    -fx-padding: 5 15;
-    -fx-font-size: 12px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 0, 1);
+.menu-bar {
+    -fx-background-color: -fx-background;
 }
 
-.switch-button:hover {
-    -fx-background-color: #2980b9;
+.file-menu-button {
+    -fx-padding: 2 8;
+    -fx-font-size: 12px;
+}
+
+.menu-item {
+    -fx-pref-width: 200px;
+}
+
+.tab-pane {
+    -fx-tab-min-width: 80px;
+    -fx-tab-max-width: 150px;
+}
+
+.tab-pane .tab {
+    -fx-padding: 2 8;
+    -fx-pref-height: 24px;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-overflow: ellipsis;
+    -fx-max-width: 140px;
 }
 
 .code-area {
     -fx-font-family: 'Consolas', 'Monaco', monospace;
     -fx-font-size: 13px;
-    -fx-background-color: #1e1e1e;
-    -fx-text-fill: #d4d4d4;
     -fx-padding: 10px;
-}
-
-.code-area .content {
-    -fx-background-color: #1e1e1e;
-}
-
-.code-area .scroll-pane {
-    -fx-background-color: transparent;
-}
-
-.code-area .scroll-bar:vertical {
-    -fx-background-color: #2d2d2d;
-}
-
-.code-area .scroll-bar:vertical .thumb {
-    -fx-background-color: #4d4d4d;
 }
