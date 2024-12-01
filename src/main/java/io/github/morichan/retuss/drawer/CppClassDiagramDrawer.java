@@ -60,7 +60,7 @@ public class CppClassDiagramDrawer {
             }
             pumlBuilder.append("class ").append(cls.getName());
 
-            if (cls.getInterface() && cls.getAbstruct()) {
+            if (cls.getInterface() && cls.getAbstruct() && cls.getAttributeList().isEmpty()) {
                 pumlBuilder.append(" <<interface>>");
             }
 
@@ -257,7 +257,8 @@ public class CppClassDiagramDrawer {
 
                 StringBuilder pumlBuilder = new StringBuilder("@startuml\n");
                 pumlBuilder.append("skinparam style strictuml\n");
-                pumlBuilder.append("skinparam linetype polyline\n");
+                pumlBuilder.append(" skinparam linetype ortho\n");
+                // pumlBuilder.append("skinparam linetype polyline\n");
                 pumlBuilder.append("skinparam classAttributeIconSize 0\n");
                 pumlBuilder.append("skinparam LineThickness 1.5\n");
                 pumlBuilder.append("scale ").append(String.format("%.2f", currentScale)).append("\n");

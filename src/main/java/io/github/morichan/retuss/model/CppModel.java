@@ -56,7 +56,9 @@ public class CppModel {
 
     public void addNewFile(String fileName) {
         String baseName = fileName.replaceAll("\\.(h|hpp|cpp)$", "");
-        createCppFiles(baseName, Optional.empty());
+        if (!headerFiles.containsKey(baseName)) {
+            createCppFiles(baseName, Optional.empty());
+        }
     }
 
     public void addNewFileFromUml(CppHeaderClass headerClass) {
@@ -64,6 +66,10 @@ public class CppModel {
     }
 
     private void createCppFiles(String baseName, Optional<CppHeaderClass> headerClass) {
+        if (headerFiles.containsKey(baseName)) {
+            System.out.println("Files already exist for baseName: " + baseName);
+            return;
+        }
         // ヘッダーファイル作成
         CppFile headerFile = new CppFile(baseName + ".h", true);
         if (headerClass.isPresent()) {
@@ -875,6 +881,14 @@ public class CppModel {
                 implFile.updateCode(newCode);
             }
         }
+    }
+
+    public Map<String, CppFile> getHeaderFiles() {
+        return Collections.unmodifiableMap(headerFiles);
+    }
+
+    public Map<String, CppFile> getImplFiles() {
+        return Collections.unmodifiableMap(implFiles);
     }
 
     public List<CppHeaderClass> getHeaderClasses() {

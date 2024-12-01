@@ -33,24 +33,6 @@
             AnchorPane.topAnchor="0.0">
             <top>
                 <BorderPane>
-                    <top>
-                        <MenuBar BorderPane.alignment="CENTER">
-                            <menus>
-                                <Menu mnemonicParsing="false" text="File">
-                                    <items>
-                                        <Menu mnemonicParsing="false" text="Import File">
-                                            <items>
-                                                <MenuItem mnemonicParsing="false"
-                                                    onAction="#importJavaFile" text="Java" />
-                                                <MenuItem mnemonicParsing="false"
-                                                    onAction="#importCppFile" text="C++" />
-                                            </items>
-                                        </Menu>
-                                    </items>
-                                </Menu>
-                            </menus>
-                        </MenuBar>
-                    </top>
                     <center>
                         <!-- 言語選択ツールバー -->
                         <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
