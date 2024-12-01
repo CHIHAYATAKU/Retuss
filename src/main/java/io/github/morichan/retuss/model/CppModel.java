@@ -883,6 +883,14 @@ public class CppModel {
         }
     }
 
+    public Map<String, CppFile> getHeaderFiles() {
+        return Collections.unmodifiableMap(headerFiles);
+    }
+
+    public Map<String, CppFile> getImplFiles() {
+        return Collections.unmodifiableMap(implFiles);
+    }
+
     public List<CppHeaderClass> getHeaderClasses() {
         List<CppHeaderClass> allClasses = new ArrayList<>();
         for (CppFile headerFile : headerFiles.values()) {

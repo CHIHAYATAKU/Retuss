@@ -42,6 +42,7 @@ public class DeleteDialogControllerCD {
     }
 
     public void initialize() {
+        System.out.println("DEBUG: Initializing DeleteDialogControllerCD");
         TreeItem<String> root = new TreeItem<>("Class List");
         root.setExpanded(true);
         cdTreeItemList.clear();
@@ -49,14 +50,29 @@ public class DeleteDialogControllerCD {
 
         if (umlController != null) {
             if (umlController.isJavaSelected()) {
+                System.out.println("DEBUG: Initializing Java tree");
                 initializeJavaTree(root);
             } else if (umlController.isCppSelected()) {
+                System.out.println("DEBUG: Initializing C++ tree");
                 initializeCppTree(root);
             }
         }
 
         cdTreeView.setRoot(root);
         cdTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+        printTreeContent(root, 0);
+    }
+
+    private void printTreeContent(TreeItem<String> item, int depth) {
+        StringBuilder indent = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            indent.append("  ");
+        }
+        System.out.println("DEBUG: Tree item: " + indent + item.getValue());
+        for (TreeItem<String> child : item.getChildren()) {
+            printTreeContent(child, depth + 1);
+        }
     }
 
     private void initializeJavaTree(TreeItem<String> root) {
@@ -157,139 +173,258 @@ public class DeleteDialogControllerCD {
 
     @FXML
     private void delete() {
-        // 選択されたインデックスのリストを取得
-        ObservableList<Integer> selectedIndices = cdTreeView.getSelectionModel().getSelectedIndices();
-
-        // インデックスが空でないか、無効なインデックスでないか確認
-        if (selectedIndices.isEmpty() || selectedIndices.get(0) == 0) {
-            System.out.println("No valid selection for deletion.");
-            return;
-        }
-
-        System.out.println("cdTreeItemList contents:");
-        for (int i = 0; i < cdTreeItemList.size(); i++) {
-            Object item = cdTreeItemList.get(i);
-            System.out.println("Index " + i + ": " + item);
-        }
-
-        // 選択されたインデックスとその中身を表示
-        System.out.println("Selected indices: " + selectedIndices); // インデックスの表示
-        for (int index : selectedIndices) {
-            Object selectedItem = cdTreeItemList.get(index);
-            System.out.println("Item at index " + index + ": " + selectedItem); // 各インデックスの中身を表示
-        }
-
         try {
-            // 言語がJavaかC++に応じて削除処理を呼び出す
-            if (umlController.isJavaSelected()) {
-                deleteJavaElement(selectedIndices);
-            } else if (umlController.isCppSelected()) {
-                deleteCppElement(selectedIndices);
+            TreeItem<String> selectedItem = (TreeItem<String>) cdTreeView.getSelectionModel().getSelectedItem();
+            if (selectedItem == null || selectedItem.getValue().equals("Class List")) {
+                System.out.println("DEBUG: No valid selection for deletion");
+                messageLabel.setText("Please select an item to delete");
+                return;
             }
 
-            // 削除後にツリーを再構築
-            initialize();
+            // 選択されたアイテムのパスを取得
+            List<String> path = new ArrayList<>();
+            TreeItem<String> current = selectedItem;
+            while (current != null && !current.getValue().equals("Class List")) {
+                path.add(0, current.getValue());
+                current = current.getParent();
+            }
 
-            // if (!cdTreeItemList.isEmpty()) {
-            // // 削除したアイテムの次のアイテムや前のアイテムを選択するなどのロジック
-            // int nextIndex = selectedIndices.get(0) < cdTreeItemList.size() ?
-            // selectedIndices.get(0)
-            // : cdTreeItemList.size() - 1;
-            // cdTreeView.getSelectionModel().select(nextIndex);
-            // }
+            System.out.println("DEBUG: Selected path: " + String.join(" -> ", path));
 
-            // 閉じる
-            Stage stage = (Stage) cdTreeView.getScene().getWindow();
-            stage.close();
+            // 選択されたアイテムに対応するオブジェクトを特定
+            int selectedIndex = findSelectedObjectIndex(path);
+            System.out.println("DEBUG: Selected index in cdTreeItemList: " + selectedIndex);
+
+            if (selectedIndex >= 0) {
+                Object selectedObject = cdTreeItemList.get(selectedIndex);
+                System.out.println("DEBUG: Selected object type: " + selectedObject.getClass().getName());
+                System.out.println("DEBUG: Selected object toString: " + selectedObject.toString());
+
+                // 言語に応じた削除処理
+                if (umlController.isJavaSelected()) {
+                    deleteJavaElement(selectedObject, path);
+                } else if (umlController.isCppSelected()) {
+                    deleteCppElement(selectedObject, path);
+                }
+
+                // ツリーを再構築
+                initialize();
+                messageLabel.setText("Item deleted successfully");
+            } else {
+                System.out.println("DEBUG: Could not find corresponding object for selection");
+                messageLabel.setText("Could not find item to delete");
+            }
+
         } catch (Exception e) {
-            System.out.println("Deletion failed: " + e.getMessage());
+            System.err.println("ERROR during deletion: " + e.getMessage());
             e.printStackTrace();
-            messageLabel.setText("Failed to delete: " + e.getMessage());
+            messageLabel.setText("Error during deletion: " + e.getMessage());
         }
     }
 
-    private void deleteJavaElement(ObservableList<Integer> selectedIndices) {
-        String className = "";
-        Object selectedItem = cdTreeItemList.get(selectedIndices.get(0));
+    private int findSelectedObjectIndex(List<String> path) {
+        if (path.isEmpty())
+            return -1;
 
-        if (selectedItem instanceof Class) {
-            className = ((Class) selectedItem).getName();
-            javaModel.delete(className);
-        } else {
-            for (int i = selectedIndices.get(0) - 1; i > 0; i--) {
-                if (cdTreeItemList.get(i) instanceof Class) {
-                    className = ((Class) cdTreeItemList.get(i)).getName();
-                    break;
+        String targetName = path.get(path.size() - 1);
+        System.out.println("DEBUG: Looking for object with name: " + targetName);
+
+        // 最後の要素の種類を判断する補助変数
+        boolean isAttribute = path.contains("Attributes");
+        boolean isOperation = path.contains("Operations");
+        boolean isRelation = path.contains("Relations");
+
+        for (int i = 0; i < cdTreeItemList.size(); i++) {
+            Object item = cdTreeItemList.get(i);
+
+            if (isAttribute && item instanceof Attribute) {
+                Attribute attr = (Attribute) item;
+                String attrStr = formatAttributeString(attr);
+                System.out.println("DEBUG: Comparing attribute: " + attrStr + " with " + targetName);
+                if (attrStr.equals(targetName)) {
+                    return i;
+                }
+            } else if (isOperation && item instanceof Operation) {
+                Operation op = (Operation) item;
+                String opStr = formatOperationString(op);
+                System.out.println("DEBUG: Comparing operation: " + opStr + " with " + targetName);
+                if (opStr.equals(targetName)) {
+                    return i;
+                }
+            } else if (isRelation && item instanceof RelationshipInfo) {
+                RelationshipInfo rel = (RelationshipInfo) item;
+                String relStr = formatRelationshipString(rel);
+                System.out.println("DEBUG: Comparing relation: " + relStr + " with " + targetName);
+                if (relStr.equals(targetName)) {
+                    return i;
+                }
+            } else if (item instanceof Class || item instanceof CppHeaderClass) {
+                String className = item instanceof Class ? ((Class) item).getName() : ((CppHeaderClass) item).getName();
+                System.out.println("DEBUG: Comparing class: " + className + " with " + targetName);
+                if (targetName.equals(className)) {
+                    return i;
                 }
             }
-            if (selectedItem instanceof Attribute) {
-                javaModel.delete(className, (Attribute) selectedItem);
-            } else if (selectedItem instanceof Operation) {
-                javaModel.delete(className, (Operation) selectedItem);
-            } else if (selectedItem.equals("Generalization")) {
+        }
+        return -1;
+    }
+
+    private String formatAttributeString(Attribute attr) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(attr.getVisibility().toString().substring(0, 1).toLowerCase())
+                .append(" ")
+                .append(attr.getName().getNameText())
+                .append(" : ")
+                .append(attr.getType().toString());
+        return sb.toString();
+    }
+
+    private String formatOperationString(Operation op) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(op.getVisibility().toString().substring(0, 1).toLowerCase())
+                .append(" ")
+                .append(op.getName().getNameText())
+                .append("(");
+
+        try {
+            List<Parameter> params = op.getParameters();
+            if (params != null && !params.isEmpty()) {
+                List<String> paramStrings = new ArrayList<>();
+                for (Parameter param : params) {
+                    paramStrings.add(param.getType().toString() + " " + param.getName().getNameText());
+                }
+                sb.append(String.join(", ", paramStrings));
+            }
+        } catch (IllegalStateException e) {
+            // パラメータが存在しない場合
+        }
+
+        sb.append(") : ").append(op.getReturnType().toString());
+        return sb.toString();
+    }
+
+    private String formatRelationshipString(RelationshipInfo rel) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(rel.getType().name())
+                .append(" -> ")
+                .append(rel.getTargetClass());
+
+        if (!rel.getElements().isEmpty()) {
+            RelationshipElement elem = rel.getElements().iterator().next();
+            sb.append(" (")
+                    .append(elem.getVisibility())
+                    .append(" ")
+                    .append(elem.getName())
+                    .append(")");
+        }
+        return sb.toString();
+    }
+
+    private boolean validatePath(Object item, List<String> path) {
+        if (path.size() == 1) {
+            return true;
+        }
+
+        // クラスの場合
+        if (item instanceof Class || item instanceof CppHeaderClass) {
+            return path.get(0).equals(getItemName(item));
+        }
+
+        // 属性の場合
+        if (item instanceof Attribute) {
+            return path.size() >= 2 &&
+                    path.get(path.size() - 2).equals(getClassName(item)) &&
+                    path.get(path.size() - 1).equals(getItemName(item));
+        }
+
+        // 操作の場合
+        if (item instanceof Operation) {
+            return path.size() >= 2 &&
+                    path.get(path.size() - 2).equals(getClassName(item)) &&
+                    path.get(path.size() - 1).equals(getItemName(item));
+        }
+
+        return false;
+    }
+
+    private String getItemName(Object item) {
+        if (item instanceof Class) {
+            return ((Class) item).getName();
+        } else if (item instanceof CppHeaderClass) {
+            return ((CppHeaderClass) item).getName();
+        } else if (item instanceof Attribute) {
+            return ((Attribute) item).toString();
+        } else if (item instanceof Operation) {
+            return ((Operation) item).toString();
+        } else if (item instanceof RelationshipInfo) {
+            return ((RelationshipInfo) item).toString();
+        } else if (item instanceof String) {
+            return (String) item;
+        }
+        return "";
+    }
+
+    private String getClassName(Object item) {
+        // 属性や操作から親クラス名を取得
+        if (item instanceof Attribute || item instanceof Operation) {
+            for (int i = cdTreeItemList.size() - 1; i >= 0; i--) {
+                Object potentialClass = cdTreeItemList.get(i);
+                if (potentialClass instanceof Class) {
+                    return ((Class) potentialClass).getName();
+                } else if (potentialClass instanceof CppHeaderClass) {
+                    return ((CppHeaderClass) potentialClass).getName();
+                }
+            }
+        }
+        return "";
+    }
+
+    private void deleteJavaElement(Object selectedObject, List<String> path) {
+        System.out.println("DEBUG: Deleting Java element of type: " + selectedObject.getClass().getName());
+
+        if (selectedObject instanceof Class) {
+            Class javaClass = (Class) selectedObject;
+            System.out.println("DEBUG: Deleting Java class: " + javaClass.getName());
+            javaModel.delete(javaClass.getName());
+        } else {
+            String className = path.get(0); // パスの最初の要素がクラス名
+            System.out.println("DEBUG: Parent class name: " + className);
+
+            if (selectedObject instanceof Attribute) {
+                System.out.println("DEBUG: Deleting attribute: " + ((Attribute) selectedObject).getName());
+                javaModel.delete(className, (Attribute) selectedObject);
+            } else if (selectedObject instanceof Operation) {
+                System.out.println("DEBUG: Deleting operation: " + ((Operation) selectedObject).getName());
+                javaModel.delete(className, (Operation) selectedObject);
+            } else if (selectedObject instanceof String && selectedObject.equals("Generalization")) {
+                System.out.println("DEBUG: Deleting generalization for class: " + className);
                 javaModel.deleteSuperClass(className);
             }
         }
     }
 
-    private void deleteCppElement(ObservableList<Integer> selectedIndices) {
-        // チェック: 選択項目がない、または無効なインデックスの場合は終了
-        if (selectedIndices.isEmpty() || selectedIndices.get(0) == 0) {
-            System.out.println("No valid selection or invalid index. Exiting deletion.");
-            return;
-        }
+    private void deleteCppElement(Object selectedObject, List<String> path) {
+        System.out.println("DEBUG: Deleting C++ element of type: " + selectedObject.getClass().getName());
 
-        // 最初の選択された項目を取得
-        int selectedIndex = selectedIndices.get(0);
-        System.out.println("Selected index: " + selectedIndex); // 選択されたインデックスを表示
-        Object selectedItem = cdTreeItemList.get(selectedIndex); // 選択されたアイテムを取得
-        String className = "";
-
-        // 選択された項目に応じた削除処理
-        if (selectedItem instanceof CppHeaderClass) {
-            // クラス全体を削除
-            className = ((CppHeaderClass) selectedItem).getName();
-            System.out.println("Attempting to delete class: " + className); // クラス名を表示
-            cppModel.delete(className);
+        if (selectedObject instanceof CppHeaderClass) {
+            CppHeaderClass cppClass = (CppHeaderClass) selectedObject;
+            System.out.println("DEBUG: Deleting C++ class: " + cppClass.getName());
+            cppModel.delete(cppClass.getName());
         } else {
-            // 親クラスを取得
-            className = findParentClassName(selectedIndex);
-            if (className.isEmpty()) {
-                System.out.println("Parent class name is empty. Exiting deletion.");
-                return;
-            }
+            String className = path.get(0); // パスの最初の要素がクラス名
+            System.out.println("DEBUG: Parent class name: " + className);
 
-            if (selectedItem instanceof Attribute) {
-                // 属性の削除
-                // インデックスを2つ戻す
-                int adjustedIndex = selectedIndex;
-                if (adjustedIndex >= 0) {
-                    Attribute selectedAttribute = (Attribute) cdTreeItemList.get(adjustedIndex); // 修正されたインデックスを使用
-                    System.out.println("Attempting to delete attribute: " + selectedAttribute.getName().getNameText()
-                            + " from class: " + className); // 属性名を表示
-                    cppModel.delete(className, selectedAttribute);
-                }
-            } else if (selectedItem instanceof Operation) {
-                // 操作の削除
-                // インデックスを2つ戻す
-                int adjustedIndex = selectedIndex;
-                if (adjustedIndex >= 0) {
-                    Operation selectedOperation = (Operation) cdTreeItemList.get(adjustedIndex); // 修正されたインデックスを使用
-                    System.out.println("Attempting to delete operation: " + selectedOperation.getName().getNameText()
-                            + " from class: " + className); // 操作名を表示
-                    cppModel.delete(className, selectedOperation);
-                }
-            } else if (selectedItem instanceof RelationshipInfo) {
-                // 関係の削除
-                // インデックスを3つ戻す（関係の場合はさらに戻す必要がある）
-                int adjustedIndex = selectedIndex;
-                if (adjustedIndex >= 0) {
-                    RelationshipInfo selectedRelationship = (RelationshipInfo) cdTreeItemList.get(adjustedIndex); // 修正されたインデックスを使用
-                    System.out.println("Attempting to delete relationship involving class: " + className); // 関係を表示
-                    handleRelationshipDeletion(className, selectedRelationship);
-                }
-            } else {
-                System.out.println("Unknown item type selected. No action taken.");
+            if (selectedObject instanceof Attribute) {
+                System.out.println("DEBUG: Deleting attribute: " + ((Attribute) selectedObject).getName());
+                cppModel.delete(className, (Attribute) selectedObject);
+            } else if (selectedObject instanceof Operation) {
+                System.out.println("DEBUG: Deleting operation: " + ((Operation) selectedObject).getName());
+                cppModel.delete(className, (Operation) selectedObject);
+            } else if (selectedObject instanceof RelationshipInfo) {
+                RelationshipInfo relation = (RelationshipInfo) selectedObject;
+                System.out.println(
+                        "DEBUG: Deleting relationship: " + relation.getType() + " with " + relation.getTargetClass());
+                handleRelationshipDeletion(className, relation);
             }
         }
     }
@@ -317,6 +452,10 @@ public class DeleteDialogControllerCD {
      * @param relation  RelationshipInfo オブジェクト
      */
     private void handleRelationshipDeletion(String className, RelationshipInfo relation) {
+        System.out.println("DEBUG: Handling relationship deletion for class " + className);
+        System.out.println("DEBUG: Relationship type: " + relation.getType());
+        System.out.println("DEBUG: Target class: " + relation.getTargetClass());
+
         switch (relation.getType()) {
             case INHERITANCE:
                 cppModel.removeInheritance(className, relation.getTargetClass());
@@ -325,7 +464,7 @@ public class DeleteDialogControllerCD {
                 cppModel.removeRealization(className, relation.getTargetClass());
                 break;
             default:
-                System.out.println("Unhandled relationship type: " + relation.getType());
+                System.out.println("DEBUG: Unhandled relationship type: " + relation.getType());
                 break;
         }
     }

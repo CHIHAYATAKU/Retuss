@@ -221,7 +221,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             if (relation.getType() == RelationType.INHERITANCE) {
                 CppModel.getInstance().findClass(relation.getTargetClass())
                         .ifPresent(targetClass -> {
-                            if (targetClass.getInterface()) {
+                            // メソッドが全て純粋仮想関数かつ属性が空ならインターフェースとして扱う
+                            if (targetClass.getInterface() && targetClass.getAttributeList().isEmpty()) {
                                 // 継承元がインターフェースの場合、実現関係に変更
                                 relation.setType(RelationType.REALIZATION);
 
@@ -236,6 +237,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                                 // null,
                                 // modifiers.contains(Modifier.PURE_VIRTUAL),
                                 // modifiers);
+                            } else {
+                                targetClass.setInterface(false);
                             }
                         });
             }

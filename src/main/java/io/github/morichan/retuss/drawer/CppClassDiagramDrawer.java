@@ -60,7 +60,7 @@ public class CppClassDiagramDrawer {
             }
             pumlBuilder.append("class ").append(cls.getName());
 
-            if (cls.getInterface() && cls.getAbstruct()) {
+            if (cls.getInterface() && cls.getAbstruct() && cls.getAttributeList().isEmpty()) {
                 pumlBuilder.append(" <<interface>>");
             }
 

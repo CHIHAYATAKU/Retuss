@@ -171,8 +171,8 @@ public class CppFile {
                                         break; // 一度でも修飾子に ABTRACT が含まれていない場合、ループを終了
                                     }
                                 }
-                                if (allAbstract) {
-                                    System.out.println("すべての操作が抽象です。");
+                                if (allAbstract && cls.getAttributeList().isEmpty()) {
+                                    System.out.println("すべての操作が抽象かつ属性が空です。");
                                     cls.setInterface(true);
                                 }
                             }

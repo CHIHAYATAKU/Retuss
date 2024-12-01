@@ -9,6 +9,7 @@ import io.github.morichan.retuss.model.CppModel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Bounds;
@@ -40,6 +41,10 @@ import javafx.util.Duration;
 import javafx.util.Pair;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.layout.StackPane;
+import javafx.geometry.Pos;
+import java.util.concurrent.CompletableFuture;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -62,6 +67,7 @@ public class CodeController {
     private TabPane codeTabPane;
     @FXML
     private TreeView<String> fileTreeView;
+    private ProgressIndicator loadingIndicator;
     private Map<Tab, Boolean> tabModificationStatus = new HashMap<>();
     private Map<String, TreeItem<String>> directoryNodes = new HashMap<>();
     private TreeItem<String> rootItem;
@@ -86,112 +92,149 @@ public class CodeController {
 
         File selectedDir = dirChooser.showDialog(codeTabPane.getScene().getWindow());
         if (selectedDir != null) {
-            importProjectDirectory(selectedDir);
+            showLoadingIndicator();
+
+            // 非同期処理のみを使用
+            CompletableFuture.runAsync(() -> {
+                try {
+                    processDirectoryAsync(selectedDir);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Platform.runLater(() -> showError("Failed to import directory: " + e.getMessage()));
+                } finally {
+                    Platform.runLater(() -> {
+                        hideLoadingIndicator();
+                    });
+                }
+            });
         }
     }
 
-    private void importProjectDirectory(File directory) {
-        // ルートディレクトリのTreeItem作成
-        TreeItem<String> projectRoot = new TreeItem<>(directory.getName());
-        rootItem.getChildren().add(projectRoot);
-        directoryNodes.put(directory.getPath(), projectRoot);
-
-        // ディレクトリを再帰的に処理
-        processDirectory(directory, projectRoot);
-    }
-
-    private void processDirectory(File directory, TreeItem<String> parentItem) {
+    private void processDirectoryAsync(File directory) {
         File[] files = directory.listFiles();
         if (files == null)
             return;
 
-        // ディレクトリの処理
-        Arrays.stream(files)
-                .filter(File::isDirectory)
-                .sorted()
-                .forEach(dir -> {
-                    // ディレクトリ名の重複チェック
-                    if (parentItem.getChildren().stream()
-                            .noneMatch(item -> item.getValue().equals(dir.getName()))) {
-                        TreeItem<String> dirItem = new TreeItem<>(dir.getName());
-                        Platform.runLater(() -> parentItem.getChildren().add(dirItem));
-                        directoryNodes.put(dir.getPath(), dirItem);
-                        processDirectory(dir, dirItem);
-                    }
-                });
+        Platform.runLater(() -> {
+            TreeItem<String> projectRoot = new TreeItem<>(directory.getName());
+            rootItem.getChildren().add(projectRoot);
+            directoryNodes.put(directory.getPath(), projectRoot);
+        });
 
-        // ヘッダーファイルをリストアップ
-        Map<String, File> headerFiles = Arrays.stream(files)
-                .filter(File::isFile)
-                .filter(f -> f.getName().endsWith(".h"))
-                .collect(Collectors.toMap(
-                        f -> f.getName().replace(".h", ""),
-                        f -> f,
-                        (existing, replacement) -> existing // 重複する場合は最初のものを保持
-                ));
+        // ファイルの収集と処理
+        List<Pair<File, String>> fileContents = new ArrayList<>();
 
-        // CPPファイルをリストアップ
-        Map<String, File> cppFiles = Arrays.stream(files)
-                .filter(File::isFile)
-                .filter(f -> f.getName().endsWith(".cpp"))
-                .collect(Collectors.toMap(
-                        f -> f.getName().replace(".cpp", ""),
-                        f -> f,
-                        (existing, replacement) -> existing // 重複する場合は最初のものを保持
-                ));
+        // ファイルの内容を読み込む（UIスレッド外で実行）
+        for (File file : files) {
+            if (file.isDirectory()) {
+                processDirectoryAsync(file);
+                continue;
+            }
 
-        // ファイルの処理
-        Set<String> processedBaseNames = new HashSet<>();
-
-        // ヘッダーファイルの処理
-        headerFiles.forEach((baseName, headerFile) -> {
             try {
-                // ツリーアイテムの重複チェック
-                if (parentItem.getChildren().stream()
-                        .noneMatch(item -> item.getValue().equals(headerFile.getName()))) {
-                    String headerContent = new String(Files.readAllBytes(headerFile.toPath()));
-                    TreeItem<String> headerItem = new TreeItem<>(headerFile.getName());
-                    Platform.runLater(() -> parentItem.getChildren().add(headerItem));
-
-                    // ヘッダーファイルの作成と内容の更新
-                    CppFile headerCppFile = new CppFile(headerFile.getName(), true);
-                    cppModel.addNewFile(headerFile.getName());
-
-                    CppFile modelHeaderFile = cppModel.findHeaderFile(baseName);
-                    if (modelHeaderFile != null) {
-                        modelHeaderFile.updateCode(headerContent);
-                        Tab headerTab = createCppCodeTab(modelHeaderFile);
-                        tabPathMap.put(headerTab, headerFile.toPath());
-                        Platform.runLater(() -> {
-                            // codeTabPane.getTabs().add(headerTab);
-                            updateTabStatus(headerTab, false);
-                        });
-                    }
-                }
-
-                // 対応するCPPファイルの処理
-                File cppFile = cppFiles.get(baseName);
-                if (cppFile != null && parentItem.getChildren().stream()
-                        .noneMatch(item -> item.getValue().equals(cppFile.getName()))) {
-                    String cppContent = new String(Files.readAllBytes(cppFile.toPath()));
-                    TreeItem<String> cppItem = new TreeItem<>(cppFile.getName());
-                    Platform.runLater(() -> parentItem.getChildren().add(cppItem));
-
-                    CppFile modelImplFile = cppModel.findImplFile(baseName);
-                    if (modelImplFile != null) {
-                        modelImplFile.updateCode(cppContent);
-                        Tab implTab = createCppCodeTab(modelImplFile);
-                        tabPathMap.put(implTab, cppFile.toPath());
-                        Platform.runLater(() -> {
-                            // codeTabPane.getTabs().add(implTab);
-                            updateTabStatus(implTab, false);
-                        });
-                    }
-                    processedBaseNames.add(baseName);
-                }
+                String content = new String(Files.readAllBytes(file.toPath()));
+                fileContents.add(new Pair<>(file, content));
             } catch (IOException e) {
                 e.printStackTrace();
-                Platform.runLater(() -> showError("Failed to import file: " + headerFile.getName()));
+            }
+        }
+
+        // すべてのファイル処理をUIスレッドで一括実行
+        Platform.runLater(() -> {
+            for (Pair<File, String> pair : fileContents) {
+                File file = pair.getKey();
+                String content = pair.getValue();
+
+                // ツリーアイテムの追加
+                TreeItem<String> fileItem = new TreeItem<>(file.getName());
+                TreeItem<String> parent = directoryNodes.get(directory.getPath());
+                if (parent != null) {
+                    parent.getChildren().add(fileItem);
+                }
+
+                // ファイルの処理
+                if (file.getName().endsWith(".h")) {
+                    String baseName = file.getName().replace(".h", "");
+                    cppModel.addNewFile(file.getName());
+                    CppFile headerFile = cppModel.findHeaderFile(baseName);
+                    if (headerFile != null) {
+                        headerFile.updateCode(content);
+                        Tab tab = createCppCodeTab(headerFile);
+                        if (!codeTabPane.getTabs().contains(tab)) {
+                            codeTabPane.getTabs().add(tab);
+                            tabPathMap.put(tab, file.toPath());
+                        }
+                    }
+                } else if (file.getName().endsWith(".cpp")) {
+                    String baseName = file.getName().replace(".cpp", "");
+                    CppFile implFile = cppModel.findImplFile(baseName);
+                    if (implFile == null) {
+                        cppModel.addNewFile(baseName + ".h");
+                        implFile = cppModel.findImplFile(baseName);
+                    }
+                    if (implFile != null) {
+                        implFile.updateCode(content);
+                        Tab tab = createCppCodeTab(implFile);
+                        if (!codeTabPane.getTabs().contains(tab)) {
+                            codeTabPane.getTabs().add(tab);
+                            tabPathMap.put(tab, file.toPath());
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void addNewTabs() {
+        // 現在のタブのファイル名を取得
+        Set<String> existingTabNames = codeTabPane.getTabs().stream()
+                .map(Tab::getText)
+                .collect(Collectors.toSet());
+
+        // 新しいファイルのタブのみを追加
+        cppModel.getHeaderFiles().forEach((baseName, headerFile) -> {
+            if (!existingTabNames.contains(headerFile.getFileName())) {
+                Tab headerTab = createCppCodeTab(headerFile);
+                codeTabPane.getTabs().add(headerTab);
+            }
+        });
+
+        cppModel.getImplFiles().forEach((baseName, implFile) -> {
+            if (!existingTabNames.contains(implFile.getFileName())) {
+                Tab implTab = createCppCodeTab(implFile);
+                codeTabPane.getTabs().add(implTab);
+            }
+        });
+    }
+
+    private void showLoadingIndicator() {
+        if (loadingIndicator == null) {
+            loadingIndicator = new ProgressIndicator();
+            loadingIndicator.setMaxSize(50, 50);
+            StackPane overlay = new StackPane(loadingIndicator);
+            overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3);");
+            overlay.setAlignment(Pos.CENTER);
+
+            // メインペインの上にオーバーレイを表示
+            AnchorPane.setTopAnchor(overlay, 0.0);
+            AnchorPane.setBottomAnchor(overlay, 0.0);
+            AnchorPane.setLeftAnchor(overlay, 0.0);
+            AnchorPane.setRightAnchor(overlay, 0.0);
+
+            // ルートペインにオーバーレイを追加
+            Platform.runLater(() -> {
+                AnchorPane root = (AnchorPane) codeTabPane.getScene().getRoot();
+                root.getChildren().add(overlay);
+            });
+        }
+    }
+
+    private void hideLoadingIndicator() {
+        Platform.runLater(() -> {
+            if (loadingIndicator != null) {
+                AnchorPane root = (AnchorPane) codeTabPane.getScene().getRoot();
+                root.getChildren().removeIf(node -> node instanceof StackPane &&
+                        ((StackPane) node).getChildren().contains(loadingIndicator));
             }
         });
     }
@@ -313,6 +356,7 @@ public class CodeController {
 
     @FXML
     private void initialize() {
+        Platform.runLater(this::configureTabPane);
         // ファイルツリーの初期化
         rootItem = new TreeItem<>("Project Files");
         rootItem.setExpanded(true);
@@ -326,7 +370,6 @@ public class CodeController {
                     }
                 });
         // タブペインの設定を追加
-        Platform.runLater(this::configureTabPane);
 
         // スクロール用のイベントハンドラを設定
         codeTabPane.addEventFilter(ScrollEvent.ANY, event -> {
@@ -371,6 +414,17 @@ public class CodeController {
                         event.consume();
                     }
                 });
+            }
+        });
+
+        codeTabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    System.out.println("Tabs added: " + change.getAddedSubList().size());
+                    for (Tab tab : change.getAddedSubList()) {
+                        System.out.println("Added tab: " + tab.getText());
+                    }
+                }
             }
         });
 
@@ -597,18 +651,21 @@ public class CodeController {
                 cppModel.addNewFile(fileName);
 
                 // タブを作成してパスを保存
-                Tab tab = createCppCodeTab(headerFile);
-                tabPathMap.put(tab, file.toPath());
-            }
-            // .cppファイルの場合
-            else if (fileName.endsWith(".cpp")) {
+                Tab headerTab = createCppCodeTab(headerFile);
+                Platform.runLater(() -> {
+                    codeTabPane.getTabs().add(headerTab);
+                    tabPathMap.put(headerTab, file.toPath());
+                });
+            } else if (fileName.endsWith(".cpp")) {
                 String baseName = fileName.replace(".cpp", "");
                 CppFile implFile = new CppFile(fileName, false);
                 implFile.updateCode(content);
 
-                // タブを作成してパスを保存
-                Tab tab = createCppCodeTab(implFile);
-                tabPathMap.put(tab, file.toPath());
+                Tab implTab = createCppCodeTab(implFile);
+                Platform.runLater(() -> {
+                    codeTabPane.getTabs().add(implTab);
+                    tabPathMap.put(implTab, file.toPath());
+                });
             }
         } catch (IOException e) {
             e.printStackTrace();
