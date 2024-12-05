@@ -40,7 +40,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             String rawType = ctx.declSpecifierSeq().getText();
             System.err.println("DEBUG: rawType -> " + rawType);
             Set<Modifier> modifiers = extractModifiers(rawType);
-            String processedType = cleanType(rawType);
+            String processedType = cleanTypeModifiers(rawType);
             System.err.println("DEBUG: processedType -> " + processedType);
 
             if (ctx.memberDeclaratorList() != null) {
@@ -160,7 +160,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             String attributeName,
             CPP14Parser.MemberDeclaratorContext memberDec) {
 
-        String cleanType = cleanTypeName(type);
+        String cleanType = extractBaseTypeName(type);
         String declaratorText = declarator.getText();
 
         System.out.println("\nAnalyzing relationship for: " + attributeName);
@@ -410,8 +410,8 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         Set<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
         if (type.contains(Modifier.STATIC.getCppText(false)))
             modifiers.add(Modifier.STATIC);
-        if (type.contains(Modifier.CONST.getCppText(false)))
-            modifiers.add(Modifier.CONST);
+        if (type.contains(Modifier.READONLY.getCppText(false)))
+            modifiers.add(Modifier.READONLY);
         if (type.contains(Modifier.MUTABLE.getCppText(false)))
             modifiers.add(Modifier.MUTABLE);
         if (type.contains(Modifier.FINAL.getCppText(false)))
@@ -424,19 +424,19 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
 
         System.err.println("タイプ！！: " + type);
 
-        // 修飾子の処理
-        if (type.contains(Modifier.CONST.getCppText(false))) {
-            processedType.append(Modifier.CONST.getCppText(false));
-        }
-        if (type.contains(Modifier.STATIC.getCppText(false))) {
-            processedType.append(Modifier.STATIC.getCppText(false));
-        }
-        if (type.contains(Modifier.MUTABLE.getCppText(false))) {
-            processedType.append(Modifier.MUTABLE.getCppText(false));
-        }
-        if (type.contains(Modifier.FINAL.getCppText(false))) {
-            processedType.append(Modifier.FINAL.getCppText(false));
-        }
+        // // 修飾子の処理
+        // if (type.contains(Modifier.READONLY.getCppText(false))) {
+        // processedType.append(Modifier.READONLY.getCppText(false));
+        // }
+        // if (type.contains(Modifier.STATIC.getCppText(false))) {
+        // processedType.append(Modifier.STATIC.getCppText(false));
+        // }
+        // if (type.contains(Modifier.MUTABLE.getCppText(false))) {
+        // processedType.append(Modifier.MUTABLE.getCppText(false));
+        // }
+        // if (type.contains(Modifier.FINAL.getCppText(false))) {
+        // processedType.append(Modifier.FINAL.getCppText(false));
+        // }
 
         // テンプレート部分を保持しながら処理
         int templateStart = type.indexOf('<');
@@ -513,22 +513,59 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return name.replaceAll("\\[.*\\]", "").trim();
     }
 
-    private String cleanType(String type) {
-        return type.replaceAll("(static|const|mutable|volatile|virtual|final)", "") // virtualを追加
+    private String cleanTypeModifiers(String type) {
+        // テンプレート部分と基本型を分離
+        int templateStart = type.indexOf('<');
+        if (templateStart != -1) {
+            int templateEnd = type.lastIndexOf('>');
+            if (templateEnd != -1) {
+                // テンプレート前の部分のみ修飾子を除去
+                String baseType = type.substring(0, templateStart);
+                baseType = removeModifiers(baseType);
+
+                // テンプレート部分はそのまま保持
+                String templatePart = type.substring(templateStart);
+
+                return baseType + templatePart;
+            }
+        }
+
+        // テンプレートがない場合は通常の処理
+        return removeModifiers(type);
+    }
+
+    private String removeModifiers(String text) {
+        // 単語境界を使用して修飾子を確実に識別
+        return text
+                .replaceAll("\\s+", " ")
+                .replaceAll(
+                        "(static|constexpr|const|mutable|volatile|virtual|final|explicit|friend|inline|constexpr|thread_local|register|extern)",
+                        "")
                 .replaceAll("\\s+", " ")
                 .trim();
     }
 
-    private String cleanTypeName(String typeName) {
-        return typeName
-                .replaceAll("std::", "")
-                .replaceAll("\\s+", "")
-                .replaceAll("const", "")
-                .replaceAll("static", "")
-                .replaceAll("mutable", "")
-                .replaceAll("virtual", "")
-                .trim();
-        // [*&]の除去を削除
+    private String extractBaseTypeName(String typeName) {
+        String baseType = typeName;
+
+        // 名前空間の除去
+        baseType = baseType.replace("std::", "");
+
+        // 空白の除去
+        baseType = baseType.replaceAll("\\s+", "");
+
+        // 修飾子の除去
+        String[] modifiers = {
+                "static", "const", "mutable", "volatile", "virtual",
+                "final", "explicit", "friend", "inline", "constexpr",
+                "thread_local", "register", "extern"
+        };
+
+        for (String modifier : modifiers) {
+            baseType = baseType.replace(modifier, "");
+        }
+
+        return baseType.trim();
     }
 
     private boolean isUserDefinedType(String type) {
@@ -557,7 +594,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 // array<Type, N> の場合は最初の型引数のみを取得
                 if (type.contains("array<")) {
                     String templateArgs = cleaned.replaceAll(".*?<(.+?)\\s*,.*>.*", "$1");
-                    return cleanTypeName(templateArgs);
+                    return extractBaseTypeName(templateArgs);
                 }
                 // テンプレート引数の抽出（最も外側のみ）
                 String templateArgs = cleaned.replaceAll(".*?<(.+)>.*", "$1");
@@ -571,7 +608,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
 
                 return elementType;
             }
-            return cleanTypeName(type);
+            return extractBaseTypeName(type);
         } catch (Exception e) {
             System.err.println("Error processing collection type: " + e.getMessage());
             return type;

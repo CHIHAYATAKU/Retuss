@@ -176,6 +176,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                     System.out.println("DEBUG: Parameter type raw: " + paramType);
 
                     paramType = processOperationType(paramType);
+                    paramType = cleanType(paramType);
 
                     if (paramCtx.declarator() != null) {
                         String fullDeclarator = paramCtx.declarator().getText();
@@ -221,22 +222,10 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             if (relation.getType() == RelationType.INHERITANCE) {
                 CppModel.getInstance().findClass(relation.getTargetClass())
                         .ifPresent(targetClass -> {
-                            // メソッドが全て純粋仮想関数かつ属性が空ならインターフェースとして扱う
+                            // インターフェースの条件チェック
                             if (targetClass.getInterface() && targetClass.getAttributeList().isEmpty()) {
-                                // 継承元がインターフェースの場合、実現関係に変更
+                                // インターフェースを継承している時点で実現関係に変更
                                 relation.setType(RelationType.REALIZATION);
-
-                                // 要素の追加
-                                // relation.addElement(
-                                // methodName,
-                                // ElementType.OPERATION,
-                                // "1",
-                                // operation.getVisibility(),
-                                // null,
-                                // returnType,
-                                // null,
-                                // modifiers.contains(Modifier.PURE_VIRTUAL),
-                                // modifiers);
                             } else {
                                 targetClass.setInterface(false);
                             }
@@ -345,8 +334,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             modifiers.add(Modifier.VIRTUAL);
         if (type.contains(Modifier.STATIC.getCppText(false)))
             modifiers.add(Modifier.STATIC);
-        if (type.contains(Modifier.CONST.getCppText(false)))
-            modifiers.add(Modifier.CONST);
+        if (type.contains(Modifier.READONLY.getCppText(false)))
+            modifiers.add(Modifier.READONLY);
         if (type.contains(Modifier.OVERRIDE.getCppText(false)))
             modifiers.add(Modifier.OVERRIDE);
         return modifiers;

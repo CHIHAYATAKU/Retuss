@@ -99,8 +99,8 @@ public class UmlToCppTranslator {
         if (modifiers.contains(Modifier.STATIC)) {
             builder.append("static ");
         }
-        if (modifiers.contains(Modifier.CONST)) {
-            builder.append("const ");
+        if (modifiers.contains(Modifier.READONLY)) {
+            builder.append(Modifier.READONLY.getCppText(false) + " ");
         }
         if (modifiers.contains(Modifier.VOLATILE)) {
             builder.append("volatile ");
@@ -382,7 +382,7 @@ public class UmlToCppTranslator {
 
         // 修飾子の処理
         Set<Modifier> modifiers = cls.getModifiers(operation.getName().getNameText());
-        if (modifiers.contains(Modifier.CONST)) {
+        if (modifiers.contains(Modifier.QUERY)) {
             builder.append(" const");
         }
         if (modifiers.contains(Modifier.OVERRIDE)) {

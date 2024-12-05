@@ -126,9 +126,9 @@ public class CppFile {
     public void updateCode(String code) {
         // 入力コードの即時反映
         synchronized (updateLock) {
-            if (code.equals(this.sourceCode)) {
-                return; // 変更がなければスキップ
-            }
+            // if (code.equals(this.sourceCode)) {
+            // return; // 変更がなければスキップ
+            // }
             this.sourceCode = code;
         }
 
