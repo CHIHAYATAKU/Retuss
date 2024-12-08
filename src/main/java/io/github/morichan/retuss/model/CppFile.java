@@ -55,7 +55,7 @@ public class CppFile {
         // 初期化後にUMLクラスリストを更新（ヘッダーファイルのみ）
         if (isHeader && sourceCode != null) {
             headerClasses.clear();
-            headerClasses.addAll(translator.translateCodeToUml(sourceCode));
+            headerClasses.addAll(translator.translateHeaderCodeToUml(sourceCode));
         }
     }
 
@@ -126,9 +126,6 @@ public class CppFile {
     public void updateCode(String code) {
         // 入力コードの即時反映
         synchronized (updateLock) {
-            if (code.equals(this.sourceCode)) {
-                return; // 変更がなければスキップ
-            }
             this.sourceCode = code;
         }
 
@@ -154,7 +151,7 @@ public class CppFile {
                     }
 
                     // ヘッダーのUMLクラスリストの更新
-                    List<CppHeaderClass> newUmlClassList = translator.translateCodeToUml(code);
+                    List<CppHeaderClass> newUmlClassList = translator.translateHeaderCodeToUml(code);
                     System.out.println(
                             "DEBUG: Parsed classes: " + (newUmlClassList != null ? newUmlClassList.size() : "null"));
                     if (!newUmlClassList.isEmpty()) {

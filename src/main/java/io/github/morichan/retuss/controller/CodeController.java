@@ -12,7 +12,6 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -42,7 +41,6 @@ import javafx.util.Pair;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.layout.StackPane;
 import javafx.geometry.Pos;
 import java.util.concurrent.CompletableFuture;
 import java.io.File;
@@ -52,7 +50,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,7 +57,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.Arrays;
 
 public class CodeController {
     @FXML
@@ -82,7 +78,6 @@ public class CodeController {
         this.umlController = controller;
         // 双方向の参照を設定
         controller.setCodeController(this);
-        System.out.println("UmlController set in CodeController"); // デバッグ用
     }
 
     @FXML
@@ -387,25 +382,6 @@ public class CodeController {
             }
         });
 
-        // タブの選択時に自動スクロール
-        codeTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
-            if (newTab != null) {
-                Platform.runLater(() -> {
-                    ScrollPane scrollPane = (ScrollPane) codeTabPane.lookup(".tab-header-area");
-                    if (scrollPane != null) {
-                        Node tabNode = newTab.getGraphic();
-                        if (tabNode != null) {
-                            Bounds bounds = tabNode.localToScene(tabNode.getBoundsInLocal());
-                            double scrollValue = (bounds.getMinX() - 50) /
-                                    scrollPane.getContent().getBoundsInLocal().getWidth();
-                            scrollPane.setHvalue(Math.min(Math.max(scrollValue, 0), 1));
-                        }
-                    }
-                });
-            }
-        });
-
-        // Platform.runLater を使用してシーンが確実に存在する状態でキーボードショートカットを設定
         Platform.runLater(() -> {
             if (codeTabPane.getScene() != null) {
                 codeTabPane.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> {

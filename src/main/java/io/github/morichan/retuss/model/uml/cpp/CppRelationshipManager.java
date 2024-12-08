@@ -50,6 +50,23 @@ public class CppRelationshipManager {
         addRelationship(relation);
     }
 
+    // public void addReturnTypeDependency(String targetClass, String memberName,
+    // Visibility visibility) {
+    // RelationshipInfo relation = new RelationshipInfo(targetClass,
+    // RelationType.DEPENDENCY);
+    // relation.addElement(
+    // memberName,
+    // ElementType.OPERATION,
+    // "1",
+    // Visibility visibility,
+    // String type,
+    // String returnType,
+    // String defaultValue,
+    // boolean isPureVirtual,
+    // Set<Modifier> modifiers);
+    // addRelationship(relation);
+    // }
+
     // 指定したターゲットクラスとの関係を取得
     public Set<RelationshipInfo> getRelationshipsWith(String targetClass) {
         return Collections.unmodifiableSet(

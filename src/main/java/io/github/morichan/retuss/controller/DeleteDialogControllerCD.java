@@ -320,65 +320,6 @@ public class DeleteDialogControllerCD {
         return sb.toString();
     }
 
-    private boolean validatePath(Object item, List<String> path) {
-        if (path.size() == 1) {
-            return true;
-        }
-
-        // クラスの場合
-        if (item instanceof Class || item instanceof CppHeaderClass) {
-            return path.get(0).equals(getItemName(item));
-        }
-
-        // 属性の場合
-        if (item instanceof Attribute) {
-            return path.size() >= 2 &&
-                    path.get(path.size() - 2).equals(getClassName(item)) &&
-                    path.get(path.size() - 1).equals(getItemName(item));
-        }
-
-        // 操作の場合
-        if (item instanceof Operation) {
-            return path.size() >= 2 &&
-                    path.get(path.size() - 2).equals(getClassName(item)) &&
-                    path.get(path.size() - 1).equals(getItemName(item));
-        }
-
-        return false;
-    }
-
-    private String getItemName(Object item) {
-        if (item instanceof Class) {
-            return ((Class) item).getName();
-        } else if (item instanceof CppHeaderClass) {
-            return ((CppHeaderClass) item).getName();
-        } else if (item instanceof Attribute) {
-            return ((Attribute) item).toString();
-        } else if (item instanceof Operation) {
-            return ((Operation) item).toString();
-        } else if (item instanceof RelationshipInfo) {
-            return ((RelationshipInfo) item).toString();
-        } else if (item instanceof String) {
-            return (String) item;
-        }
-        return "";
-    }
-
-    private String getClassName(Object item) {
-        // 属性や操作から親クラス名を取得
-        if (item instanceof Attribute || item instanceof Operation) {
-            for (int i = cdTreeItemList.size() - 1; i >= 0; i--) {
-                Object potentialClass = cdTreeItemList.get(i);
-                if (potentialClass instanceof Class) {
-                    return ((Class) potentialClass).getName();
-                } else if (potentialClass instanceof CppHeaderClass) {
-                    return ((CppHeaderClass) potentialClass).getName();
-                }
-            }
-        }
-        return "";
-    }
-
     private void deleteJavaElement(Object selectedObject, List<String> path) {
         System.out.println("DEBUG: Deleting Java element of type: " + selectedObject.getClass().getName());
 
@@ -429,28 +370,6 @@ public class DeleteDialogControllerCD {
         }
     }
 
-    /**
-     * 上位クラス (CppHeaderClass) の名前を取得する。
-     *
-     * @param currentIndex 現在の選択インデックス
-     * @return クラス名 (見つからない場合は空文字)
-     */
-    private String findParentClassName(int currentIndex) {
-        for (int i = currentIndex - 1; i > 0; i--) {
-            Object item = cdTreeItemList.get(i);
-            if (item instanceof CppHeaderClass) {
-                return ((CppHeaderClass) item).getName();
-            }
-        }
-        return "";
-    }
-
-    /**
-     * RelationshipInfo を基に関係の削除を実行する。
-     *
-     * @param className 関係元のクラス名
-     * @param relation  RelationshipInfo オブジェクト
-     */
     private void handleRelationshipDeletion(String className, RelationshipInfo relation) {
         System.out.println("DEBUG: Handling relationship deletion for class " + className);
         System.out.println("DEBUG: Relationship type: " + relation.getType());

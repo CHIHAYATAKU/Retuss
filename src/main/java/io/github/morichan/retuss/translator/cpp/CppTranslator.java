@@ -32,8 +32,8 @@ public class CppTranslator {
         this.umlToCppTranslator = createUmlToCodeTranslator();
     }
 
-    public List<CppHeaderClass> translateCodeToUml(String code) {
-        return cppToUmlTranslator.translate(code);
+    public List<CppHeaderClass> translateHeaderCodeToUml(String code) {
+        return cppToUmlTranslator.translateHeader(code);
     }
 
     public String translateVisibility(Visibility visibility) {

@@ -35,6 +35,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             }
 
             String rawType = ctx.declSpecifierSeq().getText();
+            System.err.println("DEBUG: " + rawType);
             Set<Modifier> modifiers = extractModifiers(rawType);
             if (extractIsOverride(ctx)) {
                 modifiers.add(Modifier.OVERRIDE);
@@ -43,10 +44,11 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             if (ctx.getText().contains("=0")) {
                 currentHeaderClass.setAbstruct(true);
                 modifiers.add(Modifier.ABSTRACT);
-                System.err.println(currentHeaderClass.getName() + "is Interface Class！！: ");
+                System.err.println("DEBUG: " + currentHeaderClass.getName() + "is Abstract Class！！: ");
             }
 
             String processedType = cleanType(rawType);
+            System.err.println("DEBUG: " + processedType);
 
             if (ctx.memberDeclaratorList() != null) {
                 for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
@@ -68,7 +70,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
         CppHeaderClass currentHeaderClass = context.getCurrentHeaderClass();
         String methodName = extractMethodName(memberDec.declarator());
-
+        System.err.println("DEBUG: Start handleOperaiton!!");
+        System.err.println("==============================");
         System.out.println("DEBUG: Processing method: " + methodName);
         System.out.println("DEBUG: Return type: " + returnType);
         System.out.println("DEBUG: Modifiers: " + modifiers);
@@ -84,8 +87,9 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             operation.setReturnType(new Type(""));
         } else {
             // 通常のメソッドは戻り値型を処理
-            String processedType = processOperationType(returnType);
-            operation.setReturnType(new Type(processedType));
+            String processedReturnType = processOperationType(returnType);
+            System.out.println("DEBUG: processedType: " + processedReturnType);
+            operation.setReturnType(new Type(processedReturnType));
         }
         operation.setVisibility(convertVisibility(context.getCurrentVisibility()));
 
@@ -131,6 +135,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         currentHeaderClass.addOperation(operation);
         for (Modifier modifier : modifiers) {
             currentHeaderClass.addMemberModifier(methodName, modifier);
+            System.out.println("DEBUG: Modifier" + modifier);
         }
 
         System.out.println("DEBUG: Operation completed: " + methodName);
@@ -139,6 +144,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             processRealization(currentHeaderClass, operation, methodName, returnType, modifiers);
         }
     }
+
+    // analyzeReturnTypeRelationship(String returnType)
 
     private String processOperationType(String type) {
         Map<String, String> standardTypes = Map.of(
@@ -176,6 +183,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                     System.out.println("DEBUG: Parameter type raw: " + paramType);
 
                     paramType = processOperationType(paramType);
+                    paramType = cleanType(paramType);
 
                     if (paramCtx.declarator() != null) {
                         String fullDeclarator = paramCtx.declarator().getText();
@@ -221,22 +229,10 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             if (relation.getType() == RelationType.INHERITANCE) {
                 CppModel.getInstance().findClass(relation.getTargetClass())
                         .ifPresent(targetClass -> {
-                            // メソッドが全て純粋仮想関数かつ属性が空ならインターフェースとして扱う
+                            // インターフェースの条件チェック
                             if (targetClass.getInterface() && targetClass.getAttributeList().isEmpty()) {
-                                // 継承元がインターフェースの場合、実現関係に変更
+                                // インターフェースを継承している時点で実現関係に変更
                                 relation.setType(RelationType.REALIZATION);
-
-                                // 要素の追加
-                                // relation.addElement(
-                                // methodName,
-                                // ElementType.OPERATION,
-                                // "1",
-                                // operation.getVisibility(),
-                                // null,
-                                // returnType,
-                                // null,
-                                // modifiers.contains(Modifier.PURE_VIRTUAL),
-                                // modifiers);
                             } else {
                                 targetClass.setInterface(false);
                             }
@@ -345,8 +341,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             modifiers.add(Modifier.VIRTUAL);
         if (type.contains(Modifier.STATIC.getCppText(false)))
             modifiers.add(Modifier.STATIC);
-        if (type.contains(Modifier.CONST.getCppText(false)))
-            modifiers.add(Modifier.CONST);
+        if (type.contains(Modifier.READONLY.getCppText(false)))
+            modifiers.add(Modifier.READONLY);
         if (type.contains(Modifier.OVERRIDE.getCppText(false)))
             modifiers.add(Modifier.OVERRIDE);
         return modifiers;

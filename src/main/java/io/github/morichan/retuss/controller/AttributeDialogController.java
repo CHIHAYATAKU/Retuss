@@ -16,7 +16,6 @@ import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
-import io.github.morichan.retuss.model.uml.cpp.utils.ElementType;
 import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -153,7 +152,7 @@ public class AttributeDialogController {
                     modifiers.add(Modifier.STATIC);
                     break;
                 case "const":
-                    modifiers.add(Modifier.CONST);
+                    modifiers.add(Modifier.READONLY);
                     break;
                 case "volatile":
                     modifiers.add(Modifier.VOLATILE);

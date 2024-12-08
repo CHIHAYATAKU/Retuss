@@ -177,7 +177,7 @@ public class OperationDialogController {
         if (opText.contains("static"))
             modifiers.add(Modifier.STATIC);
         if (opText.contains("const"))
-            modifiers.add(Modifier.CONST);
+            modifiers.add(Modifier.READONLY);
         if (opText.contains("override"))
             modifiers.add(Modifier.OVERRIDE);
         if (opText.contains("= 0")) {

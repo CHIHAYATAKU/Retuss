@@ -7,9 +7,10 @@ import java.util.Set;
 public enum Modifier {
     // 属性用の修飾子
     STATIC("static", "{static}", ElementType.ATTRIBUTE, ElementType.OPERATION),
-    CONST("const", "{const}", ElementType.ATTRIBUTE, ElementType.OPERATION),
+    READONLY("const", "{readOnly}", ElementType.ATTRIBUTE, ElementType.OPERATION),
     VOLATILE("volatile", "{volatile}", ElementType.ATTRIBUTE),
     MUTABLE("mutable", "{mutable}", ElementType.ATTRIBUTE),
+    QUERY("const;", "{query}", ElementType.OPERATION),
 
     // メソッド用の修飾子
     VIRTUAL("virtual", "{virtual}", ElementType.OPERATION),
