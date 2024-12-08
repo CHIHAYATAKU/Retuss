@@ -12,17 +12,17 @@ import java.util.*;
 
 public class CppToUmlTranslator {
 
-    public List<CppHeaderClass> translate(String code) {
+    public List<CppHeaderClass> translateHeader(String code) {
         try {
             String processedCode = preprocessCode(code);
             CharStream input = CharStreams.fromString(processedCode);
             CPP14Lexer lexer = new CPP14Lexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             CPP14Parser parser = new CPP14Parser(tokens);
-            // // 構文ツリーを取得
+            // 構文ツリーを取得
             // ParseTree tree = parser.translationUnit();
 
-            // // 構文ツリーを文字列として出力
+            // 構文ツリーを文字列として出力
             // System.out.println(tree.toStringTree(parser));
             ParseTreeWalker walker = new ParseTreeWalker();
 

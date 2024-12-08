@@ -423,21 +423,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         StringBuilder processedType = new StringBuilder();
 
         System.err.println("タイプ！！: " + type);
-
-        // // 修飾子の処理
-        // if (type.contains(Modifier.READONLY.getCppText(false))) {
-        // processedType.append(Modifier.READONLY.getCppText(false));
-        // }
-        // if (type.contains(Modifier.STATIC.getCppText(false))) {
-        // processedType.append(Modifier.STATIC.getCppText(false));
-        // }
-        // if (type.contains(Modifier.MUTABLE.getCppText(false))) {
-        // processedType.append(Modifier.MUTABLE.getCppText(false));
-        // }
-        // if (type.contains(Modifier.FINAL.getCppText(false))) {
-        // processedType.append(Modifier.FINAL.getCppText(false));
-        // }
-
         // テンプレート部分を保持しながら処理
         int templateStart = type.indexOf('<');
         String templatePart = "";
