@@ -162,9 +162,15 @@ public class CppClassDiagramDrawer {
                     .append(getVisibilitySymbol(op.getVisibility()))
                     .append(" ");
 
-            // メソッド用の修飾子を追加
-            Set<Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
-            appendOperationModifiers(pumlBuilder, modifiers);
+            String methodName = op.getName().getNameText();
+            boolean isConstructor = methodName.equals(cls.getName());
+            boolean isDestructor = methodName.startsWith("~");
+
+            // 修飾子の追加
+            Set<Modifier> modifiers = cls.getModifiers(methodName);
+            if (modifiers != null && !modifiers.isEmpty()) {
+                appendOperationModifiers(pumlBuilder, modifiers);
+            }
 
             // メソッド名
             pumlBuilder.append(op.getName().getNameText())
@@ -185,14 +191,11 @@ public class CppClassDiagramDrawer {
                     pumlBuilder.append(String.join(", ", paramStrings));
                 }
             } catch (Exception e) {
-                // System.err.println("Error processing parameters for " + op.getName() + ": " +
-                // e.getMessage());
             }
 
             pumlBuilder.append(")");
             // 戻り値型の表示
-            if (!op.getName().getNameText().contains("~") &&
-                    !op.getName().getNameText().equals(cls.getName())) {
+            if (!isConstructor && !isDestructor) {
                 String returnType = op.getReturnType().toString();
                 if (returnType != null && !returnType.isEmpty()) {
                     pumlBuilder.append(" : ").append(formatType(returnType));

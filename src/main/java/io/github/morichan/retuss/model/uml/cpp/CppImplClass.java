@@ -61,18 +61,13 @@ public class CppImplClass {
         if (!isBuiltInType(variable.getType())) {
             RelationshipInfo relation = new RelationshipInfo(
                     extractClassName(variable.getType()),
-                    RelationType.DEPENDENCY);
+                    RelationType.DEPENDENCY_USE);
 
             relation.addElement(
                     variable.getName(), // name
                     ElementType.LOCAL_VARIABLE, // elemType
                     "1", // multiplicity
-                    Visibility.Private, // visibility
-                    variable.getType(), // type
-                    null, // returnType
-                    variable.getInitialValue(), // defaultValue
-                    false, // isPureVirtual
-                    variable.getModifiers() // modifiers
+                    Visibility.Private // visibility
             );
 
             relationshipManager.addRelationship(relation);
@@ -112,18 +107,13 @@ public class CppImplClass {
             String callingMethod) {
         RelationshipInfo relation = new RelationshipInfo(
                 targetClass,
-                RelationType.DEPENDENCY);
+                RelationType.DEPENDENCY_USE); // METHOD_CALL
 
         relation.addElement(
                 methodName, // name
                 ElementType.METHOD_CALL, // elemType
                 "1", // multiplicity
-                Visibility.Public, // visibility
-                null, // type
-                null, // returnType
-                null, // defaultValue
-                false, // isPureVirtual
-                EnumSet.noneOf(Modifier.class) // modifiers
+                Visibility.Public // visibility
         );
 
         relationshipManager.addRelationship(relation);
@@ -133,18 +123,13 @@ public class CppImplClass {
     public void addTemporaryObject(String targetClass, String context) {
         RelationshipInfo relation = new RelationshipInfo(
                 targetClass,
-                RelationType.DEPENDENCY);
+                RelationType.DEPENDENCY_USE);
 
         relation.addElement(
                 "temp_" + context, // name
                 ElementType.TEMPORARY, // elemType
                 "1", // multiplicity
-                Visibility.Private, // visibility
-                targetClass, // type
-                null, // returnType
-                null, // defaultValue
-                false, // isPureVirtual
-                EnumSet.noneOf(Modifier.class) // modifiers
+                Visibility.Private // visibility
         );
 
         relationshipManager.addRelationship(relation);
@@ -153,18 +138,13 @@ public class CppImplClass {
     public void addParameterType(String targetClass, String paramName, String methodName) {
         RelationshipInfo relation = new RelationshipInfo(
                 targetClass,
-                RelationType.DEPENDENCY);
+                RelationType.DEPENDENCY_USE);
 
         relation.addElement(
                 paramName, // name
                 ElementType.PARAMETER, // elemType
                 "1", // multiplicity
-                Visibility.Private, // visibility
-                targetClass, // type
-                null, // returnType
-                null, // defaultValue
-                false, // isPureVirtual
-                EnumSet.noneOf(Modifier.class) // modifiers
+                Visibility.Private // visibility
         );
 
         relationshipManager.addRelationship(relation);

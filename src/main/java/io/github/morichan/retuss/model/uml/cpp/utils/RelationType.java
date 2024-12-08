@@ -1,12 +1,15 @@
 package io.github.morichan.retuss.model.uml.cpp.utils;
 
 public enum RelationType {
-    INHERITANCE("extends", "<|--"),
+    INHERITANCE("extends", "--|>"),
     COMPOSITION("unique_ptr", "*--"),
     AGGREGATION("shared_ptr", "o--"),
     ASSOCIATION("pointer", "--"),
-    DEPENDENCY("uses", "<.."),
-    REALIZATION("implements", "<|..");
+    DEPENDENCY_USE("use", "..>"),
+    DEPENDENCY_PARAMETER("parameter", "..>"),
+    DEPENDENCY_CALL("call", "..>"),
+    DEPENDENCY_LOCAL("local", "..>"),
+    REALIZATION("implements", "..|>");
 
     private final String cppText;
     private final String plantUmlText;
@@ -22,5 +25,13 @@ public enum RelationType {
 
     public String getPlantUmlText() {
         return plantUmlText;
+    }
+
+    public String getStereotype() {
+        return this.cppText;
+    }
+
+    public boolean isDependency() {
+        return name().startsWith("DEPENDENCY_");
     }
 }

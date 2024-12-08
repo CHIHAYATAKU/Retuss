@@ -84,13 +84,17 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         Operation operation = new Operation(new Name(methodName));
         if (isConstructor || isDestructor) {
             // コンストラクタ/デストラクタは戻り値型を空文字列に
-            operation.setReturnType(new Type(""));
+            operation.setReturnType(new Type("void"));
         } else {
             // 通常のメソッドは戻り値型を処理
             String processedReturnType = processOperationType(returnType);
             System.out.println("DEBUG: processedType: " + processedReturnType);
+            if (processedReturnType == null || processedReturnType.trim().isEmpty()) {
+                processedReturnType = "void";
+            }
             operation.setReturnType(new Type(processedReturnType));
         }
+
         operation.setVisibility(convertVisibility(context.getCurrentVisibility()));
 
         // パラメータ処理の既存コード
@@ -133,6 +137,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         }
 
         currentHeaderClass.addOperation(operation);
+        System.out.println("DEBUG: Operation added to class. Current operation count: " +
+                currentHeaderClass.getOperationList().size());
         for (Modifier modifier : modifiers) {
             currentHeaderClass.addMemberModifier(methodName, modifier);
             System.out.println("DEBUG: Modifier" + modifier);
@@ -143,9 +149,115 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         if (modifiers.contains(Modifier.OVERRIDE)) {
             processRealization(currentHeaderClass, operation, methodName, returnType, modifiers);
         }
+
+        System.out.println("DEBUG: Adding operation: " + methodName);
+        System.out.println("DEBUG: Is constructor: " + isConstructor);
+        System.out.println("DEBUG: Is destructor: " + isDestructor);
+
+        // 依存関係の解析を追加
+        analyzeOperationDependencies(
+                methodName,
+                returnType,
+                operation,
+                currentHeaderClass);
     }
 
-    // analyzeReturnTypeRelationship(String returnType)
+    private void analyzeOperationDependencies(
+            String methodName,
+            String returnType,
+            Operation operation,
+            CppHeaderClass currentClass) {
+
+        // コンストラクタ/デストラクタの場合は戻り値型の依存関係は不要
+        if (!methodName.equals(currentClass.getName()) && !methodName.startsWith("~")) {
+            analyzeReturnTypeDependency(returnType, currentClass);
+        }
+
+        // パラメータからの依存関係を分析
+        for (Parameter param : operation.getParameters()) {
+            analyzeParameterTypeDependency(param.getType().toString(), param.getName().toString(), currentClass);
+        }
+    }
+
+    private String cleanTypeForRelationship(String type) {
+        String cleanType = type;
+
+        // コレクション型の場合は要素型を取得
+        if (isCollectionType(cleanType)) {
+            cleanType = extractElementType(cleanType);
+        }
+
+        // ネストされた型の場合は最後の部分を取得
+        if (cleanType.contains("::")) {
+            String[] parts = cleanType.split("::");
+            cleanType = parts[parts.length - 1];
+        }
+
+        // ポインタや参照を除去
+        cleanType = cleanType.replaceAll("[*&]", "").trim();
+
+        return cleanType;
+    }
+
+    private void analyzeReturnTypeDependency(String returnType, CppHeaderClass currentClass) {
+        // voidは依存関係を作成しない
+        if (returnType.equals("void"))
+            return;
+
+        String cleanType = cleanTypeForRelationship(returnType);
+
+        if (isUserDefinedType(cleanType)) {
+            RelationshipInfo relation = new RelationshipInfo(
+                    cleanType,
+                    RelationType.DEPENDENCY_USE);
+            currentClass.addRelationship(relation);
+        }
+    }
+
+    private void analyzeParameterTypeDependency(String paramType, String paramName, CppHeaderClass currentClass) {
+        String cleanType = cleanTypeForRelationship(paramType);
+
+        if (isUserDefinedType(cleanType)) {
+            RelationshipInfo relation = new RelationshipInfo(
+                    cleanType,
+                    RelationType.DEPENDENCY_PARAMETER);
+            currentClass.addRelationship(relation);
+        }
+    }
+
+    // ネストされた型から最後の部分を取得
+    private String getLastTypeComponent(String type) {
+        if (type.contains("::")) {
+            String[] parts = type.split("::");
+            return parts[parts.length - 1];
+        }
+        return type;
+    }
+
+    private boolean isUserDefinedType(String type) {
+        Set<String> basicTypes = Set.of(
+                "void", "bool", "char", "int", "float", "double",
+                "long", "short", "unsigned", "signed",
+                "string", "vector", "list", "map", "set",
+                "array", "queue", "stack", "deque");
+
+        return !basicTypes.contains(type) &&
+                !type.startsWith("std::") &&
+                Character.isUpperCase(type.charAt(0));
+    }
+
+    private boolean isCollectionType(String type) {
+        return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
+    }
+
+    private String extractElementType(String type) {
+        if (type.contains("<") && type.contains(">")) {
+            return type.replaceAll(".*<(.+)>.*", "$1")
+                    .replaceAll("std::", "")
+                    .trim();
+        }
+        return type;
+    }
 
     private String processOperationType(String type) {
         Map<String, String> standardTypes = Map.of(
@@ -262,7 +374,12 @@ public class OperationAnalyzer extends AbstractAnalyzer {
     }
 
     private String extractMethodName(CPP14Parser.DeclaratorContext declarator) {
+        if (declarator == null) {
+            System.err.println("DEBUG: Declarator is null");
+            return null;
+        }
         String fullText = declarator.getText();
+        System.err.println("DEBUG: Full declarator text: " + fullText);
         // パラメータリストの前で切り取り
         int parenIndex = fullText.indexOf('(');
         if (parenIndex > 0) {

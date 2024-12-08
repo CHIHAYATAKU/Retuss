@@ -174,6 +174,12 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             cleanType = extractInnerType(type); // Target を抽出
         }
 
+        // ネストされたクラスの場合は最後の部分を取得
+        if (cleanType.contains("::")) {
+            String[] parts = cleanType.split("::");
+            cleanType = parts[parts.length - 1];
+        }
+
         // ユーザー定義型でない場合はスキップ
         if (!isUserDefinedType(cleanType)) {
             if (!isCollectionType(type)) {
@@ -210,12 +216,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 attributeName,
                 ElementType.ATTRIBUTE,
                 multiplicity,
-                visibility,
-                type,
-                null,
-                null,
-                false,
-                mods);
+                visibility);
         currentClass.addRelationship(relation);
     }
 
@@ -396,12 +397,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                     attributeName,
                     ElementType.ATTRIBUTE,
                     multiplicity, // 固定サイズか可変サイズかを反映
-                    visibility,
-                    type,
-                    null,
-                    null,
-                    false,
-                    mods);
+                    visibility);
             currentClass.addRelationship(relation);
         }
     }
