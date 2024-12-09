@@ -33,6 +33,7 @@ public class CppToUmlTranslator {
             return classExtractor.getExtractedClasses();
         } catch (Exception e) {
             System.err.println("Failed to translate C++ code: " + e.getMessage());
+            e.printStackTrace();
             return new ArrayList<>();
         }
     }
