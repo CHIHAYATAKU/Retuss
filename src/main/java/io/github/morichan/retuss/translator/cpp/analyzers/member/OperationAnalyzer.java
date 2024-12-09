@@ -95,10 +95,19 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         } else {
             // 通常のメソッドは戻り値型を処理
             String processedReturnType = processOperationType(returnType);
-            System.out.println("DEBUG: processedType: " + processedReturnType);
             if (processedReturnType == null || processedReturnType.trim().isEmpty()) {
                 processedReturnType = "void";
             }
+            // メソッド名から修飾子を抽出し、型に移動
+            if (methodName.contains("*")) {
+                methodName = methodName.replace("*", "");
+                processedReturnType += "*";
+            }
+            if (methodName.contains("&")) {
+                methodName = methodName.replace("&", "");
+                processedReturnType += "&";
+            }
+            operation.setName(new Name(methodName));
             operation.setReturnType(new Type(processedReturnType));
         }
 
@@ -355,6 +364,11 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
     private void processRealization(CppHeaderClass currentClass, Operation operation, String methodName,
             String returnType, Set<Modifier> modifiers) {
+        // コンストラクタ/デストラクタの場合はスキップ
+        if (methodName.equals(currentClass.getName()) || methodName.startsWith("~")) {
+            return;
+        }
+
         for (RelationshipInfo relation : currentClass.getRelationships()) {
             if (relation.getType() == RelationType.INHERITANCE) {
                 CppModel.getInstance().findClass(relation.getTargetClass())
