@@ -520,7 +520,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return text
                 .replaceAll("\\s+", " ")
                 .replaceAll(
-                        "(static|constexpr|const|mutable|volatile|virtual|final|explicit|friend|inline|constexpr|thread_local|register|extern)",
+                        "(static|constexpr|const|mutable|volatile|virtual|final|explicit|friend|inline|thread_local|register|extern)",
                         "")
                 .replaceAll("\\s+", " ")
                 .trim();
