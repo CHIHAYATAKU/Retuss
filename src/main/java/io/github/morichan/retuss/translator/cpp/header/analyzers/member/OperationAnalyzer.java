@@ -1,4 +1,4 @@
-package io.github.morichan.retuss.translator.cpp.analyzers.member;
+package io.github.morichan.retuss.translator.cpp.header.analyzers.member;
 
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.name.Name;
@@ -9,7 +9,8 @@ import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
-import io.github.morichan.retuss.translator.cpp.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.*;
 
@@ -243,15 +244,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                     RelationType.DEPENDENCY_PARAMETER);
             currentClass.addRelationship(relation);
         }
-    }
-
-    // ネストされた型から最後の部分を取得
-    private String getLastTypeComponent(String type) {
-        if (type.contains("::")) {
-            String[] parts = type.split("::");
-            return parts[parts.length - 1];
-        }
-        return type;
     }
 
     private boolean isUserDefinedType(String type) {

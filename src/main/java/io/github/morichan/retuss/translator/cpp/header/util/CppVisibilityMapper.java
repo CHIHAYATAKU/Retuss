@@ -1,4 +1,4 @@
-package io.github.morichan.retuss.translator.cpp.util;
+package io.github.morichan.retuss.translator.cpp.header.util;
 
 import io.github.morichan.fescue.feature.visibility.Visibility;
 

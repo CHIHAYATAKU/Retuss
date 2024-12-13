@@ -1,4 +1,4 @@
-package io.github.morichan.retuss.translator.cpp.analyzers.member;
+package io.github.morichan.retuss.translator.cpp.header.analyzers.member;
 
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.name.Name;
@@ -8,7 +8,8 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
-import io.github.morichan.retuss.translator.cpp.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.*;
 

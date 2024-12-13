@@ -1,8 +1,8 @@
-package io.github.morichan.retuss.translator.cpp;
+package io.github.morichan.retuss.translator.cpp.header;
 
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.parser.cpp.*;
-import io.github.morichan.retuss.translator.cpp.util.*;
+import io.github.morichan.retuss.translator.cpp.header.util.*;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.type.Type;

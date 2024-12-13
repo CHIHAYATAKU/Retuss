@@ -1,10 +1,10 @@
-package io.github.morichan.retuss.translator.cpp;
+package io.github.morichan.retuss.translator.cpp.header;
 
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
-import io.github.morichan.retuss.translator.cpp.util.CppTypeMapper;
-import io.github.morichan.retuss.translator.cpp.util.CppVisibilityMapper;
+import io.github.morichan.retuss.translator.cpp.header.util.CppTypeMapper;
+import io.github.morichan.retuss.translator.cpp.header.util.CppVisibilityMapper;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.parameter.Parameter;

@@ -1,7 +1,8 @@
-package io.github.morichan.retuss.translator.cpp.analyzers.member;
+package io.github.morichan.retuss.translator.cpp.header.analyzers.member;
 
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
-import io.github.morichan.retuss.translator.cpp.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class VisibilityAnalyzer extends AbstractAnalyzer {

@@ -1,9 +1,9 @@
-package io.github.morichan.retuss.translator.cpp;
+package io.github.morichan.retuss.translator.cpp.header;
 
-import io.github.morichan.retuss.translator.cpp.listeners.ClassExtractorListener;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
+import io.github.morichan.retuss.translator.cpp.header.listeners.ClassExtractorListener;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;

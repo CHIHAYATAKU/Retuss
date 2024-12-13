@@ -8,7 +8,7 @@ import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
-import io.github.morichan.retuss.translator.cpp.CppTranslator;
+import io.github.morichan.retuss.translator.cpp.header.CppTranslator;
 
 import java.util.*;
 

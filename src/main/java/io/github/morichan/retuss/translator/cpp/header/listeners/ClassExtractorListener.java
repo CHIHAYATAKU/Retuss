@@ -1,11 +1,10 @@
-package io.github.morichan.retuss.translator.cpp.listeners;
+package io.github.morichan.retuss.translator.cpp.header.listeners;
 
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.parser.cpp.CPP14ParserBaseListener;
-import io.github.morichan.retuss.translator.cpp.analyzers.base.AnalyzerContext;
-import io.github.morichan.retuss.translator.cpp.analyzers.base.IAnalyzer;
-import io.github.morichan.retuss.translator.cpp.analyzers.class_definition.*;
-import io.github.morichan.retuss.translator.cpp.analyzers.member.*;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.base.*;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.class_definition.*;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.member.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 
 import java.util.*;
@@ -107,14 +106,6 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
             System.out.println("\nClass: " + cppClass.getName());
             System.out.println("Attributes: " + cppClass.getAttributeList().size());
             System.out.println("Operations: " + cppClass.getOperationList().size());
-
-            // // 関係情報の出力
-            // System.out.println("Relationship: " + rel.getTargetClass() +
-            // " (" + rel.getType() + ")");
-            // for (RelationshipInfo.RelationshipElement elem : rel.getElements()) {
-            // System.out.println(" Element: " + elem.getName() +
-            // " [" + elem.getMultiplicity() + "]");
-            // }
         }
     }
 

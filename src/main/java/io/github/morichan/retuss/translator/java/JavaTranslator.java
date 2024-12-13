@@ -1,4 +1,4 @@
-package io.github.morichan.retuss.translator;
+package io.github.morichan.retuss.translator.java;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;

@@ -1,4 +1,4 @@
-package io.github.morichan.retuss.translator.cpp.analyzers.base;
+package io.github.morichan.retuss.translator.cpp.header.analyzers.base;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 

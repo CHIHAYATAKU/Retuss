@@ -1,10 +1,11 @@
-package io.github.morichan.retuss.translator.cpp.analyzers.class_definition;
+package io.github.morichan.retuss.translator.cpp.header.analyzers.class_definition;
 
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
-import io.github.morichan.retuss.translator.cpp.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.base.*;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class InheritanceAnalyzer extends AbstractAnalyzer {
