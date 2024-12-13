@@ -3,19 +3,15 @@ package io.github.morichan.retuss.translator.cpp;
 import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
-import io.github.morichan.retuss.translator.common.UmlToCodeTranslator;
 import io.github.morichan.retuss.translator.cpp.util.CppTypeMapper;
 import io.github.morichan.retuss.translator.cpp.util.CppVisibilityMapper;
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
-import io.github.morichan.fescue.feature.name.Name;
 import io.github.morichan.fescue.feature.parameter.Parameter;
-import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class UmlToCppTranslator {
     private final CppTypeMapper typeMapper;
@@ -49,48 +45,6 @@ public class UmlToCppTranslator {
         }
     }
 
-    // private String translateAttribute(Attribute attribute, CppHeaderClass cls) {
-    // StringBuilder builder = new StringBuilder();
-
-    // // 修飾子の追加 (constは型の前、staticは最初)
-    // Set<Modifier> modifiers =
-    // cls.getModifiers(attribute.getName().getNameText());
-    // if (modifiers.contains(Modifier.STATIC)) {
-    // builder.append("static ");
-    // }
-    // if (modifiers.contains(Modifier.CONST)) {
-    // builder.append("const ");
-    // }
-
-    // // 型の処理
-    // String type = attribute.getType().toString();
-    // String processedType = processType(type);
-    // builder.append(processedType).append(" ");
-
-    // // 名前
-    // builder.append(attribute.getName().getNameText());
-
-    // // 配列サイズの処理
-    // if (type.matches(".*\\[\\d+\\]")) {
-    // String size = type.replaceAll(".*\\[(\\d+)\\].*", "[$1]");
-    // builder.append(size);
-    // }
-
-    // // 初期値の処理
-    // try {
-    // if (attribute.getDefaultValue() != null) {
-    // String defaultValue = attribute.getDefaultValue().toString();
-    // // 文字列の場合
-    // if (processedType.contains("string") && !defaultValue.startsWith("\"")) {
-    // defaultValue = "\"" + defaultValue + "\"";
-    // }
-    // builder.append(" = ").append(defaultValue);
-    // }
-    // } catch (IllegalStateException ignored) {
-    // }
-
-    // return builder.toString();
-    // }
     private String translateAttribute(Attribute attribute, CppHeaderClass cls) {
         StringBuilder builder = new StringBuilder();
 
@@ -136,95 +90,6 @@ public class UmlToCppTranslator {
 
         return builder.toString();
     }
-
-    private String extractFullType(String originalStr) {
-        // 可視性と名前を除いた型の部分を抽出
-        String[] parts = originalStr.split(":");
-        if (parts.length <= 1)
-            return "";
-
-        String typePart = parts[1].trim();
-
-        // テンプレート部分を含めて抽出
-        if (typePart.contains("<") && typePart.contains(">")) {
-            int start = typePart.indexOf("<");
-            int end = typePart.lastIndexOf(">");
-            String baseType = typePart.substring(0, start).trim();
-            String templatePart = typePart.substring(start, end + 1);
-            return baseType + templatePart;
-        }
-
-        // 配列部分を含めて抽出
-        if (typePart.contains("[")) {
-            return typePart;
-        }
-
-        // 基本型の抽出
-        return typePart.split("\\s+")[0];
-    }
-
-    private String extractPointerRef(String originalStr) {
-        StringBuilder symbols = new StringBuilder();
-        // *や&を探す
-        for (char c : originalStr.toCharArray()) {
-            if (c == '*' || c == '&') {
-                symbols.append(c);
-            }
-        }
-        return symbols.toString();
-    }
-
-    // private String processType(String fullType) {
-    // System.out.println("=== Start Type Processing ===");
-    // System.out.println("Input full type: " + fullType);
-    // String result = "";
-
-    // // テンプレート型の処理
-    // if (fullType.contains("<") && fullType.contains(">")) {
-    // String baseType = fullType.substring(0,
-    // fullType.indexOf("<")).trim().toLowerCase();
-    // String templatePart = fullType.substring(
-    // fullType.indexOf("<"),
-    // fullType.lastIndexOf(">") + 1);
-    // System.out.println("Base type: " + baseType);
-    // System.out.println("Template part: " + templatePart);
-
-    // switch (baseType) {
-    // case "vector":
-    // case "set":
-    // case "deque":
-    // case "list":
-    // case "stack":
-    // case "queue":
-    // result = "std::" + baseType + templatePart;
-    // break;
-    // case "map":
-    // result = "std::map" + templatePart;
-    // break;
-    // case "shared_ptr":
-    // case "unique_ptr":
-    // case "weak_ptr":
-    // result = "std::" + baseType + templatePart;
-    // break;
-    // case "array":
-    // result = "std::array" + templatePart;
-    // break;
-    // default:
-    // result = baseType + templatePart;
-    // break;
-    // }
-    // }
-
-    // if (fullType.contains("[")) {
-    // int bracketIndex = fullType.indexOf("[");
-    // result = fullType.substring(0, bracketIndex).trim();
-    // System.out.println("Array type detected. Base type: " + result);
-    // }
-
-    // System.out.println("Final processed type: " + result);
-    // System.out.println("=== End Type Processing ===");
-    // return result;
-    // }
 
     private String processType(String fullType) {
         System.out.println("=== Start Type Processing ===");
@@ -703,46 +568,6 @@ public class UmlToCppTranslator {
         }
     }
 
-    private void addRequiredIncludes(List<String> lines, String type) {
-        Set<String> includes = new HashSet<>();
-
-        // コレクション型のインクルード
-        if (type.contains("vector"))
-            includes.add("<vector>");
-        if (type.contains("array"))
-            includes.add("<array>");
-        if (type.contains("shared_ptr") || type.contains("unique_ptr"))
-            includes.add("<memory>");
-
-        // ユーザー定義型のインクルード（テンプレート引数内も考慮）
-        Pattern classPattern = Pattern.compile("\\b([A-Z]\\w*)\\b");
-        Matcher matcher = classPattern.matcher(type);
-        while (matcher.find()) {
-            String className = matcher.group(1);
-            if (!isBuiltInType(className)) {
-                includes.add("\"" + className + ".h\"");
-            }
-        }
-
-        // インクルードの追加
-        int insertPos = findLastIncludePosition(lines);
-        for (String include : includes) {
-            if (!containsInclude(lines, include)) {
-                lines.add(insertPos + 1, "#include " + include);
-                insertPos++;
-            }
-        }
-    }
-
-    private boolean isBuiltInType(String type) {
-        return Arrays.asList("int", "char", "bool", "float", "double", "void", "long")
-                .contains(type.toLowerCase());
-    }
-
-    private boolean containsInclude(List<String> lines, String include) {
-        return lines.stream().anyMatch(line -> line.trim().equals(include));
-    }
-
     private int findInsertPositionForAttribute(List<String> lines, Visibility visibility) {
         String visibilityStr = visibilityMapper.toSourceCode(visibility) + ":";
         int classEnd = findClassEndPosition(lines);
@@ -832,49 +657,5 @@ public class UmlToCppTranslator {
             }
         }
         return lines.size() - 1;
-    }
-
-    private int findLastIncludePosition(List<String> lines) {
-        int lastInclude = -1;
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).trim().startsWith("#include")) {
-                lastInclude = i;
-            }
-        }
-        return lastInclude;
-    }
-
-    private String processCollectionType(String type, String memberName) {
-        // コレクション型のパターンマッチ
-        Pattern vectorPattern = Pattern.compile("vector<(.+)>");
-        Pattern arrayPattern = Pattern.compile("array<(.+),\\s*(\\d+)>");
-        Pattern smartPtrPattern = Pattern.compile("(shared_ptr|unique_ptr)<(.+)>");
-
-        Matcher vectorMatcher = vectorPattern.matcher(type);
-        Matcher arrayMatcher = arrayPattern.matcher(type);
-
-        if (vectorMatcher.find()) {
-            String innerType = vectorMatcher.group(1).trim();
-            // ポインタ型のコレクション
-            if (innerType.endsWith("*")) {
-                String baseType = innerType.substring(0, innerType.length() - 1).trim();
-                return "std::vector<" + baseType + "*> " + memberName;
-            }
-            // スマートポインタのコレクション
-            Matcher ptrMatcher = smartPtrPattern.matcher(innerType);
-            if (ptrMatcher.find()) {
-                String ptrType = ptrMatcher.group(1);
-                String baseType = ptrMatcher.group(2);
-                return "std::vector<std::" + ptrType + "<" + baseType + ">> " + memberName;
-            }
-            // 値型のコレクション
-            return "std::vector<" + innerType + "> " + memberName;
-        } else if (arrayMatcher.find()) {
-            String innerType = arrayMatcher.group(1).trim();
-            String size = arrayMatcher.group(2);
-            // 配列サイズ付きの宣言
-            return "std::array<" + innerType + ", " + size + "> " + memberName;
-        }
-        return type + " " + memberName;
     }
 }

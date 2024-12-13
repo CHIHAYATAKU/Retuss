@@ -1,6 +1,5 @@
 package io.github.morichan.retuss.translator.cpp;
 
-import io.github.morichan.retuss.translator.common.CodeToUmlTranslator;
 import io.github.morichan.retuss.translator.cpp.listeners.ClassExtractorListener;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
