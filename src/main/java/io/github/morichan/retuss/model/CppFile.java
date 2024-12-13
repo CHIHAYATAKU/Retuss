@@ -176,13 +176,6 @@ public class CppFile {
                             }
 
                         }
-
-                        // 対応する実装ファイルからの関係も解析
-                        String baseName = getBaseName();
-                        CppFile implFile = CppModel.getInstance().findImplFile(baseName);
-                        // if (implFile != null) {
-                        // analyzeImplementationFile(implFile);
-                        // }
                     }
                 }
 
