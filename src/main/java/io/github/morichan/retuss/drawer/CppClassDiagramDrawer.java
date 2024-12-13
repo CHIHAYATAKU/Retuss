@@ -36,6 +36,7 @@ public class CppClassDiagramDrawer {
     private final ExecutorService diagramExecutor = Executors.newSingleThreadExecutor();
     private final AtomicReference<String> lastSvg = new AtomicReference<>();
     private volatile boolean isUpdating = false;
+    private volatile boolean updatePending = false;
 
     public void setScale(double scale) {
         if (this.currentScale != scale) { // 値が実際に変化した場合のみ
@@ -201,9 +202,10 @@ public class CppClassDiagramDrawer {
                     pumlBuilder.append(" : ").append(formatType(returnType));
                 }
             }
-
-            if (modifiers.contains(Modifier.OVERRIDE)) {
-                pumlBuilder.append(" " + Modifier.OVERRIDE.getPlantUmlText(false));
+            if (modifiers != null) {
+                if (modifiers.contains(Modifier.OVERRIDE)) {
+                    pumlBuilder.append(" " + Modifier.OVERRIDE.getPlantUmlText(false));
+                }
             }
 
             pumlBuilder.append("\n");
@@ -237,15 +239,17 @@ public class CppClassDiagramDrawer {
         return result.toString();
     }
 
-    private boolean isCollectionType(String type) {
-        // 型名からテンプレート部分を含めて判定
-        return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
+    public void draw() {
+        if (isUpdating) {
+            updatePending = true; // 更新中の場合は次の更新をマーク
+            return;
+        }
+        executeDraw();
     }
 
-    public void draw() {
-        if (isUpdating)
-            return; // スキップ if already updating
+    private void executeDraw() {
         isUpdating = true;
+        updatePending = false;
 
         CompletableFuture.supplyAsync(() -> {
             try {
@@ -303,11 +307,14 @@ public class CppClassDiagramDrawer {
                 .thenAcceptAsync(svg -> {
                     try {
                         if (svg != null) {
-                            System.out.println("DEBUG: Updating WebView with new SVG");
                             webView.getEngine().loadContent(svg);
                         }
                     } finally {
                         isUpdating = false;
+                        // 保留中の更新があれば再度描画を実行
+                        if (updatePending) {
+                            Platform.runLater(this::executeDraw);
+                        }
                     }
                 }, Platform::runLater);
     }
