@@ -86,7 +86,6 @@ public class AttributeDialogController {
         }
     }
 
-    // 先ほど提案した parseAttributeString メソッドをここにも追加
     private Attribute parseAttributeString(String input) {
         System.out.println("Parsing attribute: " + input);
 

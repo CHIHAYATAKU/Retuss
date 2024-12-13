@@ -48,6 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,104 +85,111 @@ public class CodeController {
 
         File selectedDir = dirChooser.showDialog(codeTabPane.getScene().getWindow());
         if (selectedDir != null) {
-            showLoadingIndicator();
 
             // 非同期処理のみを使用
-            CompletableFuture.runAsync(() -> {
-                try {
-                    processDirectoryAsync(selectedDir);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Platform.runLater(() -> showError("Failed to import directory: " + e.getMessage()));
-                } finally {
-                    Platform.runLater(() -> {
-                        hideLoadingIndicator();
-                    });
-                }
-            });
+            try {
+                processDirectoryAsync(selectedDir);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showError("Failed to import directory: " + e.getMessage()));
+            }
         }
     }
 
     private void processDirectoryAsync(File directory) {
         File[] files = directory.listFiles();
-        if (files == null)
+        if (files == null) {
+            Platform.runLater(this::hideLoadingIndicator);
             return;
+        }
+
+        showLoadingIndicator();
 
         CompletableFuture.runAsync(() -> {
-            Map<File, String> fileContents = new HashMap<>();
-            Map<File, TreeItem<String>> fileItems = new HashMap<>();
+            try {
+                Map<File, String> fileContents = new HashMap<>();
+                Map<File, TreeItem<String>> fileItems = new HashMap<>();
 
-            // ファイル内容の読み込みとツリーアイテムの作成
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    processDirectoryAsync(file);
-                    continue;
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        processDirectoryAsync(file);
+                        continue;
+                    }
+
+                    try {
+                        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                        fileContents.put(file, content);
+                        fileItems.put(file, new TreeItem<>(file.getName()));
+                    } catch (IOException e) {
+                        System.err.println("Error reading file: " + file.getName());
+                    }
                 }
 
-                try {
-                    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                    fileContents.put(file, content);
-                    fileItems.put(file, new TreeItem<>(file.getName()));
-                } catch (IOException e) {
-                    System.err.println("Error reading file: " + file.getName());
+                Platform.runLater(() -> {
+                    TreeItem<String> projectRoot = new TreeItem<>(directory.getName());
+                    rootItem.getChildren().add(projectRoot);
+                    directoryNodes.put(directory.getPath(), projectRoot);
+
+                    fileContents.forEach((file, content) -> {
+                        try {
+                            TreeItem<String> fileItem = fileItems.get(file);
+                            TreeItem<String> parent = directoryNodes.get(directory.getPath());
+                            if (parent != null) {
+                                parent.getChildren().add(fileItem);
+                            }
+
+                            Tab tab = null;
+                            if (file.getName().endsWith(".java")) {
+                                CodeFile javaFile = new CodeFile(file.getName());
+                                javaFile.updateCode(content);
+                                javaModel.addNewFile(javaFile);
+                                tab = createCodeTab(javaFile);
+                            } else if (file.getName().endsWith(".h")) {
+                                String baseName = file.getName().replace(".h", "");
+                                cppModel.addNewFile(file.getName());
+                                CppFile headerFile = cppModel.findHeaderFile(baseName);
+                                if (headerFile != null) {
+                                    headerFile.updateCode(content);
+                                    tab = createCppCodeTab(headerFile);
+                                }
+                            } else if (file.getName().endsWith(".cpp")) {
+                                String baseName = file.getName().replace(".cpp", "");
+                                CppFile implFile = cppModel.findImplFile(baseName);
+                                if (implFile == null) {
+                                    cppModel.addNewFile(baseName + ".h");
+                                    implFile = cppModel.findImplFile(baseName);
+                                }
+                                if (implFile != null) {
+                                    implFile.updateCode(content);
+                                    tab = createCppCodeTab(implFile);
+                                }
+                            }
+
+                            if (tab != null) {
+                                if (!codeTabPane.getTabs().contains(tab)) {
+                                    codeTabPane.getTabs().add(tab);
+                                }
+                                tabPathMap.put(tab, file.toPath());
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error processing file: " + file.getName());
+                        }
+                    });
+                });
+            } finally {
+                // 処理が完了したらインジケーターを非表示にする
+                if (!hasChildDirectories(directory)) {
+                    Platform.runLater(this::hideLoadingIndicator);
                 }
             }
-
-            // UIの更新を単一のPlatform.runLaterで実行
-            Platform.runLater(() -> {
-                // プロジェクトルートの追加
-                TreeItem<String> projectRoot = new TreeItem<>(directory.getName());
-                rootItem.getChildren().add(projectRoot);
-                directoryNodes.put(directory.getPath(), projectRoot);
-
-                // 各ファイルの処理
-                fileContents.forEach((file, content) -> {
-                    try {
-                        TreeItem<String> fileItem = fileItems.get(file);
-                        TreeItem<String> parent = directoryNodes.get(directory.getPath());
-                        if (parent != null) {
-                            parent.getChildren().add(fileItem);
-                        }
-
-                        Tab tab = null;
-                        if (file.getName().endsWith(".java")) {
-                            CodeFile javaFile = new CodeFile(file.getName());
-                            javaFile.updateCode(content);
-                            javaModel.addNewFile(javaFile);
-                            tab = createCodeTab(javaFile);
-                        } else if (file.getName().endsWith(".h")) {
-                            String baseName = file.getName().replace(".h", "");
-                            cppModel.addNewFile(file.getName());
-                            CppFile headerFile = cppModel.findHeaderFile(baseName);
-                            if (headerFile != null) {
-                                headerFile.updateCode(content);
-                                tab = createCppCodeTab(headerFile);
-                            }
-                        } else if (file.getName().endsWith(".cpp")) {
-                            String baseName = file.getName().replace(".cpp", "");
-                            CppFile implFile = cppModel.findImplFile(baseName);
-                            if (implFile == null) {
-                                cppModel.addNewFile(baseName + ".h");
-                                implFile = cppModel.findImplFile(baseName);
-                            }
-                            if (implFile != null) {
-                                implFile.updateCode(content);
-                                tab = createCppCodeTab(implFile);
-                            }
-                        }
-
-                        if (tab != null) {
-                            if (!codeTabPane.getTabs().contains(tab)) {
-                                codeTabPane.getTabs().add(tab);
-                            }
-                            tabPathMap.put(tab, file.toPath());
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error processing file: " + file.getName());
-                    }
-                });
-            });
         });
+    }
+
+    private boolean hasChildDirectories(File directory) {
+        File[] files = directory.listFiles();
+        if (files == null)
+            return false;
+        return Arrays.stream(files).anyMatch(File::isDirectory);
     }
 
     private void showLoadingIndicator() {
@@ -494,18 +502,14 @@ public class CodeController {
 
         List<File> files = fileChooser.showOpenMultipleDialog(codeTabPane.getScene().getWindow());
         if (files != null) {
-            showLoadingIndicator();
-
-            CompletableFuture.runAsync(() -> {
-                for (File file : files) {
-                    try {
-                        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                        Platform.runLater(() -> importSingleFile(file, content));
-                    } catch (IOException e) {
-                        Platform.runLater(() -> showError("Failed to import: " + file.getName()));
-                    }
+            for (File file : files) {
+                try {
+                    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                    Platform.runLater(() -> importSingleFile(file, content));
+                } catch (IOException e) {
+                    Platform.runLater(() -> showError("Failed to import: " + file.getName()));
                 }
-            }).whenComplete((result, ex) -> Platform.runLater(this::hideLoadingIndicator));
+            }
         }
     }
 
