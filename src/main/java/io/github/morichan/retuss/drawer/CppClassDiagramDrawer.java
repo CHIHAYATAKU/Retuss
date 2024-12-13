@@ -36,6 +36,7 @@ public class CppClassDiagramDrawer {
     private final ExecutorService diagramExecutor = Executors.newSingleThreadExecutor();
     private final AtomicReference<String> lastSvg = new AtomicReference<>();
     private volatile boolean isUpdating = false;
+    private volatile boolean updatePending = false;
 
     public void setScale(double scale) {
         if (this.currentScale != scale) { // 値が実際に変化した場合のみ
@@ -162,9 +163,15 @@ public class CppClassDiagramDrawer {
                     .append(getVisibilitySymbol(op.getVisibility()))
                     .append(" ");
 
-            // メソッド用の修飾子を追加
-            Set<Modifier> modifiers = cls.getModifiers(op.getName().getNameText());
-            appendOperationModifiers(pumlBuilder, modifiers);
+            String methodName = op.getName().getNameText();
+            boolean isConstructor = methodName.equals(cls.getName());
+            boolean isDestructor = methodName.startsWith("~");
+
+            // 修飾子の追加
+            Set<Modifier> modifiers = cls.getModifiers(methodName);
+            if (modifiers != null && !modifiers.isEmpty()) {
+                appendOperationModifiers(pumlBuilder, modifiers);
+            }
 
             // メソッド名
             pumlBuilder.append(op.getName().getNameText())
@@ -185,22 +192,20 @@ public class CppClassDiagramDrawer {
                     pumlBuilder.append(String.join(", ", paramStrings));
                 }
             } catch (Exception e) {
-                // System.err.println("Error processing parameters for " + op.getName() + ": " +
-                // e.getMessage());
             }
 
             pumlBuilder.append(")");
             // 戻り値型の表示
-            if (!op.getName().getNameText().contains("~") &&
-                    !op.getName().getNameText().equals(cls.getName())) {
+            if (!isConstructor && !isDestructor) {
                 String returnType = op.getReturnType().toString();
                 if (returnType != null && !returnType.isEmpty()) {
                     pumlBuilder.append(" : ").append(formatType(returnType));
                 }
             }
-
-            if (modifiers.contains(Modifier.OVERRIDE)) {
-                pumlBuilder.append(" " + Modifier.OVERRIDE.getPlantUmlText(false));
+            if (modifiers != null) {
+                if (modifiers.contains(Modifier.OVERRIDE)) {
+                    pumlBuilder.append(" " + Modifier.OVERRIDE.getPlantUmlText(false));
+                }
             }
 
             pumlBuilder.append("\n");
@@ -234,15 +239,17 @@ public class CppClassDiagramDrawer {
         return result.toString();
     }
 
-    private boolean isCollectionType(String type) {
-        // 型名からテンプレート部分を含めて判定
-        return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
+    public void draw() {
+        if (isUpdating) {
+            updatePending = true; // 更新中の場合は次の更新をマーク
+            return;
+        }
+        executeDraw();
     }
 
-    public void draw() {
-        if (isUpdating)
-            return; // スキップ if already updating
+    private void executeDraw() {
         isUpdating = true;
+        updatePending = false;
 
         CompletableFuture.supplyAsync(() -> {
             try {
@@ -300,11 +307,14 @@ public class CppClassDiagramDrawer {
                 .thenAcceptAsync(svg -> {
                     try {
                         if (svg != null) {
-                            System.out.println("DEBUG: Updating WebView with new SVG");
                             webView.getEngine().loadContent(svg);
                         }
                     } finally {
                         isUpdating = false;
+                        // 保留中の更新があれば再度描画を実行
+                        if (updatePending) {
+                            Platform.runLater(this::executeDraw);
+                        }
                     }
                 }, Platform::runLater);
     }

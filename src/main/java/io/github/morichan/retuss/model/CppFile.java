@@ -162,7 +162,8 @@ public class CppFile {
                             if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
                                 boolean allAbstract = true;
                                 for (Operation op : cls.getOperationList()) {
-                                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.ABSTRACT)) {
+                                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.ABSTRACT)
+                                            && !cls.getName().equals(op.getName().getNameText())) {
                                         allAbstract = false;
                                         cls.setInterface(false);
                                         break; // 一度でも修飾子に ABTRACT が含まれていない場合、ループを終了

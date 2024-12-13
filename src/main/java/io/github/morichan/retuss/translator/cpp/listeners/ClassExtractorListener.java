@@ -27,7 +27,8 @@ public class ClassExtractorListener extends CPP14ParserBaseListener {
                     new InheritanceAnalyzer(),
                     new VisibilityAnalyzer(),
                     new AttributeAnalyzer(),
-                    new OperationAnalyzer());
+                    new OperationAnalyzer(),
+                    new ConstructorAndDestructorAnalyzer());
         } else {
             this.analyzers = Arrays.asList(new OperationAnalyzer());
         }

@@ -34,6 +34,7 @@ public class JavaModel extends AbstractJavaModel {
     private static JavaModel model = new JavaModel();
     private List<CodeFile> codeFileList = new ArrayList<>();
     private JavaTranslator translator = new JavaTranslator();
+    private List<CodeFile> files = new ArrayList<>();
 
     private JavaModel() {
     }
@@ -458,5 +459,24 @@ public class JavaModel extends AbstractJavaModel {
         }
 
         return Optional.ofNullable(targetMethod);
+    }
+
+    public void addNewFile(CodeFile file) {
+        files.add(file);
+        codeFileList.add(file); // 既存のリストとの同期を維持
+        // リスナーへの通知
+        if (codeController != null) {
+            codeController.updateCodeTab(file);
+        }
+        if (umlController != null) {
+            umlController.updateDiagram(file);
+        }
+    }
+
+    public CodeFile findFile(String fileName) {
+        return files.stream()
+                .filter(file -> file.getFileName().equals(fileName))
+                .findFirst()
+                .orElse(null);
     }
 }

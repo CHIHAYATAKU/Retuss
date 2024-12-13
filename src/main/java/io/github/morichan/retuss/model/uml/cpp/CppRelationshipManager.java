@@ -91,67 +91,88 @@ public class CppRelationshipManager {
     public String generatePlantUmlRelationships() {
         StringBuilder sb = new StringBuilder();
         Map<String, RelationshipInfo> inheritanceMap = new HashMap<>();
+        Map<String, Set<RelationType>> dependencyMap = new HashMap<>();
 
+        // 関係の分類と処理
         for (RelationshipInfo relation : getAllRelationships()) {
-            switch (relation.getType()) {
-                case INHERITANCE:
-                case REALIZATION:
-                    // 実現を優先、または初めての継承関係を保存
-                    String targetClass = relation.getTargetClass();
-                    if (relation.getType() == RelationType.REALIZATION || !inheritanceMap.containsKey(targetClass)) {
-                        inheritanceMap.put(targetClass, relation);
-                    }
-                    break;
-
-                case COMPOSITION:
-                case AGGREGATION:
-                case ASSOCIATION:
-                    sb.append(sourceClassName)
-                            .append(" ")
-                            .append(relation.getType().getPlantUmlText())
-                            .append(" \"");
-
-                    if (!relation.getElements().isEmpty()) {
-                        RelationshipElement elem = relation.getElements().iterator().next();
-                        sb.append(elem.getMultiplicity() != null ? elem.getMultiplicity() : "1");
-                    }
-                    sb.append("\" ")
-                            .append(relation.getTargetClass());
-
-                    if (!relation.getElements().isEmpty()) {
-                        RelationshipElement elem = relation.getElements().iterator().next();
-                        sb.append(" : ").append(elem.getVisibility()).append(elem.getName());
-                    }
-                    sb.append("\n");
-                    break;
-
-                case DEPENDENCY:
-                    sb.append(sourceClassName)
-                            .append(" ")
-                            .append(relation.getType().getPlantUmlText())
-                            .append(" ")
-                            .append(relation.getTargetClass());
-
-                    if (!relation.getElements().isEmpty()) {
-                        RelationshipElement elem = relation.getElements().iterator().next();
-                        sb.append(" : ").append(elem.getVisibility()).append(elem.getName());
-                    }
-                    sb.append("\n");
-                    break;
+            if (relation.getType().isDependency()) {
+                // 依存関係の収集
+                dependencyMap.computeIfAbsent(relation.getTargetClass(), k -> new HashSet<>())
+                        .add(relation.getType());
+            } else if (relation.getType() == RelationType.INHERITANCE ||
+                    relation.getType() == RelationType.REALIZATION) {
+                // 継承/実現関係の処理
+                String targetClass = relation.getTargetClass();
+                if (relation.getType() == RelationType.REALIZATION ||
+                        !inheritanceMap.containsKey(targetClass)) {
+                    inheritanceMap.put(targetClass, relation);
+                }
+            } else {
+                // その他の関係（コンポジション、集約、関連）の処理
+                appendRegularRelationship(sb, relation);
             }
         }
 
-        // 継承/実現関係の出力
+        // 依存関係の出力
+        appendDependencyRelationships(sb, dependencyMap);
+
+        // 継承/実現関係の出力（最後に出力）
+        appendInheritanceRelationships(sb, inheritanceMap);
+
+        return sb.toString();
+    }
+
+    private void appendRegularRelationship(StringBuilder sb, RelationshipInfo relation) {
+        sb.append(sourceClassName)
+                .append(" ")
+                .append(relation.getType().getPlantUmlText())
+                .append(" \"");
+
+        if (!relation.getElements().isEmpty()) {
+            RelationshipElement elem = relation.getElements().iterator().next();
+            sb.append(elem.getMultiplicity() != null ? elem.getMultiplicity() : "1");
+        }
+
+        sb.append("\" ")
+                .append(relation.getTargetClass());
+
+        if (!relation.getElements().isEmpty()) {
+            RelationshipElement elem = relation.getElements().iterator().next();
+            sb.append(" : ").append(elem.getVisibility()).append(elem.getName());
+        }
+
+        sb.append("\n");
+    }
+
+    private void appendDependencyRelationships(StringBuilder sb,
+            Map<String, Set<RelationType>> dependencyMap) {
+        for (Map.Entry<String, Set<RelationType>> entry : dependencyMap.entrySet()) {
+            sb.append(sourceClassName)
+                    .append(" ..> ")
+                    .append(entry.getKey())
+                    .append(" : <<");
+
+            // ステレオタイプをソートして結合
+            String stereotypes = entry.getValue().stream()
+                    .map(RelationType::getStereotype)
+                    .sorted()
+                    .collect(Collectors.joining(", "));
+
+            sb.append(stereotypes)
+                    .append(">>\n");
+        }
+    }
+
+    private void appendInheritanceRelationships(StringBuilder sb,
+            Map<String, RelationshipInfo> inheritanceMap) {
         for (RelationshipInfo relation : inheritanceMap.values()) {
-            sb.append(relation.getTargetClass())
+            sb.append(sourceClassName)
                     .append(" ")
                     .append(relation.getType().getPlantUmlText())
                     .append(" ")
-                    .append(sourceClassName)
+                    .append(relation.getTargetClass())
                     .append("\n");
         }
-
-        return sb.toString();
     }
 
     // 特定のターゲットクラスとの関係を削除

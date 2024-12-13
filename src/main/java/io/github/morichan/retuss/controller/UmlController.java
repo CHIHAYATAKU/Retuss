@@ -11,30 +11,19 @@ import io.github.morichan.retuss.model.UmlModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
-import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
-import io.github.morichan.retuss.parser.cpp.CPP14Lexer;
-import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.IndexRange;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
@@ -42,7 +31,6 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -129,7 +117,7 @@ public class UmlController {
         });
         scaleSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (isJavaSelected()) {
-                // javaClassDiagramDrawer.setScale(newVal.doubleValue());
+                javaClassDiagramDrawer.setScale(newVal.doubleValue());
             } else if (isCppSelected()) {
                 cppClassDiagramDrawer.setScale(newVal.doubleValue());
             }

@@ -17,25 +17,14 @@ public class RelationshipInfo {
         this.type = type;
     }
 
-    public void addElement(String name, ElementType elemType, String multiplicity, Visibility visibility) {
-        addElement(name, elemType, multiplicity, visibility, null, null, null, false,
-                EnumSet.noneOf(Modifier.class));
-    }
-
     // 完全版
     public void addElement(
             String name,
             ElementType elemType,
             String multiplicity,
-            Visibility visibility,
-            String type,
-            String returnType,
-            String defaultValue,
-            boolean isPureVirtual,
-            Set<Modifier> modifiers) {
+            Visibility visibility) {
         elements.add(new RelationshipElement(
-                name, elemType, multiplicity, visibility,
-                type, returnType, defaultValue, isPureVirtual, modifiers));
+                name, elemType, multiplicity, visibility));
     }
 
     // ゲッターメソッド

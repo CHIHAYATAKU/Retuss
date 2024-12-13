@@ -20,8 +20,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             return false;
         }
         CPP14Parser.MemberdeclarationContext ctx = (CPP14Parser.MemberdeclarationContext) context;
-        return ctx.declSpecifierSeq() != null &&
-                (ctx.memberDeclaratorList() != null && isMethodDeclaration(ctx.memberDeclaratorList()));
+
+        return (ctx.memberDeclaratorList() != null && isMethodDeclaration(ctx.memberDeclaratorList()));
     }
 
     @Override
@@ -34,17 +34,25 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 return;
             }
 
-            String rawType = ctx.declSpecifierSeq().getText();
-            System.err.println("DEBUG: " + rawType);
-            Set<Modifier> modifiers = extractModifiers(rawType);
-            if (extractIsOverride(ctx)) {
-                modifiers.add(Modifier.OVERRIDE);
+            String rawType = "";
+            Set<Modifier> modifiers = new HashSet<>();
+
+            if (ctx.declSpecifierSeq() != null) {
+                rawType = ctx.declSpecifierSeq().getText();
+                System.err.println("DEBUG: " + rawType);
+                modifiers = extractModifiers(rawType);
+                if (extractIsOverride(ctx)) {
+                    modifiers.add(Modifier.OVERRIDE);
+                }
             }
 
-            if (ctx.getText().contains("=0")) {
-                currentHeaderClass.setAbstruct(true);
-                modifiers.add(Modifier.ABSTRACT);
-                System.err.println("DEBUG: " + currentHeaderClass.getName() + "is Abstract Class！！: ");
+            for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
+                if (memberDec.pureSpecifier() != null) { // pureSpecifierの存在で判定
+                    currentHeaderClass.setAbstruct(true);
+                    modifiers.add(Modifier.ABSTRACT);
+                    System.err.println("DEBUG: " + currentHeaderClass.getName() + "is Abstract Class！！: ");
+                    break;
+                }
             }
 
             String processedType = cleanType(rawType);
@@ -83,14 +91,26 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
         Operation operation = new Operation(new Name(methodName));
         if (isConstructor || isDestructor) {
-            // コンストラクタ/デストラクタは戻り値型を空文字列に
-            operation.setReturnType(new Type(""));
+            return;
         } else {
             // 通常のメソッドは戻り値型を処理
             String processedReturnType = processOperationType(returnType);
-            System.out.println("DEBUG: processedType: " + processedReturnType);
+            if (processedReturnType == null || processedReturnType.trim().isEmpty()) {
+                processedReturnType = "void";
+            }
+            // メソッド名から修飾子を抽出し、型に移動
+            if (methodName.contains("*")) {
+                methodName = methodName.replace("*", "");
+                processedReturnType += "*";
+            }
+            if (methodName.contains("&")) {
+                methodName = methodName.replace("&", "");
+                processedReturnType += "&";
+            }
+            operation.setName(new Name(methodName));
             operation.setReturnType(new Type(processedReturnType));
         }
+
         operation.setVisibility(convertVisibility(context.getCurrentVisibility()));
 
         // パラメータ処理の既存コード
@@ -123,7 +143,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                             System.out.println("DEBUG: Found ParametersAndQualifiers: " + params.getText());
 
                             if (params.parameterDeclarationClause() != null) {
-                                System.out.println("DEBUG: Found ParameterDeclarationClause");
+                                System.out.println("DEBUG: Found ParameterDeclarationClause: "
+                                        + params.parameterDeclarationClause().getText());
                                 processParameters(params, operation);
                             }
                         }
@@ -133,6 +154,8 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         }
 
         currentHeaderClass.addOperation(operation);
+        System.out.println("DEBUG: Operation added to class. Current operation count: " +
+                currentHeaderClass.getOperationList().size());
         for (Modifier modifier : modifiers) {
             currentHeaderClass.addMemberModifier(methodName, modifier);
             System.out.println("DEBUG: Modifier" + modifier);
@@ -143,9 +166,118 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         if (modifiers.contains(Modifier.OVERRIDE)) {
             processRealization(currentHeaderClass, operation, methodName, returnType, modifiers);
         }
+
+        System.out.println("DEBUG: Adding operation: " + methodName);
+        System.out.println("DEBUG: Is constructor: " + isConstructor);
+        System.out.println("DEBUG: Is destructor: " + isDestructor);
+
+        // 依存関係の解析を追加
+        analyzeOperationDependencies(
+                methodName,
+                returnType,
+                operation,
+                currentHeaderClass);
     }
 
-    // analyzeReturnTypeRelationship(String returnType)
+    private void analyzeOperationDependencies(
+            String methodName,
+            String returnType,
+            Operation operation,
+            CppHeaderClass currentClass) {
+
+        // コンストラクタ/デストラクタの場合は戻り値型の依存関係は不要
+        if (!methodName.equals(currentClass.getName()) && !methodName.startsWith("~")) {
+            analyzeReturnTypeDependency(returnType, currentClass);
+        }
+
+        // パラメータからの依存関係を分析
+        if (operation.getParameters() != null) { // null チェックを追加
+            for (Parameter param : operation.getParameters()) {
+                analyzeParameterTypeDependency(param.getType().toString(),
+                        param.getName().toString(), currentClass);
+            }
+        }
+    }
+
+    private String cleanTypeForRelationship(String type) {
+        String cleanType = type;
+
+        // コレクション型の場合は要素型を取得
+        if (isCollectionType(cleanType)) {
+            cleanType = extractElementType(cleanType);
+        }
+
+        // ネストされた型の場合は最後の部分を取得
+        if (cleanType.contains("::")) {
+            String[] parts = cleanType.split("::");
+            cleanType = parts[parts.length - 1];
+        }
+
+        // ポインタや参照を除去
+        cleanType = cleanType.replaceAll("[*&]", "").trim();
+
+        return cleanType;
+    }
+
+    private void analyzeReturnTypeDependency(String returnType, CppHeaderClass currentClass) {
+        // voidは依存関係を作成しない
+        if (returnType.equals("void"))
+            return;
+
+        String cleanType = cleanTypeForRelationship(returnType);
+
+        if (isUserDefinedType(cleanType)) {
+            RelationshipInfo relation = new RelationshipInfo(
+                    cleanType,
+                    RelationType.DEPENDENCY_USE);
+            currentClass.addRelationship(relation);
+        }
+    }
+
+    private void analyzeParameterTypeDependency(String paramType, String paramName, CppHeaderClass currentClass) {
+        String cleanType = cleanTypeForRelationship(paramType);
+
+        if (isUserDefinedType(cleanType)) {
+            RelationshipInfo relation = new RelationshipInfo(
+                    cleanType,
+                    RelationType.DEPENDENCY_PARAMETER);
+            currentClass.addRelationship(relation);
+        }
+    }
+
+    // ネストされた型から最後の部分を取得
+    private String getLastTypeComponent(String type) {
+        if (type.contains("::")) {
+            String[] parts = type.split("::");
+            return parts[parts.length - 1];
+        }
+        return type;
+    }
+
+    private boolean isUserDefinedType(String type) {
+        Set<String> basicTypes = Set.of(
+                "void", "bool", "char", "int", "float", "double",
+                "long", "short", "unsigned", "signed",
+                "string", "vector", "list", "map", "set",
+                "array", "queue", "stack", "deque");
+
+        return !basicTypes.contains(type) &&
+                !type.startsWith("std::") &&
+                Character.isUpperCase(type.charAt(0));
+    }
+
+    private boolean isCollectionType(String type) {
+        return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
+    }
+
+    private String extractElementType(String type) {
+        if (type.contains("<") && type.contains(">")) {
+            return type.replaceAll(".*<(.+)>.*", "$1")
+                    .replaceAll("std::", "")
+                    .trim();
+        }
+        return type;
+    }
 
     private String processOperationType(String type) {
         Map<String, String> standardTypes = Map.of(
@@ -169,43 +301,50 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
     private void processParameters(CPP14Parser.ParametersAndQualifiersContext params, Operation operation) {
         System.out.println("DEBUG: Processing parameters");
-        CPP14Parser.ParameterDeclarationListContext paramList = params.parameterDeclarationClause()
-                .parameterDeclarationList();
+        // まず空のパラメータリストで初期化
+        operation.setParameters(new ArrayList<>());
 
-        if (paramList != null) {
-            for (CPP14Parser.ParameterDeclarationContext paramCtx : paramList.parameterDeclaration()) {
-                try {
-                    String paramType = paramCtx.declSpecifierSeq().getText();
-                    String paramName = "";
-                    String paramModifier = "";
+        // パラメータリストがある場合のみ処理
+        if (params.parameterDeclarationClause() != null &&
+                params.parameterDeclarationClause().parameterDeclarationList() != null) {
+            CPP14Parser.ParameterDeclarationListContext paramList = params.parameterDeclarationClause()
+                    .parameterDeclarationList();
 
-                    System.out.println("DEBUG: Parameter context: " + paramCtx.getText());
-                    System.out.println("DEBUG: Parameter type raw: " + paramType);
+            if (paramList != null) {
+                for (CPP14Parser.ParameterDeclarationContext paramCtx : paramList.parameterDeclaration()) {
+                    try {
+                        String paramType = paramCtx.declSpecifierSeq().getText();
+                        String paramName = "";
+                        String paramModifier = "";
 
-                    paramType = processOperationType(paramType);
-                    paramType = cleanType(paramType);
+                        System.out.println("DEBUG: Parameter context: " + paramCtx.getText());
+                        System.out.println("DEBUG: Parameter type raw: " + paramType);
 
-                    if (paramCtx.declarator() != null) {
-                        String fullDeclarator = paramCtx.declarator().getText();
-                        System.out.println("DEBUG: Parameter declarator: " + fullDeclarator);
+                        paramType = processOperationType(paramType);
+                        paramType = cleanType(paramType);
 
-                        // ポインタ/参照修飾子の抽出
-                        if (fullDeclarator.contains("*"))
-                            paramModifier += "*";
-                        if (fullDeclarator.contains("&"))
-                            paramModifier += "&";
+                        if (paramCtx.declarator() != null) {
+                            String fullDeclarator = paramCtx.declarator().getText();
+                            System.out.println("DEBUG: Parameter declarator: " + fullDeclarator);
 
-                        // 名前の抽出（修飾子を除去）
-                        paramName = cleanName(fullDeclarator);
+                            // ポインタ/参照修飾子の抽出
+                            if (fullDeclarator.contains("*"))
+                                paramType += "*";
+                            if (fullDeclarator.contains("&"))
+                                paramType += "&";
+
+                            // 名前の抽出（修飾子を除去）
+                            paramName = cleanName(fullDeclarator);
+                        }
+
+                        Parameter param = new Parameter(new Name(paramName));
+                        param.setType(new Type(paramType));
+                        operation.addParameter(param);
+
+                        System.out.println("DEBUG: Added parameter - " + paramName + " : " + paramType + paramModifier);
+                    } catch (Exception e) {
+                        System.err.println("ERROR processing parameter: " + e.getMessage());
                     }
-
-                    Parameter param = new Parameter(new Name(paramName));
-                    param.setType(new Type(paramType + paramModifier));
-                    operation.addParameter(param);
-
-                    System.out.println("DEBUG: Added parameter - " + paramName + " : " + paramType + paramModifier);
-                } catch (Exception e) {
-                    System.err.println("ERROR processing parameter: " + e.getMessage());
                 }
             }
         }
@@ -225,6 +364,11 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
     private void processRealization(CppHeaderClass currentClass, Operation operation, String methodName,
             String returnType, Set<Modifier> modifiers) {
+        // コンストラクタ/デストラクタの場合はスキップ
+        if (methodName.equals(currentClass.getName()) || methodName.startsWith("~")) {
+            return;
+        }
+
         for (RelationshipInfo relation : currentClass.getRelationships()) {
             if (relation.getType() == RelationType.INHERITANCE) {
                 CppModel.getInstance().findClass(relation.getTargetClass())
@@ -262,7 +406,12 @@ public class OperationAnalyzer extends AbstractAnalyzer {
     }
 
     private String extractMethodName(CPP14Parser.DeclaratorContext declarator) {
+        if (declarator == null) {
+            System.out.println("DEBUG: Declarator is null");
+            return null;
+        }
         String fullText = declarator.getText();
+        System.out.println("DEBUG: Full declarator text: " + fullText);
         // パラメータリストの前で切り取り
         int parenIndex = fullText.indexOf('(');
         if (parenIndex > 0) {
@@ -309,11 +458,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         for (CPP14Parser.MemberDeclaratorContext memberDec : memberDecList.memberDeclarator()) {
             if (memberDec.declarator() == null)
                 continue;
-
-            // パラメータリストがある場合はメソッド
-            if (memberDec.declarator().parametersAndQualifiers() != null) {
-                return true;
-            }
 
             // ポインタメソッドの判定
             CPP14Parser.DeclaratorContext declarator = memberDec.declarator();
