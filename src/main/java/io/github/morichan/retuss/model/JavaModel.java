@@ -17,8 +17,8 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.common.AbstractJavaModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
+import io.github.morichan.retuss.translator.java.JavaTranslator;
 import io.github.morichan.retuss.model.uml.*;
-import io.github.morichan.retuss.translator.JavaTranslator;
 
 import java.util.*;
 

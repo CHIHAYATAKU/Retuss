@@ -1,10 +1,9 @@
 package io.github.morichan.retuss.model;
 
 import io.github.morichan.fescue.feature.Operation;
-import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
-import io.github.morichan.retuss.translator.cpp.CppTranslator;
+import io.github.morichan.retuss.translator.cpp.header.CppTranslator;
 
 import java.util.*;
 import java.util.concurrent.CancellationException;
@@ -176,19 +175,7 @@ public class CppFile {
                             }
 
                         }
-
-                        // 対応する実装ファイルからの関係も解析
-                        String baseName = getBaseName();
-                        CppFile implFile = CppModel.getInstance().findImplFile(baseName);
-                        // if (implFile != null) {
-                        // analyzeImplementationFile(implFile);
-                        // }
                     }
-                }
-
-                // UMLコントローラーに通知
-                if (umlController != null) {
-                    umlController.updateDiagram(this);
                 }
                 notifyFileChanged();
             } catch (

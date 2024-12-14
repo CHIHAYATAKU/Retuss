@@ -48,6 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class CodeController {
+public class CodeController implements CppModel.ModelChangeListener {
     @FXML
     private TabPane codeTabPane;
     @FXML
@@ -79,6 +80,57 @@ public class CodeController {
         controller.setCodeController(this);
     }
 
+    @Override
+    public void onModelChanged() {
+        // 全体更新が必要な場合用
+    }
+
+    @Override
+    public void onFileAdded(CppFile file) {
+        Platform.runLater(() -> {
+            Tab tab = createCppCodeTab(file);
+            if (!codeTabPane.getTabs().contains(tab)) {
+                codeTabPane.getTabs().add(tab);
+            }
+        });
+    }
+
+    @Override
+    public void onFileUpdated(CppFile file) {
+        Platform.runLater(() -> {
+            updateCodeTab(file);
+        });
+    }
+
+    @Override
+    public void onFileDeleted(String className) {
+        Platform.runLater(() -> {
+            cppFileTabList.removeIf(pair -> {
+                CppFile file = pair.getKey();
+                Tab tab = pair.getValue();
+                boolean shouldRemove = file.getFileName().equals(className + ".h") ||
+                        file.getFileName().equals(className + ".cpp");
+                if (shouldRemove) {
+                    codeTabPane.getTabs().remove(tab);
+                }
+                return shouldRemove;
+            });
+        });
+    }
+
+    @Override
+    public void onFileRenamed(String oldName, String newName) {
+        Platform.runLater(() -> {
+            for (Pair<CppFile, Tab> pair : cppFileTabList) {
+                if (pair.getKey().getFileName().equals(oldName)) {
+                    Tab tab = pair.getValue();
+                    tab.setText(newName);
+                    updateTabTitle(tab, pair.getKey());
+                }
+            }
+        });
+    }
+
     @FXML
     private void importDirectory() {
         DirectoryChooser dirChooser = new DirectoryChooser();
@@ -86,104 +138,111 @@ public class CodeController {
 
         File selectedDir = dirChooser.showDialog(codeTabPane.getScene().getWindow());
         if (selectedDir != null) {
-            showLoadingIndicator();
 
             // 非同期処理のみを使用
-            CompletableFuture.runAsync(() -> {
-                try {
-                    processDirectoryAsync(selectedDir);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Platform.runLater(() -> showError("Failed to import directory: " + e.getMessage()));
-                } finally {
-                    Platform.runLater(() -> {
-                        hideLoadingIndicator();
-                    });
-                }
-            });
+            try {
+                processDirectoryAsync(selectedDir);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> showError("Failed to import directory: " + e.getMessage()));
+            }
         }
     }
 
     private void processDirectoryAsync(File directory) {
         File[] files = directory.listFiles();
-        if (files == null)
+        if (files == null) {
+            Platform.runLater(this::hideLoadingIndicator);
             return;
+        }
+
+        showLoadingIndicator();
 
         CompletableFuture.runAsync(() -> {
-            Map<File, String> fileContents = new HashMap<>();
-            Map<File, TreeItem<String>> fileItems = new HashMap<>();
+            try {
+                Map<File, String> fileContents = new HashMap<>();
+                Map<File, TreeItem<String>> fileItems = new HashMap<>();
 
-            // ファイル内容の読み込みとツリーアイテムの作成
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    processDirectoryAsync(file);
-                    continue;
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        processDirectoryAsync(file);
+                        continue;
+                    }
+
+                    try {
+                        String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                        fileContents.put(file, content);
+                        fileItems.put(file, new TreeItem<>(file.getName()));
+                    } catch (IOException e) {
+                        System.err.println("Error reading file: " + file.getName());
+                    }
                 }
 
-                try {
-                    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                    fileContents.put(file, content);
-                    fileItems.put(file, new TreeItem<>(file.getName()));
-                } catch (IOException e) {
-                    System.err.println("Error reading file: " + file.getName());
+                Platform.runLater(() -> {
+                    TreeItem<String> projectRoot = new TreeItem<>(directory.getName());
+                    rootItem.getChildren().add(projectRoot);
+                    directoryNodes.put(directory.getPath(), projectRoot);
+
+                    fileContents.forEach((file, content) -> {
+                        try {
+                            TreeItem<String> fileItem = fileItems.get(file);
+                            TreeItem<String> parent = directoryNodes.get(directory.getPath());
+                            if (parent != null) {
+                                parent.getChildren().add(fileItem);
+                            }
+
+                            Tab tab = null;
+                            if (file.getName().endsWith(".java")) {
+                                CodeFile javaFile = new CodeFile(file.getName());
+                                javaFile.updateCode(content);
+                                javaModel.addNewFile(javaFile);
+                                tab = createCodeTab(javaFile);
+                            } else if (file.getName().endsWith(".h")) {
+                                String baseName = file.getName().replace(".h", "");
+                                cppModel.addNewFile(file.getName());
+                                CppFile headerFile = cppModel.findHeaderFile(baseName);
+                                if (headerFile != null) {
+                                    headerFile.updateCode(content);
+                                    tab = createCppCodeTab(headerFile);
+                                }
+                            } else if (file.getName().endsWith(".cpp")) {
+                                String baseName = file.getName().replace(".cpp", "");
+                                CppFile implFile = cppModel.findImplFile(baseName);
+                                if (implFile == null) {
+                                    cppModel.addNewFile(baseName + ".h");
+                                    implFile = cppModel.findImplFile(baseName);
+                                }
+                                if (implFile != null) {
+                                    implFile.updateCode(content);
+                                    tab = createCppCodeTab(implFile);
+                                }
+                            }
+
+                            if (tab != null) {
+                                if (!codeTabPane.getTabs().contains(tab)) {
+                                    codeTabPane.getTabs().add(tab);
+                                }
+                                tabPathMap.put(tab, file.toPath());
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error processing file: " + file.getName());
+                        }
+                    });
+                });
+            } finally {
+                // 処理が完了したらインジケーターを非表示にする
+                if (!hasChildDirectories(directory)) {
+                    Platform.runLater(this::hideLoadingIndicator);
                 }
             }
-
-            // UIの更新を単一のPlatform.runLaterで実行
-            Platform.runLater(() -> {
-                // プロジェクトルートの追加
-                TreeItem<String> projectRoot = new TreeItem<>(directory.getName());
-                rootItem.getChildren().add(projectRoot);
-                directoryNodes.put(directory.getPath(), projectRoot);
-
-                // 各ファイルの処理
-                fileContents.forEach((file, content) -> {
-                    try {
-                        TreeItem<String> fileItem = fileItems.get(file);
-                        TreeItem<String> parent = directoryNodes.get(directory.getPath());
-                        if (parent != null) {
-                            parent.getChildren().add(fileItem);
-                        }
-
-                        Tab tab = null;
-                        if (file.getName().endsWith(".java")) {
-                            CodeFile javaFile = new CodeFile(file.getName());
-                            javaFile.updateCode(content);
-                            javaModel.addNewFile(javaFile);
-                            tab = createCodeTab(javaFile);
-                        } else if (file.getName().endsWith(".h")) {
-                            String baseName = file.getName().replace(".h", "");
-                            cppModel.addNewFile(file.getName());
-                            CppFile headerFile = cppModel.findHeaderFile(baseName);
-                            if (headerFile != null) {
-                                headerFile.updateCode(content);
-                                tab = createCppCodeTab(headerFile);
-                            }
-                        } else if (file.getName().endsWith(".cpp")) {
-                            String baseName = file.getName().replace(".cpp", "");
-                            CppFile implFile = cppModel.findImplFile(baseName);
-                            if (implFile == null) {
-                                cppModel.addNewFile(baseName + ".h");
-                                implFile = cppModel.findImplFile(baseName);
-                            }
-                            if (implFile != null) {
-                                implFile.updateCode(content);
-                                tab = createCppCodeTab(implFile);
-                            }
-                        }
-
-                        if (tab != null) {
-                            if (!codeTabPane.getTabs().contains(tab)) {
-                                codeTabPane.getTabs().add(tab);
-                            }
-                            tabPathMap.put(tab, file.toPath());
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Error processing file: " + file.getName());
-                    }
-                });
-            });
         });
+    }
+
+    private boolean hasChildDirectories(File directory) {
+        File[] files = directory.listFiles();
+        if (files == null)
+            return false;
+        return Arrays.stream(files).anyMatch(File::isDirectory);
     }
 
     private void showLoadingIndicator() {
@@ -295,10 +354,302 @@ public class CodeController {
                 }
             }
         });
+    }
 
-        // モデルの初期化
-        javaModel.setCodeController(this);
-        cppModel.setCodeController(this);
+    @FXML
+    public void saveCurrentFile() {
+        Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null)
+            return;
+
+        Path filePath = tabPathMap.get(selectedTab);
+        if (filePath == null) {
+            saveFileAs();
+            return;
+        }
+
+        try {
+            AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
+            CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+            String content = codeArea.getText();
+
+            // ファイルの保存
+            Files.writeString(filePath, content, StandardCharsets.UTF_8);
+
+            // モデルの更新
+            if (umlController.isJavaSelected()) {
+                Optional<CodeFile> javaFileOpt = findJavaFileByTab(selectedTab);
+                if (javaFileOpt.isPresent()) {
+                    javaModel.updateCodeFile(javaFileOpt.get(), content);
+                }
+            } else {
+                Optional<CppFile> cppFileOpt = findFileByTab(selectedTab);
+                if (cppFileOpt.isPresent()) {
+                    cppModel.updateCodeFile(cppFileOpt.get(), content);
+                }
+            }
+
+            updateTabStatus(selectedTab, false);
+            showSaveStatus("File saved: " + filePath.getFileName());
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Failed to save file: " + e.getMessage());
+        }
+    }
+
+    private Optional<CodeFile> findJavaFileByTab(Tab tab) {
+        return javaFileTabList.stream()
+                .filter(pair -> pair.getValue().equals(tab))
+                .map(Pair::getKey)
+                .findFirst();
+    }
+
+    public void postInitialize() {
+        // スクリーンに表示された後の初期化処理
+        if (codeTabPane.getScene() == null) {
+            return;
+        }
+
+        // キーボードショートカットの設定
+        codeTabPane.getScene().getWindow().setOnShowing(event -> {
+            codeTabPane.getScene().addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+                if (keyEvent.isShortcutDown() && keyEvent.getCode() == KeyCode.S) {
+                    saveCurrentFile();
+                    keyEvent.consume();
+                }
+            });
+        });
+    }
+
+    @FXML
+    private void saveFileAs() {
+        Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null)
+            return;
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save As");
+
+        if (umlController.isJavaSelected()) {
+            fileChooser.getExtensionFilters().setAll(
+                    new FileChooser.ExtensionFilter("Java Files", "*.java"));
+        } else {
+            fileChooser.getExtensionFilters().setAll(
+                    new FileChooser.ExtensionFilter("C++ Header Files", "*.h"),
+                    new FileChooser.ExtensionFilter("C++ Source Files", "*.cpp"));
+        }
+
+        File file = fileChooser.showSaveDialog(codeTabPane.getScene().getWindow());
+        if (file != null) {
+            try {
+                AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
+                CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+                Files.write(file.toPath(), codeArea.getText().getBytes());
+
+                // タブの情報を更新
+                selectedTab.setText(file.getName());
+                tabPathMap.put(selectedTab, file.toPath());
+                updateTabStatus(selectedTab, false);
+
+                System.err.println("File saved: " + file.getName());
+            } catch (IOException e) {
+                showError("Failed to save file: " + e.getMessage());
+            }
+        }
+    }
+
+    @FXML
+    private void exitApplication() {
+        // 未保存の変更がある場合は確認ダイアログを表示
+        if (hasUnsavedChanges()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unsaved Changes");
+            alert.setHeaderText("There are unsaved changes.");
+            alert.setContentText("Do you want to save changes before exiting?");
+
+            ButtonType buttonTypeSave = new ButtonType("Save");
+            ButtonType buttonTypeDontSave = new ButtonType("Don't Save");
+            ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(buttonTypeSave, buttonTypeDontSave, buttonTypeCancel);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == buttonTypeSave) {
+                saveCurrentFile();
+            } else if (result.get() == buttonTypeCancel) {
+                return;
+            }
+        }
+
+        Platform.exit();
+    }
+
+    private boolean hasUnsavedChanges() {
+        return tabModificationStatus.values().stream().anyMatch(modified -> modified);
+    }
+
+    private Optional<CppFile> findFileByTab(Tab tab) {
+        // C++ファイルを探す
+        for (Pair<CppFile, Tab> pair : cppFileTabList) {
+            if (pair.getValue().equals(tab)) {
+                return Optional.of(pair.getKey());
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void updateTabStatus(Tab tab, boolean modified) {
+        Platform.runLater(() -> {
+            String currentTitle = tab.getText();
+            String baseTitle = currentTitle.endsWith("*") ? currentTitle.substring(0, currentTitle.length() - 1)
+                    : currentTitle;
+
+            if (modified) {
+                tab.setText(baseTitle + "*");
+            } else {
+                tab.setText(baseTitle);
+            }
+        });
+    }
+
+    // コードエリアの変更を監視するメソッド
+    private void setupCodeAreaChangeListener(CodeArea codeArea, Tab tab) {
+        // 初期テキストを保存
+        String initialText = codeArea.getText();
+        Path filePath = tabPathMap.get(tab);
+
+        codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            // 初期テキストとの比較は行わない（初期ロード時に*が付くのを防ぐ）
+            if (!Objects.equals(oldValue, newValue) && !Objects.equals(initialText, newValue)) {
+                try {
+                    if (filePath != null && Files.exists(filePath)) {
+                        String fileContent = Files.readString(filePath);
+                        boolean isModified = !newValue.equals(fileContent);
+                        updateTabStatus(tab, isModified);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    updateTabStatus(tab, true);
+                }
+            }
+        });
+    }
+
+    @FXML
+    private void importFiles() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Import Files");
+
+        // 言語選択に基づいてフィルターを設定
+        if (umlController.isJavaSelected()) {
+            fileChooser.getExtensionFilters().setAll(
+                    new FileChooser.ExtensionFilter("Java Files", "*.java"));
+        } else if (umlController.isCppSelected()) {
+            fileChooser.getExtensionFilters().setAll(
+                    new FileChooser.ExtensionFilter("C++ Files", "*.cpp", "*.h"));
+        }
+
+        List<File> files = fileChooser.showOpenMultipleDialog(codeTabPane.getScene().getWindow());
+        if (files != null) {
+            for (File file : files) {
+                try {
+                    String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                    Platform.runLater(() -> importSingleFile(file, content));
+                } catch (IOException e) {
+                    Platform.runLater(() -> showError("Failed to import: " + file.getName()));
+                }
+            }
+        }
+    }
+
+    private void importSingleFile(File file, String content) {
+        String fileName = file.getName();
+        TreeItem<String> fileItem = new TreeItem<>(fileName);
+        rootItem.getChildren().add(fileItem);
+
+        if (fileName.endsWith(".java")) {
+            try {
+                CodeFile javaFile = new CodeFile(fileName);
+                javaFile.updateCode(content);
+                javaModel.addNewFile(javaFile);
+
+                Tab tab = createCodeTab(javaFile);
+                if (tab != null) {
+                    tabPathMap.put(tab, file.toPath());
+                    if (!codeTabPane.getTabs().contains(tab)) {
+                        codeTabPane.getTabs().add(tab);
+                    }
+                }
+            } catch (Exception e) {
+                showError("Error importing Java file: " + fileName);
+            }
+        } else if (fileName.endsWith(".h") || fileName.endsWith(".cpp")) {
+            importCppFile(file, content);
+        }
+    }
+
+    private void importCppFile(File file, String content) {
+        if (file.getName().endsWith(".h")) {
+            String baseName = file.getName().replace(".h", "");
+            cppModel.addNewFile(file.getName());
+            CppFile headerFile = cppModel.findHeaderFile(baseName);
+            if (headerFile != null) {
+                headerFile.updateCode(content);
+                Tab tab = createCppCodeTab(headerFile);
+                if (tab != null) {
+                    tabPathMap.put(tab, file.toPath());
+                    if (!codeTabPane.getTabs().contains(tab)) {
+                        codeTabPane.getTabs().add(tab);
+                    }
+                }
+            }
+        } else if (file.getName().endsWith(".cpp")) {
+            String baseName = file.getName().replace(".cpp", "");
+            CppFile implFile = cppModel.findImplFile(baseName);
+            if (implFile == null) {
+                cppModel.addNewFile(baseName + ".h");
+                implFile = cppModel.findImplFile(baseName);
+            }
+            if (implFile != null) {
+                implFile.updateCode(content);
+                Tab tab = createCppCodeTab(implFile);
+                if (tab != null) {
+                    tabPathMap.put(tab, file.toPath());
+                    if (!codeTabPane.getTabs().contains(tab)) {
+                        codeTabPane.getTabs().add(tab);
+                    }
+                }
+            }
+        }
+    }
+
+    private void handleFileSelection(TreeItem<String> item) {
+        String fileName = item.getValue();
+        // タブが既に存在するかチェック
+        for (Tab tab : codeTabPane.getTabs()) {
+            if (tab.getText().equals(fileName)) {
+                codeTabPane.getSelectionModel().select(tab);
+                return;
+            }
+        }
+
+        // 新しいタブを作成
+        if (fileName.endsWith(".h") || fileName.endsWith(".cpp")) {
+            CppFile file = fileName.endsWith(".h") ? cppModel.findHeaderFile(fileName.replace(".h", ""))
+                    : cppModel.findImplFile(fileName.replace(".cpp", ""));
+
+            if (file != null) {
+                updateCodeTab(file);
+            }
+        }
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     @FXML

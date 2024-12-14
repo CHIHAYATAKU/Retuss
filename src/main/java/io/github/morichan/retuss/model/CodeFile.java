@@ -6,7 +6,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import io.github.morichan.retuss.model.uml.Class;
-import io.github.morichan.retuss.translator.JavaTranslator;
+import io.github.morichan.retuss.translator.java.JavaTranslator;
 
 import java.util.*;
 
