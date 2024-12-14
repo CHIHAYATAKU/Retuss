@@ -4,8 +4,6 @@ import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
 import io.github.morichan.fescue.feature.parameter.Parameter;
 import io.github.morichan.fescue.feature.visibility.Visibility;
-import io.github.morichan.retuss.controller.CodeController;
-import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.translator.cpp.header.CppTranslator;
@@ -18,9 +16,7 @@ public class CppModel {
     private final Map<String, CppFile> headerFiles = new HashMap<>();
     private final Map<String, CppFile> implFiles = new HashMap<>();
     private final CppTranslator translator;
-    private CodeController codeController;
-    private UmlController umlController;
-    private final List<ModelChangeListener> changeListeners = new ArrayList<>();
+    private final List<ModelChangeListener> listeners = new ArrayList<>();
 
     private CppModel() {
         this.umlModel = UmlModel.getInstance();
@@ -33,20 +29,6 @@ public class CppModel {
 
     public static CppModel getInstance() {
         return model;
-    }
-
-    public void setCodeController(CodeController controller) {
-        this.codeController = controller;
-    }
-
-    public void setUmlController(UmlController controller) {
-        this.umlController = controller;
-        for (CppFile file : headerFiles.values()) {
-            file.setUmlController(controller);
-        }
-        for (CppFile file : implFiles.values()) {
-            file.setUmlController(controller);
-        }
     }
 
     public void addNewFile(String fileName) {
@@ -67,16 +49,10 @@ public class CppModel {
         }
         // ヘッダーファイル作成
         CppFile headerFile = new CppFile(baseName + ".h", true);
-        if (headerClass.isPresent()) {
-            String headerCode = headerFile.getCode();
-            headerFile.updateCode(headerCode);
-        }
-
         CppFile implFile = new CppFile(baseName + ".cpp", false);
 
-        if (umlController != null) {
-            headerFile.setUmlController(umlController);
-            implFile.setUmlController(umlController);
+        if (headerClass.isPresent()) {
+            headerFile.updateCode(headerFile.getCode());
         }
 
         headerFile.addChangeListener(new CppFile.FileChangeListener() {
@@ -88,45 +64,56 @@ public class CppModel {
 
             @Override
             public void onFileNameChanged(String oldName, String newName) {
-                String oldBaseName = oldName.replace(".h", "");
-                String newBaseName = newName.replace(".h", "");
-
-                // ヘッダーファイル更新
-                String headerCode = headerFile.getCode();
-                headerCode = headerCode
-                        .replace(oldBaseName.toUpperCase() + "_H", newBaseName.toUpperCase() + "_H")
-                        .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)", newBaseName + "$1")
-                        .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)",
-                                "~" + newBaseName + "$1");
-                headerFile.updateCode(headerCode);
-
-                CppFile implFile = implFiles.get(oldBaseName);
-                if (implFile != null) {
-                    implFile.updateFileName(newBaseName + ".cpp");
-
-                    String implCode = implFile.getCode();
-                    implCode = implCode
-                            .replace("#include \"" + oldName + "\"", "#include \"" + newName + "\"")
-                            .replace(oldBaseName + "::", newBaseName + "::")
-                            .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
-                                    newBaseName + "$1")
-                            .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
-                                    "~" + newBaseName + "$1");
-
-                    implFile.updateCode(implCode);
-                }
+                handleFileRename(headerFile, oldName, newName);
             }
         });
 
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
 
-        if (codeController != null) {
-            codeController.updateCodeTab(headerFile);
-            codeController.updateCodeTab(implFile);
-        }
-        if (umlController != null) {
-            umlController.updateDiagram(headerFile);
+        notifyFileAdded(headerFile);
+        notifyFileAdded(implFile);
+    }
+
+    private void handleFileRename(CppFile headerFile, String oldName, String newName) {
+        String oldBaseName = oldName.replace(".h", "");
+        String newBaseName = newName.replace(".h", "");
+
+        // ヘッダーファイル更新
+        updateHeaderForRename(headerFile, oldBaseName, newBaseName);
+
+        // 実装ファイル更新
+        updateImplForRename(oldBaseName, newBaseName, oldName, newName);
+
+        notifyFileRenamed(oldName, newName);
+    }
+
+    private void updateHeaderForRename(CppFile headerFile, String oldBaseName, String newBaseName) {
+        String headerCode = headerFile.getCode();
+        headerCode = headerCode
+                .replace(oldBaseName.toUpperCase() + "_H", newBaseName.toUpperCase() + "_H")
+                .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)", newBaseName + "$1")
+                .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)",
+                        "~" + newBaseName + "$1");
+        headerFile.updateCode(headerCode);
+    }
+
+    private void updateImplForRename(String oldBaseName, String newBaseName, String oldName, String newName) {
+        CppFile implFile = implFiles.get(oldBaseName);
+        if (implFile != null) {
+            implFile.updateFileName(newBaseName + ".cpp");
+
+            String implCode = implFile.getCode();
+            implCode = implCode
+                    .replace("#include \"" + oldName + "\"", "#include \"" + newName + "\"")
+                    .replace(oldBaseName + "::", newBaseName + "::")
+                    .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
+                            newBaseName + "$1")
+                    .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
+                            "~" + newBaseName + "$1");
+
+            implFile.updateCode(implCode);
+            notifyFileUpdated(implFile);
         }
     }
 
@@ -135,69 +122,26 @@ public class CppModel {
 
         if (file.isHeader()) {
             updateHeaderFile(file, code, baseName);
-            // // 図の更新をトリガー
-            if (umlController != null) {
-                umlController.updateDiagram(file);
-            }
         } else {
-            // updateImplementationFile(file, code);
-            // CppFile headerFile = headerFiles.get(baseName);
-            // if (headerFile != null && !headerFile.getHeaderClasses().isEmpty()) {
-            // // analyzeImplementationRelationships(headerFile, file);
-            // // 図の更新をトリガー
-            // if (umlController != null) {
-            // umlController.updateDiagram(headerFile);
-            // }
-            // }
+            updateImplementationFile(file, code);
+            notifyFileUpdated(file);
         }
-
-        notifyModelChanged();
     }
 
     private void updateHeaderFile(CppFile headerFile, String code, String baseName) {
-        System.out.println("DEBUG: Updating header file");
-        System.out.println("DEBUG: Current classes before update: " + headerFiles.size());
-        // 古いクラス名を保存
         String oldClassName = headerFile.getFileName().replace(".h", "");
-
-        // コードを更新
         headerFile.updateCode(code);
-
-        List<CppHeaderClass> classes = headerFile.getHeaderClasses();
-        System.out.println("DEBUG: Classes after parsing: " + (classes != null ? classes.size() : "null"));
-        for (CppHeaderClass cls : classes) {
-            System.out.println("DEBUG: Class: " + cls.getName());
-            System.out.println("DEBUG: Operations: " + cls.getOperationList().size());
-        }
-
         // 新しいクラス名を取得
         Optional<String> newClassName = translator.extractClassName(code);
-        if (newClassName.isPresent()) {
+        if (newClassName.isPresent() && !newClassName.get().equals(oldClassName)) {
             String newName = newClassName.get();
-            System.out.println("DEBUG: Class name change detected: " + oldClassName +
-                    " -> " + newName);
-
-            if (!newName.equals(oldClassName)) {
-                // マップの更新
-                headerFiles.remove(oldClassName);
-                headerFiles.put(newName, headerFile);
-
-                // 実装ファイルの更新
-                updateImplFileForClassNameChange(oldClassName, newName);
-
-                System.out.println("DEBUG: 実装ファイル更新あと！");
-
-                // コントローラーに通知（既存の処理を維持）
-                if (codeController != null) {
-                    codeController.updateCodeTab(headerFile);
-                }
-            }
+            headerFiles.remove(oldClassName);
+            headerFiles.put(newName, headerFile);
+            updateImplFileForClassNameChange(oldClassName, newName);
+            notifyFileRenamed(oldClassName + ".h", newName + ".h");
         }
-        // // 実装ファイルの関係解析
-        // CppFile implFile = implFiles.get(baseName);
-        // if (implFile != null) {
-        // analyzeImplementationRelationships(headerFile, implFile);
-        // }
+
+        notifyFileUpdated(headerFile);
     }
 
     private void updateImplFileForClassNameChange(String oldClassName, String newClassName) {
@@ -217,10 +161,7 @@ public class CppModel {
             implFile.updateCode(newCode);
             implFiles.put(newClassName, implFile);
 
-            // コントローラーに通知
-            if (codeController != null) {
-                codeController.updateCodeTab(implFile);
-            }
+            notifyFileUpdated(implFile);
 
             System.out.println("DEBUG: Updated implementation file name from " +
                     oldImplName + " to " + newImplName);
@@ -238,10 +179,7 @@ public class CppModel {
             // analyzeImplementationRelationships(headerFile, implFile);
         }
 
-        // 既存の通知処理を維持
-        if (codeController != null) {
-            codeController.updateCodeTab(implFile);
-        }
+        notifyFileUpdated(implFile);
     }
 
     // private void analyzeImplementationRelationships(CppFile headerFile, CppFile
@@ -281,9 +219,7 @@ public class CppModel {
                 String newCode = translator.addAttribute(currentCode, targetClass, attribute);
                 headerFile.updateCode(newCode);
 
-                if (umlController != null) {
-                    umlController.updateDiagram(headerFile);
-                }
+                notifyFileUpdated(headerFile);
             }
         } catch (Exception e) {
             System.err.println("Failed to add attribute: " + e.getMessage());
@@ -302,7 +238,7 @@ public class CppModel {
             String currentCode = headerFile.getCode();
             String newCode = translator.addOperation(currentCode, targetClass, operation);
             headerFile.updateCode(newCode);
-            notifyModelChanged();
+            notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to add operation: " + e.getMessage());
             e.printStackTrace();
@@ -341,19 +277,7 @@ public class CppModel {
             System.out.println("Removing header file");
             headerFiles.remove(className);
 
-            // コントローラーへの通知
-            if (umlController != null) {
-                System.out.println("Notifying UML controller");
-                umlController.onClassDeleted(className);
-            }
-            if (codeController != null) {
-                System.out.println("Notifying code controller");
-                codeController.onClassDeleted(className);
-            }
-
-            System.out.println("Notifying model change");
-            notifyModelChanged();
-
+            notifyFileDeleted(className);
         } catch (Exception e) {
             System.err.println("Error during class deletion:");
             System.err.println("Error type: " + e.getClass().getName());
@@ -395,6 +319,7 @@ public class CppModel {
             }
 
             headerFile.updateCode(String.join("\n", lines));
+            notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to delete attribute: " + e.getMessage());
         }
@@ -428,6 +353,7 @@ public class CppModel {
             }
 
             headerFile.updateCode(String.join("\n", lines));
+            notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to delete operation: " + e.getMessage());
         }
@@ -442,12 +368,9 @@ public class CppModel {
 
         try {
             CppFile derivedFile = derivedFileOpt.get();
-            CppHeaderClass derivedClass = derivedFile.getHeaderClasses().get(0);
-            CppHeaderClass baseClass = baseFileOpt.get().getHeaderClasses().get(0);
-
-            // derivedClass.setSuperClass(baseClass);
             String newCode = translator.addInheritance(derivedFile.getCode(), derivedClassName, baseClassName);
             derivedFile.updateCode(newCode);
+            notifyFileUpdated(derivedFile);
         } catch (Exception e) {
             System.err.println("Failed to add inheritance: " + e.getMessage());
         }
@@ -515,10 +438,7 @@ public class CppModel {
 
             // sourceClass.getRelationshipManager().addRealization(interfaceName);
             sourceFile.updateCode(newCode);
-
-            if (umlController != null) {
-                umlController.updateDiagram(sourceFile);
-            }
+            notifyFileUpdated(sourceFile);
         } catch (Exception e) {
             System.err.println("Failed to add realization: " + e.getMessage());
             e.printStackTrace();
@@ -557,9 +477,7 @@ public class CppModel {
                     visibility);
 
             ownerFile.updateCode(newCode);
-            if (umlController != null) {
-                umlController.updateDiagram(ownerFile);
-            }
+            notifyFileUpdated(ownerFile);
         } catch (Exception e) {
             System.err.println("Failed to add composition: " + e.getMessage());
         }
@@ -588,9 +506,7 @@ public class CppModel {
                     visibility);
 
             ownerFile.updateCode(newCode);
-            if (umlController != null) {
-                umlController.updateDiagram(ownerFile);
-            }
+            notifyFileUpdated(ownerFile);
         } catch (Exception e) {
             System.err.println("Failed to add annotated composition: " + e.getMessage());
         }
@@ -619,9 +535,7 @@ public class CppModel {
                     visibility);
 
             ownerFile.updateCode(newCode);
-            if (umlController != null) {
-                umlController.updateDiagram(ownerFile);
-            }
+            notifyFileUpdated(ownerFile);
         } catch (Exception e) {
             System.err.println("Failed to add aggregation: " + e.getMessage());
         }
@@ -650,9 +564,7 @@ public class CppModel {
                     visibility);
 
             ownerFile.updateCode(newCode);
-            if (umlController != null) {
-                umlController.updateDiagram(ownerFile);
-            }
+            notifyFileUpdated(ownerFile);
         } catch (Exception e) {
             System.err.println("Failed to add annotated aggregation: " + e.getMessage());
         }
@@ -681,9 +593,7 @@ public class CppModel {
                     visibility);
 
             sourceFile.updateCode(newCode);
-            if (umlController != null) {
-                umlController.updateDiagram(sourceFile);
-            }
+            notifyFileUpdated(sourceFile);
         } catch (Exception e) {
             System.err.println("Failed to add association: " + e.getMessage());
         }
@@ -818,14 +728,66 @@ public class CppModel {
 
     public interface ModelChangeListener {
         void onModelChanged();
+
+        void onFileAdded(CppFile file);
+
+        void onFileUpdated(CppFile file);
+
+        void onFileDeleted(String className);
+
+        void onFileRenamed(String oldName, String newName);
     }
 
     public void addChangeListener(ModelChangeListener listener) {
-        changeListeners.add(listener);
+        listeners.add(listener);
+    }
+
+    public void removeChangeListener(ModelChangeListener listener) {
+        listeners.remove(listener);
+    }
+
+    private void notifyFileAdded(CppFile file) {
+        for (ModelChangeListener listener : listeners) {
+            try {
+                listener.onFileAdded(file);
+            } catch (Exception e) {
+                System.err.println("Error notifying file addition: " + e.getMessage());
+            }
+        }
+    }
+
+    private void notifyFileUpdated(CppFile file) {
+        for (ModelChangeListener listener : listeners) {
+            try {
+                listener.onFileUpdated(file);
+            } catch (Exception e) {
+                System.err.println("Error notifying file update: " + e.getMessage());
+            }
+        }
+    }
+
+    private void notifyFileDeleted(String className) {
+        for (ModelChangeListener listener : listeners) {
+            try {
+                listener.onFileDeleted(className);
+            } catch (Exception e) {
+                System.err.println("Error notifying file deletion: " + e.getMessage());
+            }
+        }
+    }
+
+    private void notifyFileRenamed(String oldName, String newName) {
+        for (ModelChangeListener listener : listeners) {
+            try {
+                listener.onFileRenamed(oldName, newName);
+            } catch (Exception e) {
+                System.err.println("Error notifying file rename: " + e.getMessage());
+            }
+        }
     }
 
     private void notifyModelChanged() {
-        for (ModelChangeListener listener : changeListeners) {
+        for (ModelChangeListener listener : listeners) {
             try {
                 listener.onModelChanged();
             } catch (Exception e) {

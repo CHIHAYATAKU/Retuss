@@ -1,7 +1,6 @@
 package io.github.morichan.retuss.model;
 
 import io.github.morichan.fescue.feature.Operation;
-import io.github.morichan.retuss.controller.UmlController;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
 import io.github.morichan.retuss.translator.cpp.header.CppTranslator;
@@ -27,8 +26,6 @@ public class CppFile {
     private final boolean isHeader;
     private final List<FileChangeListener> listeners = new ArrayList<>();
 
-    private UmlController umlController;
-
     public CppFile(String fileName, boolean isHeader) {
         this.fileName = fileName;
         this.isHeader = isHeader;
@@ -39,10 +36,6 @@ public class CppFile {
             headerClasses.add(headerClass);
         }
         initializeFile();
-    }
-
-    public void setUmlController(UmlController controller) {
-        this.umlController = controller;
     }
 
     private void initializeFile() {
@@ -111,14 +104,6 @@ public class CppFile {
             String oldName = this.fileName;
             this.fileName = newName;
             System.out.println("DEBUG: CppFile updating filename from " + oldName + " to " + newName);
-
-            // UmlControllerに通知（null チェック付き）
-            if (umlController != null) {
-                umlController.updateFileName(oldName, newName);
-            } else {
-                System.out.println("DEBUG: UmlController is not set");
-            }
-
             notifyFileNameChanged(oldName, newName);
         }
     }
@@ -177,11 +162,6 @@ public class CppFile {
 
                         }
                     }
-                }
-
-                // UMLコントローラーに通知
-                if (umlController != null) {
-                    umlController.updateDiagram(this);
                 }
                 notifyFileChanged();
             } catch (

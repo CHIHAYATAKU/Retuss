@@ -11,6 +11,7 @@ import io.github.morichan.retuss.model.UmlModel;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.Interaction;
+import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -34,7 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class UmlController {
+public class UmlController implements CppModel.ModelChangeListener {
     private CodeController codeController;
 
     @FXML
@@ -81,6 +82,46 @@ public class UmlController {
     // private CppSequenceDiagramDrawer cppSequenceDiagramDrawer;
     private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
 
+    @Override
+    public void onModelChanged() {
+        // 全体更新が必要な場合用
+    }
+
+    @Override
+    public void onFileAdded(CppFile file) {
+        if (file.isHeader()) {
+            Platform.runLater(() -> {
+                updateDiagram(file);
+            });
+        }
+    }
+
+    @Override
+    public void onFileUpdated(CppFile file) {
+        if (file.isHeader()) {
+            Platform.runLater(() -> {
+                updateDiagram(file);
+            });
+        }
+    }
+
+    @Override
+    public void onFileDeleted(String className) {
+        Platform.runLater(() -> {
+            onClassDeleted(className);
+        });
+    }
+
+    @Override
+    public void onFileRenamed(String oldName, String newName) {
+        Platform.runLater(() -> {
+            if (isCppSelected()) {
+                cppClassDiagramDrawer.clearCache();
+                cppClassDiagramDrawer.draw();
+            }
+        });
+    }
+
     /**
      * <p>
      * JavaFXにおけるデフォルトコンストラクタ
@@ -95,7 +136,6 @@ public class UmlController {
     @FXML
     private void initialize() {
         javaModel.setUmlController(this);
-        cppModel.setUmlController(this);
         languageSelector.setValue("Java");
         currentLanguage = "Java";
         javaClassDiagramDrawer = new JavaClassDiagramDrawer(classDiagramWebView);
@@ -429,6 +469,11 @@ public class UmlController {
                         tab.getText().equals(className + ".cpp"));
             }
         });
+    }
+
+    public void createCppClass(String className) {
+        CppHeaderClass headerClass = new CppHeaderClass(className);
+        cppModel.addNewFileFromUml(headerClass);
     }
 
     public void updateDiagram(CppFile cppFile) {

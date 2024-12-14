@@ -23,9 +23,15 @@ public class ClassDialogController {
     private JavaModel javaModel = JavaModel.getInstance();
     private CppModel cppModel = CppModel.getInstance();
     private UmlController umlController;
+    private CodeController codeController;
 
     public void setUmlController(UmlController controller) {
         this.umlController = controller;
+        System.out.println("UmlController set in ClassDialogController"); // デバッグ用
+    }
+
+    public void setCodeController(CodeController controller) {
+        this.codeController = controller;
         System.out.println("UmlController set in ClassDialogController"); // デバッグ用
     }
 
@@ -52,6 +58,7 @@ public class ClassDialogController {
                     CppHeaderClass headerClass = new CppHeaderClass(classNameTextField.getText());
                     System.out.println("Creating C++ class: " + classNameTextField.getText());
                     cppModel.addNewFileFromUml(headerClass);
+
                 }
 
                 // ダイアログを閉じる

@@ -56,7 +56,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class CodeController {
+public class CodeController implements CppModel.ModelChangeListener {
     @FXML
     private TabPane codeTabPane;
     @FXML
@@ -76,6 +76,57 @@ public class CodeController {
         this.umlController = controller;
         // 双方向の参照を設定
         controller.setCodeController(this);
+    }
+
+    @Override
+    public void onModelChanged() {
+        // 全体更新が必要な場合用
+    }
+
+    @Override
+    public void onFileAdded(CppFile file) {
+        Platform.runLater(() -> {
+            Tab tab = createCppCodeTab(file);
+            if (!codeTabPane.getTabs().contains(tab)) {
+                codeTabPane.getTabs().add(tab);
+            }
+        });
+    }
+
+    @Override
+    public void onFileUpdated(CppFile file) {
+        Platform.runLater(() -> {
+            updateCodeTab(file);
+        });
+    }
+
+    @Override
+    public void onFileDeleted(String className) {
+        Platform.runLater(() -> {
+            cppFileTabList.removeIf(pair -> {
+                CppFile file = pair.getKey();
+                Tab tab = pair.getValue();
+                boolean shouldRemove = file.getFileName().equals(className + ".h") ||
+                        file.getFileName().equals(className + ".cpp");
+                if (shouldRemove) {
+                    codeTabPane.getTabs().remove(tab);
+                }
+                return shouldRemove;
+            });
+        });
+    }
+
+    @Override
+    public void onFileRenamed(String oldName, String newName) {
+        Platform.runLater(() -> {
+            for (Pair<CppFile, Tab> pair : cppFileTabList) {
+                if (pair.getKey().getFileName().equals(oldName)) {
+                    Tab tab = pair.getValue();
+                    tab.setText(newName);
+                    updateTabTitle(tab, pair.getKey());
+                }
+            }
+        });
     }
 
     @FXML
@@ -301,10 +352,6 @@ public class CodeController {
                 }
             }
         });
-
-        // モデルの初期化
-        javaModel.setCodeController(this);
-        cppModel.setCodeController(this);
     }
 
     @FXML

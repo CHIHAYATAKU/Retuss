@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.morichan.retuss.controller.CodeController;
 import io.github.morichan.retuss.controller.UmlController;
+import io.github.morichan.retuss.model.CppModel;
 
 public class RetussWindow extends Application {
     private ExecutorService windowExecutor;
@@ -52,7 +53,20 @@ public class RetussWindow extends Application {
         setupMainStage(mainStage, mainScene);
 
         // コードウィンドウの設定
-        setupCodeWindow(mainStage, umlController);
+        FXMLLoader codeLoader = new FXMLLoader(getClass().getResource("/retussCode.fxml"));
+        Parent codeRoot = codeLoader.load();
+        CodeController codeController = codeLoader.getController();
+
+        // コントローラー間の相互参照設定
+        codeController.setUmlController(umlController);
+        umlController.setCodeController(codeController);
+
+        // モデルにリスナーを登録
+        CppModel cppModel = CppModel.getInstance();
+        cppModel.addChangeListener(codeController);
+        cppModel.addChangeListener(umlController);
+
+        setupCodeWindow(mainStage, umlController, codeController, codeRoot);
     }
 
     private void setupMainStage(Stage mainStage, Scene mainScene) {
@@ -70,21 +84,15 @@ public class RetussWindow extends Application {
         mainStage.show();
     }
 
-    private void setupCodeWindow(Stage mainStage, UmlController umlController) throws IOException {
-        FXMLLoader codeLoader = new FXMLLoader(getClass().getResource("/retussCode.fxml"));
-        Parent codeRoot = codeLoader.load();
-        CodeController codeController = codeLoader.getController();
-        codeController.setUmlController(umlController);
-
+    private void setupCodeWindow(Stage mainStage, UmlController umlController,
+            CodeController codeController, Parent codeRoot) {
         double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
         double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
 
         Scene codeScene = new Scene(codeRoot);
-        // コード用のスタイルシートを追加
         codeScene.getStylesheets().addAll(
                 getClass().getResource("/custom-radio.css").toExternalForm(),
-                getClass().getResource("/styles.css").toExternalForm() // コード用のスタイル
-        );
+                getClass().getResource("/styles.css").toExternalForm());
 
         Stage codeStage = new Stage();
         codeStage.initOwner(mainStage);
