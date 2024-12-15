@@ -47,16 +47,19 @@ public class ClassDialogController {
 
         if (validateClassName()) {
             try {
-                Class umlClass = new Class(classNameTextField.getText());
+                String className = classNameTextField.getText().trim();
 
                 if (umlController.isJavaSelected()) {
-                    System.out.println("Creating Java class: " + classNameTextField.getText());
+                    System.out.println("Creating Java class: " + className);
+                    // Class オブジェクトを作成
+                    Class umlClass = new Class(className);
+                    // JavaModelに追加
                     javaModel.addNewUmlClass(umlClass);
                 }
 
                 if (umlController.isCppSelected()) {
-                    CppHeaderClass headerClass = new CppHeaderClass(classNameTextField.getText());
-                    System.out.println("Creating C++ class: " + classNameTextField.getText());
+                    System.out.println("Creating C++ class: " + className);
+                    CppHeaderClass headerClass = new CppHeaderClass(className);
                     cppModel.addNewFileFromUml(headerClass);
 
                 }
