@@ -349,7 +349,7 @@ public class UmlController implements CppModel.ModelChangeListener {
     }
 
     @FXML
-    private void handleRefreshAll() {
+    public void handleRefreshAll() {
         System.out.println("DEBUG: Starting refresh all");
 
         try {

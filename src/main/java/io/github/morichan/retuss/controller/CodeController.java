@@ -318,6 +318,7 @@ public class CodeController implements CppModel.ModelChangeListener {
                     sortTabs();
                 });
             } finally {
+                umlController.handleRefreshAll();
                 // 処理が完了したらインジケーターを非表示にする
                 if (!hasChildDirectories(directory)) {
                     Platform.runLater(this::hideLoadingIndicator);
