@@ -24,7 +24,6 @@ public class CppFile {
     private CppImplClass implClass;
     private CppTranslator translator;
     private final boolean isHeader;
-    private final List<FileChangeListener> listeners = new ArrayList<>();
 
     public CppFile(String fileName, boolean isHeader) {
         this.fileName = fileName;
@@ -100,12 +99,7 @@ public class CppFile {
     }
 
     public void updateFileName(String newName) {
-        if (!this.fileName.equals(newName)) {
-            String oldName = this.fileName;
-            this.fileName = newName;
-            System.out.println("DEBUG: CppFile updating filename from " + oldName + " to " + newName);
-            notifyFileNameChanged(oldName, newName);
-        }
+        this.fileName = newName;
     }
 
     public void updateCode(String code) {
@@ -122,51 +116,9 @@ public class CppFile {
         lastTask = analysisExecutor.submit(() -> {
             try {
                 if (isHeader) {
-                    System.out.println("DEBUG: Updating header file code");
-                    // クラス名の更新を先に行う
-                    Optional<String> newClassName = translator.extractClassName(code);
-                    if (newClassName.isPresent()) {
-                        String className = newClassName.get();
-                        String expectedFileName = className + ".h";
-                        if (!expectedFileName.equals(this.fileName)) {
-                            String oldFileName = this.fileName;
-                            this.fileName = expectedFileName;
-                            notifyFileNameChanged(oldFileName, expectedFileName);
-                        }
-                    }
-
-                    // ヘッダーのUMLクラスリストの更新
-                    List<CppHeaderClass> newUmlClassList = translator.translateHeaderCodeToUml(code);
-                    System.out.println(
-                            "DEBUG: Parsed classes: " + (newUmlClassList != null ? newUmlClassList.size() : "null"));
-                    if (!newUmlClassList.isEmpty()) {
-                        // リストの内容を更新
-                        headerClasses.clear();
-                        headerClasses.addAll(newUmlClassList);
-                        for (CppHeaderClass cls : this.headerClasses) {
-                            if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
-                                boolean allAbstract = true;
-                                for (Operation op : cls.getOperationList()) {
-                                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.ABSTRACT)
-                                            && !cls.getName().equals(op.getName().getNameText())) {
-                                        allAbstract = false;
-                                        cls.setInterface(false);
-                                        break; // 一度でも修飾子に ABTRACT が含まれていない場合、ループを終了
-                                    }
-                                }
-                                if (allAbstract && cls.getAttributeList().isEmpty()) {
-                                    System.out.println("すべての操作が抽象かつ属性が空です。");
-                                    cls.setInterface(true);
-                                }
-                            }
-
-                        }
-                    }
+                    analyzeHeaderFile(code);
                 }
-                notifyFileChanged();
-            } catch (
-
-            CancellationException e) {
+            } catch (CancellationException e) {
                 System.out.println("DEBUG: Task was canceled");
             } catch (Exception e) {
                 System.err.println("Error during async code update: " + e.getMessage());
@@ -178,6 +130,42 @@ public class CppFile {
             lastTask.get(); // タスクの完了を待機
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void analyzeHeaderFile(String code) {
+        Optional<String> newClassName = translator.extractClassName(code);
+        if (newClassName.isPresent()) {
+            String expectedFileName = newClassName.get() + ".h";
+            if (!expectedFileName.equals(this.fileName)) {
+                this.fileName = expectedFileName;
+            }
+        }
+
+        List<CppHeaderClass> newUmlClassList = translator.translateHeaderCodeToUml(code);
+        if (!newUmlClassList.isEmpty()) {
+            headerClasses.clear();
+            headerClasses.addAll(newUmlClassList);
+            updateClassProperties();
+        }
+    }
+
+    private void updateClassProperties() {
+        for (CppHeaderClass cls : headerClasses) {
+            if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
+                boolean allAbstract = true;
+                for (Operation op : cls.getOperationList()) {
+                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.ABSTRACT)
+                            && !cls.getName().equals(op.getName().getNameText())) {
+                        allAbstract = false;
+                        cls.setInterface(false);
+                        break;
+                    }
+                }
+                if (allAbstract && cls.getAttributeList().isEmpty()) {
+                    cls.setInterface(true);
+                }
+            }
         }
     }
 
@@ -196,79 +184,6 @@ public class CppFile {
     }
 
     public void removeClass(CppHeaderClass cls) {
-        System.out.println("Removing class: " + cls.getName());
-        // リストの内容を変更
         headerClasses.clear();
-
-        // クラス定義全体を削除
-        List<String> lines = new ArrayList<>(Arrays.asList(this.sourceCode.split("\n")));
-        int classStart = -1;
-        int classEnd = -1;
-
-        // クラスの開始位置を探す
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).contains("class " + cls.getName())) {
-                classStart = i;
-                break;
-            }
-        }
-
-        // クラスの終了位置を探す
-        if (classStart != -1) {
-            for (int i = classStart; i < lines.size(); i++) {
-                if (lines.get(i).trim().equals("};")) {
-                    classEnd = i;
-                    break;
-                }
-            }
-        }
-
-        // クラス定義を削除
-        if (classStart != -1 && classEnd != -1) {
-            System.out.println("Removing class definition from lines " + classStart + " to " + classEnd);
-            lines.subList(classStart, classEnd + 1).clear();
-            this.sourceCode = String.join("\n", lines);
-
-            // コードを更新
-            updateCode(this.sourceCode);
-        }
-
-        System.out.println("Class removal completed");
     }
-
-    public void addChangeListener(FileChangeListener listener) {
-        listeners.add(listener);
-    }
-
-    // 拡張したファイル変更リスナー
-    public interface FileChangeListener {
-        void onFileChanged(CppFile file);
-
-        void onFileNameChanged(String oldName, String newName);
-    }
-
-    private void notifyFileChanged() {
-        System.out.println("DEBUG: Notifying file change for " + fileName);
-        for (FileChangeListener listener : listeners) {
-            try {
-                listener.onFileChanged(this);
-            } catch (Exception e) {
-                System.err.println("Error in file change notification: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void notifyFileNameChanged(String oldName, String newName) {
-        System.out.println("DEBUG: Notifying file name change: " + oldName + " -> " + newName);
-        for (FileChangeListener listener : listeners) {
-            try {
-                listener.onFileNameChanged(oldName, newName);
-            } catch (Exception e) {
-                System.err.println("Error in file name change notification: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-    }
-
 }

@@ -9,6 +9,7 @@ import io.github.morichan.retuss.model.UmlModel;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import javafx.application.Platform;
+import javafx.concurrent.Worker;
 import javafx.scene.control.TextArea;
 import javafx.scene.web.WebView;
 import net.sourceforge.plantuml.FileFormat;
@@ -37,6 +38,34 @@ public class CppClassDiagramDrawer {
     private final AtomicReference<String> lastSvg = new AtomicReference<>();
     private volatile boolean isUpdating = false;
     private volatile boolean updatePending = false;
+    private double savedScrollX = 0;
+    private double savedScrollY = 0;
+
+    private void saveScrollPosition() {
+        try {
+            Object x = webView.getEngine()
+                    .executeScript("document.documentElement.scrollLeft || document.body.scrollLeft");
+            Object y = webView.getEngine()
+                    .executeScript("document.documentElement.scrollTop || document.body.scrollTop");
+            savedScrollX = x instanceof Number ? ((Number) x).doubleValue() : 0;
+            savedScrollY = y instanceof Number ? ((Number) y).doubleValue() : 0;
+            System.out.println("Saving scroll position - X: " + savedScrollX + ", Y: " + savedScrollY);
+        } catch (Exception e) {
+            System.err.println("Error saving scroll position: " + e.getMessage());
+        }
+    }
+
+    private void restoreScrollPosition() {
+        try {
+            String script = String.format(
+                    "setTimeout(function() { window.scrollTo(%f, %f); }, 100);",
+                    savedScrollX, savedScrollY);
+            webView.getEngine().executeScript(script);
+            System.out.println("Restored scroll position - X: " + savedScrollX + ", Y: " + savedScrollY);
+        } catch (Exception e) {
+            System.err.println("Error restoring scroll position: " + e.getMessage());
+        }
+    }
 
     public void setScale(double scale) {
         if (this.currentScale != scale) { // 値が実際に変化した場合のみ
@@ -306,6 +335,7 @@ public class CppClassDiagramDrawer {
         }, diagramExecutor)
                 .thenAcceptAsync(svg -> {
                     try {
+                        saveScrollPosition();
                         if (svg != null) {
                             webView.getEngine().loadContent(svg);
                         }
@@ -315,6 +345,10 @@ public class CppClassDiagramDrawer {
                         if (updatePending) {
                             Platform.runLater(this::executeDraw);
                         }
+                        // 少し遅延を入れてスクロール位置を復元
+                        Platform.runLater(() -> {
+                            restoreScrollPosition();
+                        });
                     }
                 }, Platform::runLater);
     }

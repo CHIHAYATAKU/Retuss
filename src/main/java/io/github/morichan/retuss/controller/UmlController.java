@@ -14,6 +14,7 @@ import io.github.morichan.retuss.model.uml.Interaction;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -89,6 +90,31 @@ public class UmlController implements CppModel.ModelChangeListener {
     private UmlModel umlModel;
     // private CppSequenceDiagramDrawer cppSequenceDiagramDrawer;
     private List<Pair<CodeFile, Tab>> fileSdTabList = new ArrayList<>();
+
+    private class DiagramState {
+        private double scrollX;
+        private double scrollY;
+
+        public void saveState(WebView webView) {
+            // JavaScriptを使用してスクロール位置を取得
+            Object x = webView.getEngine().executeScript("document.documentElement.scrollLeft");
+            Object y = webView.getEngine().executeScript("document.documentElement.scrollTop");
+            this.scrollX = x instanceof Number ? ((Number) x).doubleValue() : 0;
+            this.scrollY = y instanceof Number ? ((Number) y).doubleValue() : 0;
+        }
+
+        public void restoreState(WebView webView) {
+            // 描画完了後にスクロール位置を復元
+            webView.getEngine().getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                if (newState == Worker.State.SUCCEEDED) {
+                    webView.getEngine().executeScript(
+                            String.format("window.scrollTo(%f, %f);", scrollX, scrollY));
+                }
+            });
+        }
+    }
+
+    private DiagramState classDiagramState = new DiagramState();
 
     @Override
     public void onModelChanged() {
@@ -490,6 +516,8 @@ public class UmlController implements CppModel.ModelChangeListener {
             System.out.println("DEBUG: Processing C++ file: " + cppFile.getFileName());
             Platform.runLater(() -> {
                 try {
+                    // 現在のスクロール位置を保存
+                    classDiagramState.saveState(classDiagramWebView);
                     // クラス図の更新（関係抽出を含む）
                     cppClassDiagramDrawer.clearCache(); // キャッシュをクリアして強制的に再描画
                     cppClassDiagramDrawer.draw();
@@ -516,8 +544,13 @@ public class UmlController implements CppModel.ModelChangeListener {
             CodeFile javaFile = (CodeFile) codeFile;
 
             Platform.runLater(() -> {
+                // 現在のスクロール位置を保存
+                classDiagramState.saveState(classDiagramWebView);
                 // クラス図の更新
                 javaClassDiagramDrawer.draw();
+
+                // スクロール位置を復元
+                classDiagramState.restoreState(classDiagramWebView);
 
                 // シーケンス図の更新
                 updateJavaSequenceDiagram(javaFile);

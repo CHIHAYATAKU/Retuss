@@ -6,10 +6,7 @@ import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.common.FileChangeListener;
 import io.github.morichan.retuss.model.common.ICodeFile;
 import io.github.morichan.retuss.model.CppModel;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -18,8 +15,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Control;
-import javafx.scene.control.IndexRange;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -35,7 +30,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import javafx.util.Pair;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -62,7 +56,6 @@ public class CodeController implements CppModel.ModelChangeListener {
     @FXML
     private TreeView<String> fileTreeView;
     private ProgressIndicator loadingIndicator;
-    private Map<Tab, Boolean> tabModificationStatus = new HashMap<>();
     private Map<String, TreeItem<String>> directoryNodes = new HashMap<>();
     private TreeItem<String> rootItem;
     private JavaModel javaModel = JavaModel.getInstance();
@@ -95,23 +88,24 @@ public class CodeController implements CppModel.ModelChangeListener {
 
     @Override
     public void onFileUpdated(CppFile file) {
-        Platform.runLater(() -> {
-            updateCodeTab(file);
-        });
+        // Platform.runLater(() -> {
+        // Optional<Tab> tab = findTab(file.getID());
+        // if (tab.isPresent()) {
+        // updateCodeTab(file);
+        // }
+        // });
     }
 
     @Override
     public void onFileDeleted(String className) {
         Platform.runLater(() -> {
             cppFileTabList.removeIf(pair -> {
-                CppFile file = pair.getKey();
-                Tab tab = pair.getValue();
-                boolean shouldRemove = file.getFileName().equals(className + ".h") ||
-                        file.getFileName().equals(className + ".cpp");
-                if (shouldRemove) {
-                    codeTabPane.getTabs().remove(tab);
+                if (pair.getKey().getFileName().equals(className + ".h") ||
+                        pair.getKey().getFileName().equals(className + ".cpp")) {
+                    codeTabPane.getTabs().remove(pair.getValue());
+                    return true;
                 }
-                return shouldRemove;
+                return false;
             });
         });
     }
@@ -120,10 +114,8 @@ public class CodeController implements CppModel.ModelChangeListener {
     public void onFileRenamed(String oldName, String newName) {
         Platform.runLater(() -> {
             for (Pair<CppFile, Tab> pair : cppFileTabList) {
-                if (pair.getKey().getFileName().equals(oldName)) {
-                    Tab tab = pair.getValue();
-                    tab.setText(newName);
-                    updateTabTitle(tab, pair.getKey());
+                if (pair.getKey().getFileName().equals(newName)) { // oldNameから変更
+                    updateCodeTab(pair.getKey()); // ツールチップなどの更新
                 }
             }
         });
@@ -145,6 +137,99 @@ public class CodeController implements CppModel.ModelChangeListener {
                 Platform.runLater(() -> showError("Failed to import directory: " + e.getMessage()));
             }
         }
+    }
+
+    private void sortTreeItems(TreeItem<String> item) {
+        if (!item.isLeaf()) {
+            // 子アイテムをソート
+            List<TreeItem<String>> children = new ArrayList<>(item.getChildren());
+            children.sort((item1, item2) -> {
+                // ディレクトリを先に
+                boolean isDir1 = !item1.isLeaf();
+                boolean isDir2 = !item2.isLeaf();
+                if (isDir1 != isDir2) {
+                    return Boolean.compare(isDir2, isDir1);
+                }
+
+                String name1 = item1.getValue();
+                String name2 = item2.getValue();
+
+                // ファイルの場合は.hと.cppをグループ化
+                if (!isDir1) {
+                    String baseName1 = name1.replaceAll("\\.(h|cpp)$", "");
+                    String baseName2 = name2.replaceAll("\\.(h|cpp)$", "");
+
+                    // まずベース名で比較
+                    int baseCompare = baseName1.compareTo(baseName2);
+                    if (baseCompare != 0)
+                        return baseCompare;
+
+                    // 同じベース名の場合、.hを先に
+                    boolean isHeader1 = name1.endsWith(".h");
+                    boolean isHeader2 = name2.endsWith(".h");
+                    return Boolean.compare(isHeader2, isHeader1);
+                }
+
+                // ディレクトリの場合は単純な名前比較
+                return name1.compareTo(name2);
+            });
+
+            item.getChildren().setAll(children);
+
+            // 再帰的に子ディレクトリもソート
+            for (TreeItem<String> child : item.getChildren()) {
+                if (!child.isLeaf()) {
+                    sortTreeItems(child);
+                }
+            }
+        }
+    }
+
+    private void sortTabs() {
+        List<Tab> tabs = new ArrayList<>(codeTabPane.getTabs());
+        tabs.sort((tab1, tab2) -> {
+            String name1 = tab1.getText().replace("*", "");
+            String name2 = tab2.getText().replace("*", "");
+
+            // ベース名を取得
+            String baseName1 = name1.replaceAll("\\.(h|cpp)$", "");
+            String baseName2 = name2.replaceAll("\\.(h|cpp)$", "");
+
+            // まずベース名で比較
+            int baseCompare = baseName1.compareTo(baseName2);
+            if (baseCompare != 0)
+                return baseCompare;
+
+            // 同じベース名の場合、.hを先に
+            boolean isHeader1 = name1.endsWith(".h");
+            boolean isHeader2 = name2.endsWith(".h");
+            return Boolean.compare(isHeader2, isHeader1);
+        });
+
+        codeTabPane.getTabs().setAll(tabs);
+    }
+
+    private void markTabAsModified(Tab tab, boolean modified) {
+        Platform.runLater(() -> {
+            try {
+                String currentText = tab.getText();
+                String baseText = getTabBaseText(tab);
+
+                if (modified && !currentText.endsWith("*")) {
+                    tab.setText(baseText + "*");
+                    tab.setStyle("-fx-text-fill: #2196F3;"); // Material Designの青色
+                } else if (!modified) {
+                    tab.setText(baseText);
+                    tab.setStyle(""); // スタイルをリセット
+                }
+            } catch (Exception e) {
+                System.err.println("Error marking tab as modified: " + e.getMessage());
+            }
+        });
+    }
+
+    private String getTabBaseText(Tab tab) {
+        return tab.getText().replace("*", "");
     }
 
     private void processDirectoryAsync(File directory) {
@@ -226,6 +311,11 @@ public class CodeController implements CppModel.ModelChangeListener {
                             System.err.println("Error processing file: " + file.getName());
                         }
                     });
+                    // ツリーアイテムのソート
+                    sortTreeItems(projectRoot);
+
+                    // タブのソート
+                    sortTabs();
                 });
             } finally {
                 // 処理が完了したらインジケーターを非表示にする
@@ -300,37 +390,52 @@ public class CodeController implements CppModel.ModelChangeListener {
 
     @FXML
     private void initialize() {
-        Platform.runLater(this::configureTabPane);
-        // ファイルツリーの初期化
+        javaModel.setCodeController(this);
+        initializeTreeView();
+        configureTabPane();
+        setupKeyboardShortcuts();
+    }
+
+    private void initializeTreeView() {
         rootItem = new TreeItem<>("Project Files");
         rootItem.setExpanded(true);
         fileTreeView.setRoot(rootItem);
-
-        // ツリーの選択イベント
-        fileTreeView.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> {
+        fileTreeView.getSelectionModel().selectedItemProperty()
+                .addListener((observable, oldValue, newValue) -> {
                     if (newValue != null) {
                         handleFileSelection(newValue);
                     }
                 });
-        // タブペインの設定を追加
+    }
 
-        // スクロール用のイベントハンドラを設定
+    private void configureTabPane() {
+        codeTabPane.setTabMinWidth(80);
+        codeTabPane.setTabMaxWidth(150);
+        codeTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+        setupTabPaneScrolling();
+    }
+
+    private void setupTabPaneScrolling() {
         codeTabPane.addEventFilter(ScrollEvent.ANY, event -> {
             if (event.isShortcutDown()) {
                 Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
                 if (selectedTab != null) {
                     int currentIndex = codeTabPane.getTabs().indexOf(selectedTab);
+
                     if (event.getDeltaY() > 0 && currentIndex > 0) {
+                        // 上スクロールで前のタブへ
                         codeTabPane.getSelectionModel().select(currentIndex - 1);
                     } else if (event.getDeltaY() < 0 && currentIndex < codeTabPane.getTabs().size() - 1) {
+                        // 下スクロールで次のタブへ
                         codeTabPane.getSelectionModel().select(currentIndex + 1);
                     }
                     event.consume();
                 }
             }
         });
+    }
 
+    private void setupKeyboardShortcuts() {
         Platform.runLater(() -> {
             if (codeTabPane.getScene() != null) {
                 codeTabPane.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -341,57 +446,51 @@ public class CodeController implements CppModel.ModelChangeListener {
                 });
             }
         });
-
-        codeTabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
-            while (change.next()) {
-                if (change.wasAdded()) {
-                    System.out.println("Tabs added: " + change.getAddedSubList().size());
-                    for (Tab tab : change.getAddedSubList()) {
-                        System.out.println("Added tab: " + tab.getText());
-                    }
-                }
-            }
-        });
     }
 
     @FXML
-    public void saveCurrentFile() {
+    private void saveCurrentFile() {
         Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
         if (selectedTab == null)
             return;
 
-        Path filePath = tabPathMap.get(selectedTab);
-        if (filePath == null) {
+        try {
+            String content = getTabContent(selectedTab);
+            saveFile(selectedTab, content);
+            // エディタの初期テキストを更新
+            AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
+            CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+            codeArea.replaceText(content);
+
+            markTabAsModified(selectedTab, false);
+        } catch (IOException e) {
+            showError("Failed to save file: " + e.getMessage());
+        }
+    }
+
+    private String getTabContent(Tab tab) {
+        AnchorPane anchorPane = (AnchorPane) tab.getContent();
+        CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+        return codeArea.getText();
+    }
+
+    private void saveFile(Tab tab, String content) throws IOException {
+        Path path = tabPathMap.get(tab);
+        if (path == null) {
             saveFileAs();
             return;
         }
 
-        try {
-            AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
-            CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
-            String content = codeArea.getText();
+        Files.writeString(path, content, StandardCharsets.UTF_8);
+    }
 
-            // ファイルの保存
-            Files.writeString(filePath, content, StandardCharsets.UTF_8);
-
-            // モデルの更新
-            if (umlController.isJavaSelected()) {
-                Optional<CodeFile> javaFileOpt = findJavaFileByTab(selectedTab);
-                if (javaFileOpt.isPresent()) {
-                    javaModel.updateCodeFile(javaFileOpt.get(), content);
-                }
-            } else {
-                Optional<CppFile> cppFileOpt = findFileByTab(selectedTab);
-                if (cppFileOpt.isPresent()) {
-                    cppModel.updateCodeFile(cppFileOpt.get(), content);
-                }
-            }
-
-            updateTabStatus(selectedTab, false);
-            showSaveStatus("File saved: " + filePath.getFileName());
-        } catch (IOException e) {
-            e.printStackTrace();
-            showError("Failed to save file: " + e.getMessage());
+    private void updateModel(Tab tab, String content) {
+        if (umlController.isJavaSelected()) {
+            Optional<CodeFile> javaFile = findJavaFileByTab(tab);
+            javaFile.ifPresent(file -> javaModel.updateCodeFile(file, content));
+        } else {
+            Optional<CppFile> cppFile = findFileByTab(tab);
+            cppFile.ifPresent(file -> cppModel.updateCode(file, content));
         }
     }
 
@@ -400,6 +499,15 @@ public class CodeController implements CppModel.ModelChangeListener {
                 .filter(pair -> pair.getValue().equals(tab))
                 .map(Pair::getKey)
                 .findFirst();
+    }
+
+    private void setupCodeAreaChangeListener(CodeArea codeArea, Tab tab) {
+        // テキスト変更時のリスナー
+        codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!Objects.equals(oldValue, newValue)) {
+                markTabAsModified(tab, true);
+            }
+        });
     }
 
     public void postInitialize() {
@@ -447,7 +555,7 @@ public class CodeController implements CppModel.ModelChangeListener {
                 // タブの情報を更新
                 selectedTab.setText(file.getName());
                 tabPathMap.put(selectedTab, file.toPath());
-                updateTabStatus(selectedTab, false);
+                markTabAsModified(selectedTab, false);
 
                 System.err.println("File saved: " + file.getName());
             } catch (IOException e) {
@@ -482,10 +590,6 @@ public class CodeController implements CppModel.ModelChangeListener {
         Platform.exit();
     }
 
-    private boolean hasUnsavedChanges() {
-        return tabModificationStatus.values().stream().anyMatch(modified -> modified);
-    }
-
     private Optional<CppFile> findFileByTab(Tab tab) {
         // C++ファイルを探す
         for (Pair<CppFile, Tab> pair : cppFileTabList) {
@@ -494,43 +598,6 @@ public class CodeController implements CppModel.ModelChangeListener {
             }
         }
         return Optional.empty();
-    }
-
-    private void updateTabStatus(Tab tab, boolean modified) {
-        Platform.runLater(() -> {
-            String currentTitle = tab.getText();
-            String baseTitle = currentTitle.endsWith("*") ? currentTitle.substring(0, currentTitle.length() - 1)
-                    : currentTitle;
-
-            if (modified) {
-                tab.setText(baseTitle + "*");
-            } else {
-                tab.setText(baseTitle);
-            }
-        });
-    }
-
-    // コードエリアの変更を監視するメソッド
-    private void setupCodeAreaChangeListener(CodeArea codeArea, Tab tab) {
-        // 初期テキストを保存
-        String initialText = codeArea.getText();
-        Path filePath = tabPathMap.get(tab);
-
-        codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
-            // 初期テキストとの比較は行わない（初期ロード時に*が付くのを防ぐ）
-            if (!Objects.equals(oldValue, newValue) && !Objects.equals(initialText, newValue)) {
-                try {
-                    if (filePath != null && Files.exists(filePath)) {
-                        String fileContent = Files.readString(filePath);
-                        boolean isModified = !newValue.equals(fileContent);
-                        updateTabStatus(tab, isModified);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    updateTabStatus(tab, true);
-                }
-            }
-        });
     }
 
     @FXML
@@ -623,31 +690,41 @@ public class CodeController implements CppModel.ModelChangeListener {
 
     private void handleFileSelection(TreeItem<String> item) {
         String fileName = item.getValue();
-        // タブが既に存在するかチェック
-        for (Tab tab : codeTabPane.getTabs()) {
-            if (tab.getText().equals(fileName)) {
-                codeTabPane.getSelectionModel().select(tab);
-                return;
-            }
-        }
+        Optional<Tab> existingTab = findTabByName(fileName);
 
-        // 新しいタブを作成
-        if (fileName.endsWith(".h") || fileName.endsWith(".cpp")) {
-            CppFile file = fileName.endsWith(".h") ? cppModel.findHeaderFile(fileName.replace(".h", ""))
-                    : cppModel.findImplFile(fileName.replace(".cpp", ""));
-
-            if (file != null) {
-                updateCodeTab(file);
-            }
+        if (existingTab.isPresent()) {
+            codeTabPane.getSelectionModel().select(existingTab.get());
+        } else if (fileName.endsWith(".h") || fileName.endsWith(".cpp")) {
+            openCppFile(fileName);
         }
     }
 
+    private void openCppFile(String fileName) {
+        CppFile file = fileName.endsWith(".h")
+                ? cppModel.findHeaderFile(fileName.replace(".h", ""))
+                : cppModel.findImplFile(fileName.replace(".cpp", ""));
+
+        if (file != null) {
+            Tab tab = createCppCodeTab(file);
+            codeTabPane.getTabs().add(tab);
+            codeTabPane.getSelectionModel().select(tab);
+        }
+    }
+
+    private Optional<Tab> findTabByName(String fileName) {
+        return codeTabPane.getTabs().stream()
+                .filter(tab -> getTabBaseText(tab).equals(fileName)) // タブ名から*を除いて比較
+                .findFirst();
+    }
+
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 
     @FXML
@@ -730,39 +807,6 @@ public class CodeController implements CppModel.ModelChangeListener {
             if (existingTab.isPresent()) {
                 Tab targetTab = existingTab.get();
                 updateTabTitle(targetTab, file);
-
-                AnchorPane anchorPane = (AnchorPane) targetTab.getContent();
-                CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
-                // コードが実際に変更された場合のみ更新
-                if (!codeArea.getText().equals(file.getCode())) {
-                    // エディタの状態を保存
-                    int caretPosition = codeArea.getCaretPosition();
-                    IndexRange selection = codeArea.getSelection();
-                    double scrollY = codeArea.estimatedScrollYProperty().getValue();
-
-                    Platform.runLater(() -> {
-                        try {
-                            codeArea.replaceText(file.getCode());
-
-                            // カーソル位置を復元
-                            int newPosition = Math.min(caretPosition, codeArea.getLength());
-                            codeArea.moveTo(newPosition);
-
-                            // 選択範囲を復元
-                            if (selection.getLength() > 0) {
-                                int newStart = Math.min(selection.getStart(), codeArea.getLength());
-                                int newEnd = Math.min(selection.getEnd(), codeArea.getLength());
-                                codeArea.selectRange(newStart, newEnd);
-                            }
-
-                            // スクロール位置を復元
-                            codeArea.estimatedScrollYProperty().setValue(scrollY);
-                            codeArea.requestFollowCaret();
-                        } catch (Exception e) {
-                            System.err.println("Error restoring editor state: " + e.getMessage());
-                        }
-                    });
-                }
             } else {
                 Tab newTab = createCppCodeTab(file);
                 codeTabPane.getTabs().add(newTab);
@@ -771,29 +815,6 @@ public class CodeController implements CppModel.ModelChangeListener {
             }
         } catch (Exception e) {
             System.err.println("Failed to update code tab: " + e.getMessage());
-        }
-    }
-
-    private void configureTabPane() {
-        // タブの最小幅と最大幅を設定
-        codeTabPane.setTabMinWidth(80);
-        codeTabPane.setTabMaxWidth(150);
-
-        // スクロールボタンを表示するしきい値を設定
-        codeTabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
-
-        // タブヘッダー領域のサイズを制限
-        StackPane headerArea = (StackPane) codeTabPane.lookup(".tab-header-area");
-        if (headerArea != null) {
-            headerArea.setMaxWidth(Control.USE_PREF_SIZE);
-            headerArea.setPrefWidth(488.0); // 現在のヘッダー幅に合わせる
-        }
-
-        // コントロールボタンを強制的に表示
-        Node controlButtons = codeTabPane.lookup(".control-buttons-tab");
-        if (controlButtons != null) {
-            controlButtons.setVisible(true);
-            controlButtons.setManaged(true);
         }
     }
 
@@ -815,13 +836,22 @@ public class CodeController implements CppModel.ModelChangeListener {
 
     private void updateTabTitle(Tab tab, CppFile file) {
         String fileName = file.getFileName();
+        boolean wasModified = tab.getText().endsWith("*");
+        tab.setText(fileName); // 基本名を設定
+        if (wasModified) {
+            markTabAsModified(tab, true); // 変更状態を維持
+        }
+
+        // ツールチップの設定
         String extension = file.isHeader() ? ".h" : ".cpp";
         String baseName = fileName.replace(extension, "");
-        tab.setText(fileName);
-
-        // ツールチップにフルパスやファイルタイプの情報を表示
         tab.setTooltip(new Tooltip("Class: " + baseName + "\nType: " +
                 (file.isHeader() ? "Header File" : "Implementation File")));
+    }
+
+    private boolean hasUnsavedChanges() {
+        return codeTabPane.getTabs().stream()
+                .anyMatch(tab -> tab.getText().endsWith("*")); // マークの有無でチェック
     }
 
     private Optional<Tab> findTab(UUID fileId) {
@@ -892,111 +922,50 @@ public class CodeController implements CppModel.ModelChangeListener {
         return codeTab;
     }
 
-    // C++用の新しいタブ作成メソッド
-    private Tab createCppCodeTab(CppFile cppFile) {
-        // 既存のタブをチェック
-        for (Pair<CppFile, Tab> pair : cppFileTabList) {
-            if (pair.getKey().getID().equals(cppFile.getID())) {
-                return pair.getValue();
-            }
+    private Tab createCppCodeTab(CppFile file) {
+        Optional<Tab> existingTab = findTab(file.getID());
+        if (existingTab.isPresent()) {
+            return existingTab.get();
         }
 
-        CodeArea codeArea = new CodeArea() {
-            @Override
-            public void replaceText(int start, int end, String text) {
-                super.replaceText(start, end, text);
-            }
+        CodeArea codeArea = createCodeArea(file);
+        Tab tab = new Tab(file.getFileName());
+        tab.setContent(createAnchorPane(codeArea));
+        tab.setClosable(false);
 
-            @Override
-            public void replaceSelection(String text) {
-                super.replaceSelection(text);
-            }
-        };
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        setupCodeAreaChangeListener(codeArea, tab);
 
-        codeArea.setOnKeyTyped(event -> {
-            int caretPosition = codeArea.getCaretPosition();
-            IndexRange selection = codeArea.getSelection();
-            double scrollY = codeArea.estimatedScrollYProperty().getValue();
-
-            updateCppCodeFile();
-
-            Platform.runLater(() -> {
-                try {
-                    // カーソル位置を復元
-                    int newPosition = Math.min(caretPosition, codeArea.getLength());
-                    codeArea.moveTo(newPosition);
-
-                    // 選択範囲を復元
-                    if (selection.getLength() > 0) {
-                        int newStart = Math.min(selection.getStart(), codeArea.getLength());
-                        int newEnd = Math.min(selection.getEnd(), codeArea.getLength());
-                        codeArea.selectRange(newStart, newEnd);
-                    }
-
-                    // スクロール位置を復元
-                    codeArea.estimatedScrollYProperty().setValue(scrollY);
-                    codeArea.requestFollowCaret();
-                } catch (Exception e) {
-                    System.err.println("Error restoring editor state: " + e.getMessage());
-                }
-            });
-        });
-
-        codeArea.replaceText(cppFile.getCode());
-
-        AnchorPane codeAnchor = new AnchorPane(codeArea);
-        AnchorPane.setBottomAnchor(codeArea, 0.0);
-        AnchorPane.setTopAnchor(codeArea, 0.0);
-        AnchorPane.setLeftAnchor(codeArea, 0.0);
-        AnchorPane.setRightAnchor(codeArea, 0.0);
-
-        Tab codeTab = new Tab();
-        codeTab.setText(cppFile.getFileName());
-        codeTab.setContent(codeAnchor);
-        updateTabTitle(codeTab, cppFile);
-        codeTab.setClosable(false);
-
-        cppFile.addChangeListener(new CppFile.FileChangeListener() {
-            @Override
-            public void onFileChanged(CppFile file) {
-                // カーソル位置等の保持は updateCodeTab メソッドで行う
-                Platform.runLater(() -> updateCodeTab(file));
-            }
-
-            @Override
-            public void onFileNameChanged(String oldName, String newName) {
-                Platform.runLater(() -> {
-                    codeTab.setText(newName);
-                    updateTabTitle(codeTab, cppFile);
-                });
-            }
-        });
-
-        codeTab.setStyle("-fx-max-width: 200px;");
-
-        // タブが長い場合にツールチップを表示
-        Tooltip tooltip = new Tooltip(cppFile.getFileName());
-        codeTab.setTooltip(tooltip);
-
-        cppFileTabList.add(new Pair<>(cppFile, codeTab));
-        setupCodeAreaChangeListener(codeArea, codeTab);
-        return codeTab;
+        setupTabContent(tab, file);
+        cppFileTabList.add(new Pair<>(file, tab));
+        return tab;
     }
 
-    // ステータス表示用のメソッド
-    private void showSaveStatus(String message) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Save Status");
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.show();
+    private void setupTabContent(Tab tab, CppFile file) {
+        updateTabTitle(tab, file);
+        tab.setStyle("-fx-max-width: 200px;");
+        tab.setTooltip(new Tooltip(String.format("%s\nType: %s",
+                file.getFileName(),
+                file.isHeader() ? "Header File" : "Implementation File")));
+    }
 
-            // 2秒後に自動で閉じる
-            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(2), evt -> alert.close()));
-            timeline.play();
-        });
+    private CodeArea createCodeArea(CppFile file) {
+        CodeArea codeArea = new CodeArea();
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        codeArea.replaceText(file.getCode());
+
+        // キー入力イベントを使用してコード更新を行う
+        codeArea.setOnKeyTyped(event -> updateCppCodeFile());
+
+        return codeArea;
+    }
+
+    private AnchorPane createAnchorPane(Node content) {
+        AnchorPane anchorPane = new AnchorPane(content);
+        AnchorPane.setTopAnchor(content, 0.0);
+        AnchorPane.setBottomAnchor(content, 0.0);
+        AnchorPane.setLeftAnchor(content, 0.0);
+        AnchorPane.setRightAnchor(content, 0.0);
+        return anchorPane;
     }
 
     // 既存のJava用コード更新メソッド
@@ -1024,51 +993,23 @@ public class CodeController implements CppModel.ModelChangeListener {
             return;
         }
 
-        for (Pair<CppFile, Tab> fileTabPair : cppFileTabList) {
-            if (fileTabPair.getValue().equals(selectedTab)) {
-                CppFile targetCodeFile = fileTabPair.getKey();
-                System.out.println(" target C++" + fileTabPair.getKey().getCode());
+        CompletableFuture.runAsync(() -> {
+            Optional<Pair<CppFile, Tab>> fileTabPair = cppFileTabList.stream()
+                    .filter(pair -> pair.getValue().equals(selectedTab))
+                    .findFirst();
+
+            if (fileTabPair.isPresent()) {
+                CppFile targetCodeFile = fileTabPair.get().getKey();
+                System.out.println(" target C++" + fileTabPair.get().getKey().getCode());
                 AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
                 CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
-
-                // カーソル位置、選択範囲、スクロール位置を保存
-                int caretPosition = codeArea.getCaretPosition();
-                IndexRange selection = codeArea.getSelection();
-                double scrollY = codeArea.estimatedScrollYProperty().getValue();
 
                 // コード更新
                 String code = codeArea.getText();
                 System.out.println("DEBUG: Updating code for " + targetCodeFile.getFileName());
 
-                // UMLコントローラーに直接通知して関係抽出を行う
-                // if (umlController != null) {
-                // // umlController.handleCodeUpdate(targetCodeFile);
-                // }
-
                 cppModel.updateCodeFile(targetCodeFile, code);
-
-                Platform.runLater(() -> {
-                    try {
-                        // カーソル位置を復元（範囲チェック付き）
-                        int newPosition = Math.min(caretPosition, codeArea.getLength());
-                        codeArea.moveTo(newPosition);
-
-                        // 選択範囲を復元
-                        if (selection.getLength() > 0) {
-                            int newStart = Math.min(selection.getStart(), codeArea.getLength());
-                            int newEnd = Math.min(selection.getEnd(), codeArea.getLength());
-                            codeArea.selectRange(newStart, newEnd);
-                        }
-
-                        // スクロール位置を復元
-                        codeArea.estimatedScrollYProperty().setValue(scrollY);
-                        codeArea.requestFollowCaret();
-                    } catch (Exception e) {
-                        System.err.println("Error updating caret position: " + e.getMessage());
-                    }
-                });
-                return;
             }
-        }
+        });
     }
 }
