@@ -356,7 +356,7 @@ public class CppClassDiagramDrawer {
                 simplePumlBuilder.append(" skinparam linetype ortho\n");
                 simplePumlBuilder.append("skinparam classAttributeIconSize 0\n");
                 simplePumlBuilder.append("skinparam LineThickness 1.5\n");
-                simplePumlBuilder.append("scale ").append(String.format("%.2f", currentScale)).append("\n");
+                simplePumlBuilder.append("scale ").append("1.0").append("\n");
 
                 for (CppHeaderClass cls : classes) {
                     System.out.println("Processing class: " + cls.getName());
