@@ -13,6 +13,10 @@ public class CppRelationshipManager {
         this.sourceClassName = sourceClassName;
     }
 
+    public String getSourceClassname() {
+        return sourceClassName;
+    }
+
     // 関係の追加
     public void addRelationship(RelationshipInfo relationship) {
         relationshipsByTarget.computeIfAbsent(relationship.getTargetClass(), k -> new HashSet<>())

@@ -67,11 +67,11 @@ public class CppClassDiagramDrawer {
         }
     }
 
-    public void setScale(double scale) {
+    public void setScale(double scale, String selectedClassName) {
         if (this.currentScale != scale) { // 値が実際に変化した場合のみ
             this.currentScale = scale;
             clearCache(); // キャッシュをクリアして
-            draw(); // 再描画
+            draw(selectedClassName); // 再描画
         }
     }
 
@@ -83,7 +83,46 @@ public class CppClassDiagramDrawer {
         System.out.println("CppClassDiagramDrawer initialized");
     }
 
-    private void drawClass(StringBuilder pumlBuilder, CppHeaderClass cls) {
+    private void drawClass(StringBuilder pumlBuilder, CppHeaderClass cls, String selectedClassName) {
+        try {
+            if (cls.getAbstruct() && !cls.getInterface()) {
+                pumlBuilder.append("abstract ");
+            }
+            pumlBuilder.append("class ").append(cls.getName());
+
+            if (cls.getInterface() && cls.getAbstruct() && cls.getAttributeList().isEmpty()) {
+                pumlBuilder.append(" <<interface>>");
+            }
+
+            if (!cls.getRelationshipManager().getRelationshipsWith(selectedClassName).isEmpty()) {
+                pumlBuilder.append(" #ADD8E6");
+            } else if (cls.getName().equals(selectedClassName)) {
+                pumlBuilder.append(" #90EE90");
+            }
+
+            pumlBuilder.append(" {\n");
+
+            // 属性
+            for (Attribute attr : cls.getAttributeList()) {
+                appendAttribute(pumlBuilder, attr, cls);
+            }
+
+            // メソッド
+            for (Operation op : cls.getOperationList()) {
+                appendOperation(pumlBuilder, op, cls);
+            }
+
+            pumlBuilder.append("}\n\n");
+
+            // 関係の描画
+            pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
+        } catch (Exception e) {
+            System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void drawSimpleClass(StringBuilder pumlBuilder, CppHeaderClass cls) {
         try {
             if (cls.getAbstruct() && !cls.getInterface()) {
                 pumlBuilder.append("abstract ");
@@ -268,15 +307,16 @@ public class CppClassDiagramDrawer {
         return result.toString();
     }
 
-    public void draw() {
+    public void draw(String selectedClassName) {
         if (isUpdating) {
             updatePending = true; // 更新中の場合は次の更新をマーク
             return;
         }
-        executeDraw();
+        System.out.println("DEBUG: selectedClassName = " + selectedClassName);
+        executeDraw(selectedClassName);
     }
 
-    private void executeDraw() {
+    private void executeDraw(String selectedClassName) {
         isUpdating = true;
         updatePending = false;
 
@@ -303,7 +343,7 @@ public class CppClassDiagramDrawer {
                     System.out.println("Processing class: " + cls.getName());
                     System.out.println("Attributes: " + cls.getAttributeList().size());
                     System.out.println("Operations: " + cls.getOperationList().size());
-                    drawClass(pumlBuilder, cls);
+                    drawClass(pumlBuilder, cls, selectedClassName);
                 }
 
                 pumlBuilder.append("@enduml\n");
@@ -311,7 +351,23 @@ public class CppClassDiagramDrawer {
                 System.out.println("Generated PlantUML:\n" + puml);
 
                 // UMLModelの更新
-                umlModel.setPlantUml(puml);
+                StringBuilder simplePumlBuilder = new StringBuilder("@startuml\n");
+                simplePumlBuilder.append("skinparam style strictuml\n");
+                simplePumlBuilder.append(" skinparam linetype ortho\n");
+                simplePumlBuilder.append("skinparam classAttributeIconSize 0\n");
+                simplePumlBuilder.append("skinparam LineThickness 1.5\n");
+                simplePumlBuilder.append("scale ").append(String.format("%.2f", currentScale)).append("\n");
+
+                for (CppHeaderClass cls : classes) {
+                    System.out.println("Processing class: " + cls.getName());
+                    System.out.println("Attributes: " + cls.getAttributeList().size());
+                    System.out.println("Operations: " + cls.getOperationList().size());
+                    drawSimpleClass(simplePumlBuilder, cls);
+                }
+
+                pumlBuilder.append("@enduml\n");
+                String simplePuml = simplePumlBuilder.toString();
+                umlModel.setPlantUml(simplePuml);
 
                 // SVG生成と表示, キャッシュと比較して変更がなければスキップ
                 String currentSvg = lastSvg.get();
@@ -343,7 +399,10 @@ public class CppClassDiagramDrawer {
                         isUpdating = false;
                         // 保留中の更新があれば再度描画を実行
                         if (updatePending) {
-                            Platform.runLater(this::executeDraw);
+                            Platform.runLater(() -> {
+                                executeDraw(selectedClassName);
+                                ;
+                            });
                         }
                         // 少し遅延を入れてスクロール位置を復元
                         Platform.runLater(() -> {
