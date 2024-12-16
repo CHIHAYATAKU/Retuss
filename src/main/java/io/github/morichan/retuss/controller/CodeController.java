@@ -987,6 +987,12 @@ public class CodeController implements CppModel.ModelChangeListener {
         }
     }
 
+    public String getSelectedClassName() {
+        Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
+        String baseText = getTabBaseText(selectedTab);
+        return baseText.replaceAll("\\.(h|cpp|java)$", "");
+    }
+
     // C++用のコード更新メソッド
     private void updateCppCodeFile() {
         Tab selectedTab = codeTabPane.getSelectionModel().getSelectedItem();
