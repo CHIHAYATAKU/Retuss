@@ -88,12 +88,40 @@ public class CodeController implements CppModel.ModelChangeListener {
 
     @Override
     public void onFileUpdated(CppFile file) {
-        // Platform.runLater(() -> {
-        // Optional<Tab> tab = findTab(file.getID());
-        // if (tab.isPresent()) {
-        // updateCodeTab(file);
-        // }
-        // });
+        Platform.runLater(() -> {
+            try {
+                // Find the corresponding tab for the updated file
+                Optional<Tab> tab = findTab(file.getID());
+
+                if (tab.isPresent()) {
+                    // Select the tab
+                    codeTabPane.getSelectionModel().select(tab.get());
+
+                    // Get the CodeArea from the tab's content
+                    AnchorPane anchorPane = (AnchorPane) tab.get().getContent();
+                    CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+
+                    // Store the current caret position
+                    int caretPosition = codeArea.getCaretPosition();
+
+                    // Update the code content
+                    codeArea.replaceText(file.getCode());
+
+                    // Restore caret position if it's within bounds
+                    if (caretPosition <= codeArea.getLength()) {
+                        codeArea.moveTo(caretPosition);
+                    }
+                } else {
+                    // If no existing tab is found, create a new one
+                    Tab newTab = createCppCodeTab(file);
+                    codeTabPane.getTabs().add(newTab);
+                    codeTabPane.getSelectionModel().select(newTab);
+                }
+            } catch (Exception e) {
+                System.err.println("Error updating code tab: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -884,7 +912,11 @@ public class CodeController implements CppModel.ModelChangeListener {
         }
         CodeArea codeArea = new CodeArea();
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-        codeArea.setOnKeyTyped(event -> updateCodeFile());
+        codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!Objects.equals(oldValue, newValue)) {
+                updateCodeFile();
+            }
+        });
         codeArea.replaceText(codeFile.getCode());
 
         AnchorPane codeAnchor = new AnchorPane(codeArea);
@@ -954,8 +986,12 @@ public class CodeController implements CppModel.ModelChangeListener {
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         codeArea.replaceText(file.getCode());
 
-        // キー入力イベントを使用してコード更新を行う
-        codeArea.setOnKeyTyped(event -> updateCppCodeFile());
+        // テキスト変更を監視
+        codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!Objects.equals(oldValue, newValue)) {
+                updateCppCodeFile();
+            }
+        });
 
         return codeArea;
     }

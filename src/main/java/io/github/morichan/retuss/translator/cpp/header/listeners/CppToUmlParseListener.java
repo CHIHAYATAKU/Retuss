@@ -9,13 +9,13 @@ import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 
 import java.util.*;
 
-public class ClassExtractorListener extends CPP14ParserBaseListener {
+public class CppToUmlParseListener extends CPP14ParserBaseListener {
     private final List<IAnalyzer> analyzers;
     private final AnalyzerContext context;
     private final List<CppHeaderClass> extractedHeaderClasses;
     private final boolean isHeaderFile;
 
-    public ClassExtractorListener(boolean isHeaderFile) {
+    public CppToUmlParseListener(boolean isHeaderFile) {
         this.isHeaderFile = isHeaderFile;
         this.context = new AnalyzerContext(isHeaderFile);
         this.extractedHeaderClasses = new ArrayList<>();
