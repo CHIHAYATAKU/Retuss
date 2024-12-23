@@ -10,7 +10,10 @@ public class CppHeaderClass {
     private String name = "";
     private Boolean isAbstruct = false;
     private Boolean isInterface = false;
+    private Boolean isEnum = false;
     private Boolean isActive; // 宣言されてたかどうか
+    private List<String> stereotypes = new ArrayList<>();
+    private List<EnumValue> enumValues = new ArrayList<>();
     // private CppHeaderClass superClass;
     private List<CppHeaderClass> superClasses = new ArrayList<>();
     private List<Attribute> attributeList = new ArrayList<>();
@@ -18,6 +21,77 @@ public class CppHeaderClass {
     private List<Interaction> interactionList = new ArrayList<>();
     private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
     private final CppRelationshipManager relationshipManager;
+
+    public static class EnumValue {
+        private final String name;
+        private final String value;
+        private final String type;
+
+        public EnumValue(String name) {
+            this(name, null, null);
+        }
+
+        public EnumValue(String name, String value) {
+            this(name, value, null);
+        }
+
+        public EnumValue(String name, String value, String type) {
+            this.name = name;
+            this.value = value;
+            this.type = type;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Optional<String> getValue() {
+            return Optional.ofNullable(value);
+        }
+
+        public Optional<String> getType() {
+            return Optional.ofNullable(type);
+        }
+    }
+
+    public void addStereotype(String stereotype) {
+        if (!stereotypes.contains(stereotype)) {
+            stereotypes.add(stereotype);
+        }
+    }
+
+    public List<String> getStereotypes() {
+        return Collections.unmodifiableList(stereotypes);
+    }
+
+    public boolean hasStereotype(String stereotype) {
+        return stereotypes.contains(stereotype);
+    }
+
+    public void addEnumValue(String name) {
+        enumValues.add(new EnumValue(name));
+    }
+
+    public void addEnumValue(String name, String value) {
+        enumValues.add(new EnumValue(name, value));
+    }
+
+    public void addEnumValue(String name, String value, String type) {
+        enumValues.add(new EnumValue(name, value, type));
+    }
+
+    public List<EnumValue> getEnumValues() {
+        return Collections.unmodifiableList(enumValues);
+    }
+
+    public void setAsEnum() {
+        addStereotype("enumeration");
+    }
+
+    // enumかどうかの判定
+    public boolean isEnum() {
+        return hasStereotype("enumeration");
+    }
 
     // メンバー修飾子の管理
     public void addMemberModifier(String memberName, Modifier modifier) {
@@ -77,6 +151,14 @@ public class CppHeaderClass {
 
     public void setInterface(Boolean abstruct) {
         isInterface = abstruct;
+    }
+
+    public void setEnum(Boolean isEnum) {
+        this.isEnum = isEnum;
+    }
+
+    public Boolean getEnum() {
+        return this.isEnum;
     }
 
     public Boolean getActive() {

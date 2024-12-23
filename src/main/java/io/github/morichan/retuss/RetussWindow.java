@@ -2,15 +2,20 @@ package io.github.morichan.retuss;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +27,8 @@ import io.github.morichan.retuss.model.CppModel;
 
 public class RetussWindow extends Application {
     private ExecutorService windowExecutor;
+    private Stage mainStage; // UMLウィンドウ
+    private Stage codeStage; // コードウィンドウ
 
     /**
      * <p>
@@ -32,6 +39,7 @@ public class RetussWindow extends Application {
      */
     @Override
     public void start(Stage mainStage) { // throwsを削除
+        this.mainStage = mainStage;
         windowExecutor = Executors.newSingleThreadExecutor();
 
         try {
@@ -66,7 +74,83 @@ public class RetussWindow extends Application {
         cppModel.addChangeListener(codeController);
         cppModel.addChangeListener(umlController);
 
-        setupCodeWindow(mainStage, umlController, codeController, codeRoot);
+        codeStage = setupCodeWindow(mainStage, umlController, codeController, codeRoot);
+
+        setupWindowClosing();
+    }
+
+    private void setupWindowClosing() {
+        // 両ウィンドウ共通の終了処理
+        EventHandler<WindowEvent> closeHandler = event -> {
+            if (confirmClosing()) {
+                cleanupAndExit();
+            } else {
+                event.consume();
+            }
+        };
+
+        mainStage.setOnCloseRequest(closeHandler);
+        codeStage.setOnCloseRequest(closeHandler);
+    }
+
+    private void cleanupAndExit() {
+        try {
+            // ExecutorServiceのシャットダウン
+            if (windowExecutor != null) {
+                windowExecutor.shutdown();
+                try {
+                    // より長めのタイムアウトを設定
+                    if (!windowExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                        windowExecutor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    windowExecutor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            // JavaFXアプリケーションの終了
+            Platform.exit();
+
+            // プロセスの完全終了
+            System.exit(0);
+        } catch (Exception e) {
+            System.err.println("Error during shutdown: " + e.getMessage());
+            // 強制終了
+            System.exit(1);
+        }
+    }
+
+    private boolean confirmClosing() {
+        // 未保存の変更があるかチェック
+        boolean hasUnsavedChanges = false; // ここに未保存チェックのロジックを実装
+
+        if (hasUnsavedChanges) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Exit");
+            alert.setHeaderText("There are unsaved changes.");
+            alert.setContentText("Do you want to save changes before exiting?");
+
+            ButtonType buttonTypeSave = new ButtonType("Save");
+            ButtonType buttonTypeDontSave = new ButtonType("Don't Save");
+            ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(buttonTypeSave, buttonTypeDontSave, buttonTypeCancel);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent()) {
+                if (result.get() == buttonTypeSave) {
+                    // 保存処理を実装
+                    return true;
+                } else if (result.get() == buttonTypeDontSave) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return false;
+        }
+        return true;
     }
 
     private void setupMainStage(Stage mainStage, Scene mainScene) {
@@ -84,7 +168,7 @@ public class RetussWindow extends Application {
         mainStage.show();
     }
 
-    private void setupCodeWindow(Stage mainStage, UmlController umlController,
+    private Stage setupCodeWindow(Stage mainStage, UmlController umlController,
             CodeController codeController, Parent codeRoot) {
         double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
         double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
@@ -96,6 +180,7 @@ public class RetussWindow extends Application {
 
         Stage codeStage = new Stage();
         codeStage.initOwner(mainStage);
+        codeStage.setAlwaysOnTop(false);
         codeStage.setTitle("Source Code Window");
         codeStage.setScene(codeScene);
         codeStage.setMaxWidth(screenWidth);
@@ -119,6 +204,7 @@ public class RetussWindow extends Application {
         });
 
         codeStage.show();
+        return codeStage;
     }
 
     private void showError(String title, Exception e) {

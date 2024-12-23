@@ -38,15 +38,11 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
 
         try {
-            String rawType = ctx.declSpecifierSeq().getText();
-            System.err.println("DEBUG: rawType -> " + rawType);
-            Set<Modifier> modifiers = extractModifiers(rawType);
-            String processedType = cleanTypeModifiers(rawType);
-            System.err.println("DEBUG: processedType -> " + processedType);
-
+            Set<Modifier> modifiers = extractModifiers(ctx.declSpecifierSeq());
+            String typeName = extractTypeName(ctx.declSpecifierSeq());
             if (ctx.memberDeclaratorList() != null) {
                 for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
-                    handleAttribute(memberDec, processedType, modifiers);
+                    handleAttribute(memberDec, typeName, modifiers);
                 }
             }
         } catch (Exception e) {
@@ -115,44 +111,24 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
 
     private String extractInitialValue(CPP14Parser.MemberDeclaratorContext memberDec) {
         try {
-            // braceOrEqualInitializerの処理
             if (memberDec.braceOrEqualInitializer() != null) {
-                CPP14Parser.BraceOrEqualInitializerContext initContext = memberDec.braceOrEqualInitializer();
-                return cleanInitialValue(initContext.getText());
+                CPP14Parser.InitializerClauseContext initClause = memberDec.braceOrEqualInitializer()
+                        .initializerClause();
+                if (initClause != null) {
+                    if (initClause.assignmentExpression() != null) {
+                        // 単純な代入式の場合
+                        return initClause.assignmentExpression().getText();
+                    } else if (initClause.bracedInitList() != null) {
+                        // 波括弧による初期化の場合
+                        return "{" + initClause.bracedInitList().initializerList().getText() + "}";
+                    }
+                }
             }
-
-            // virualInitializerの処理
-            if (memberDec.virtualSpecifierSeq() != null) {
-                return null; // virtual指定子は初期値ではない
-            }
-
-            // pureSpecifierの処理（純粋仮想関数の場合）
-            if (memberDec.pureSpecifier() != null) {
-                return null; // pure指定子は初期値ではない
-            }
-
             return null;
         } catch (Exception e) {
             System.err.println("Error extracting initial value: " + e.getMessage());
             return null;
         }
-    }
-
-    private String cleanInitialValue(String value) {
-        if (value == null)
-            return null;
-
-        // 基本的なクリーンアップ
-        value = value
-                .replaceFirst("^=\\s*", "") // 先頭の = を除去
-                .trim();
-
-        // ブレース初期化のクリーンアップ
-        if (value.startsWith("{") && value.endsWith("}")) {
-            value = value.replaceFirst("^\\{\\s*(.+?)\\s*\\}$", "{$1}");
-        }
-
-        return value;
     }
 
     private void analyzeAttributeTypeRelationship(
@@ -403,17 +379,126 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
     }
 
-    private Set<Modifier> extractModifiers(String type) {
+    private Set<Modifier> extractModifiers(CPP14Parser.DeclSpecifierSeqContext ctx) {
         Set<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
-        if (type.contains(Modifier.STATIC.getCppText(false)))
-            modifiers.add(Modifier.STATIC);
-        if (type.contains(Modifier.READONLY.getCppText(false)))
-            modifiers.add(Modifier.READONLY);
-        if (type.contains(Modifier.MUTABLE.getCppText(false)))
-            modifiers.add(Modifier.MUTABLE);
-        if (type.contains(Modifier.FINAL.getCppText(false)))
-            modifiers.add(Modifier.FINAL);
+
+        for (CPP14Parser.DeclSpecifierContext spec : ctx.declSpecifier()) {
+            // ストレージクラス指定子の処理
+            if (spec.storageClassSpecifier() != null) {
+                String storage = spec.storageClassSpecifier().getText();
+                processStorageClassSpecifier(storage, modifiers);
+            }
+            // 型指定子の処理
+            else if (spec.typeSpecifier() != null) {
+                processTypeSpecifier(spec.typeSpecifier(), modifiers);
+            }
+            // その他の指定子（constexpr等）
+            else {
+                processOtherSpecifier(spec.getText(), modifiers);
+            }
+        }
         return modifiers;
+    }
+
+    private void processStorageClassSpecifier(String specifier, Set<Modifier> modifiers) {
+        switch (specifier) {
+            case "static":
+                modifiers.add(Modifier.STATIC);
+                break;
+            case "mutable":
+                modifiers.add(Modifier.MUTABLE);
+                break;
+        }
+    }
+
+    private void processTypeSpecifier(CPP14Parser.TypeSpecifierContext spec, Set<Modifier> modifiers) {
+        if (spec.trailingTypeSpecifier() != null) {
+            // const/volatile修飾子の確認
+            if (spec.trailingTypeSpecifier().cvQualifier() != null) {
+                String cv = spec.trailingTypeSpecifier().cvQualifier().getText();
+                if ("const".equals(cv)) {
+                    modifiers.add(Modifier.READONLY);
+                }
+            }
+        }
+    }
+
+    private void processOtherSpecifier(String specifier, Set<Modifier> modifiers) {
+        switch (specifier) {
+            case "constexpr":
+                modifiers.add(Modifier.READONLY);
+                break;
+            case "volatile":
+                modifiers.add(Modifier.VOLATILE);
+                break;
+            case "virtual":
+                modifiers.add(Modifier.VIRTUAL);
+                break;
+        }
+    }
+
+    private String extractTypeName(CPP14Parser.DeclSpecifierSeqContext ctx) {
+        StringBuilder type = new StringBuilder();
+
+        for (CPP14Parser.DeclSpecifierContext spec : ctx.declSpecifier()) {
+            String specText = spec.getText();
+            System.out.println("DEBUG: Processing type specifier: " + specText);
+            if (spec.typeSpecifier() != null) {
+                var typeSpec = spec.typeSpecifier();
+
+                // enumで始まる型名の特別処理
+                if (specText.startsWith("enum")) {
+                    String enumTypeName = specText.substring(4); // "enum"の4文字を除去
+                    type.append(enumTypeName);
+                    continue;
+                }
+                // 通常の型指定子の処理
+                if (typeSpec.trailingTypeSpecifier() != null) {
+                    processTrailingTypeSpecifier(typeSpec.trailingTypeSpecifier(), type);
+                }
+            }
+            // デバッグ出力
+            System.out.println("DEBUG: Processing type specifier: " + spec.getText());
+        }
+
+        String result = type.toString().trim();
+        System.out.println("DEBUG: Extracted type name: " + result);
+        return result;
+    }
+
+    private void processTrailingTypeSpecifier(CPP14Parser.TrailingTypeSpecifierContext ctx, StringBuilder type) {
+        if (ctx.simpleTypeSpecifier() != null) {
+            var simple = ctx.simpleTypeSpecifier();
+
+            // 名前空間の処理
+            if (simple.nestedNameSpecifier() != null) {
+                type.append(simple.nestedNameSpecifier().getText());
+            }
+
+            // 基本型かユーザー定義型の処理
+            if (simple.theTypeName() != null) {
+                type.append(simple.theTypeName().getText());
+            } else {
+                // int, double などの基本型の処理
+                String basicType = simple.getText().trim();
+                if (!basicType.isEmpty()) {
+                    type.append(basicType);
+                }
+            }
+
+            // テンプレートパラメータの処理
+            if (simple.simpleTemplateId() != null) {
+                processTemplateId(simple.simpleTemplateId(), type);
+            }
+        }
+    }
+
+    private void processTemplateId(CPP14Parser.SimpleTemplateIdContext ctx, StringBuilder type) {
+        type.append("<");
+        if (ctx.templateArgumentList() != null) {
+            type.append(ctx.templateArgumentList().getText());
+        }
+        type.append(">");
     }
 
     private String processAttributeType(String type, CPP14Parser.DeclaratorContext declarator) {
@@ -495,38 +580,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return name.replaceAll("\\[.*\\]", "").trim();
     }
 
-    private String cleanTypeModifiers(String type) {
-        // テンプレート部分と基本型を分離
-        int templateStart = type.indexOf('<');
-        if (templateStart != -1) {
-            int templateEnd = type.lastIndexOf('>');
-            if (templateEnd != -1) {
-                // テンプレート前の部分のみ修飾子を除去
-                String baseType = type.substring(0, templateStart);
-                baseType = removeModifiers(baseType);
-
-                // テンプレート部分はそのまま保持
-                String templatePart = type.substring(templateStart);
-
-                return baseType + templatePart;
-            }
-        }
-
-        // テンプレートがない場合は通常の処理
-        return removeModifiers(type);
-    }
-
-    private String removeModifiers(String text) {
-        // 単語境界を使用して修飾子を確実に識別
-        return text
-                .replaceAll("\\s+", " ")
-                .replaceAll(
-                        "(static|constexpr|const|mutable|volatile|virtual|final|explicit|friend|inline|thread_local|register|extern)",
-                        "")
-                .replaceAll("\\s+", " ")
-                .trim();
-    }
-
     private String extractBaseTypeName(String typeName) {
         String baseType = typeName;
 
@@ -540,7 +593,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         String[] modifiers = {
                 "static", "const", "mutable", "volatile", "virtual",
                 "final", "explicit", "friend", "inline", "constexpr",
-                "thread_local", "register", "extern"
+                "thread_local", "register", "extern", "enum"
         };
 
         for (String modifier : modifiers) {
@@ -557,9 +610,19 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 "string", "vector", "list", "map", "set",
                 "array", "queue", "stack", "deque");
 
-        return !basicTypes.contains(type) &&
-                !type.startsWith("std::") &&
-                Character.isUpperCase(type.charAt(0));
+        if (type.startsWith("enum ")) {
+            return true; // enumは常にユーザー定義型として扱う
+        }
+
+        // std::を除去
+        type = type.replaceAll("std::", "");
+
+        // 型名のみを抽出（テンプレートパラメータを除く）
+        if (type.contains("<")) {
+            type = type.substring(0, type.indexOf("<"));
+        }
+
+        return !basicTypes.contains(type.toLowerCase());
     }
 
     private boolean isCollectionType(String type) {

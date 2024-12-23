@@ -7,17 +7,11 @@ import java.util.*;
 
 public class AnalyzerContext {
     private CppHeaderClass currentHeaderClass;
-    private CppImplClass currentImplClass;
     private String currentVisibility = "private";
-    private final Map<String, Set<String>> relationships = new HashMap<>();
-    private final CppTypeMapper typeMapper;
-    private final CppVisibilityMapper visibilityMapper;
     private final boolean isHeaderFile;
 
     public AnalyzerContext(boolean isHeaderFile) {
         this.isHeaderFile = isHeaderFile;
-        this.typeMapper = new CppTypeMapper();
-        this.visibilityMapper = new CppVisibilityMapper();
     }
 
     public CppHeaderClass getCurrentHeaderClass() {
@@ -32,10 +26,6 @@ public class AnalyzerContext {
         this.currentHeaderClass = currentHeaderClass;
     }
 
-    public void setCurrentImplClass(CppImplClass currentImplClass) {
-        this.currentImplClass = currentImplClass;
-    }
-
     public String getCurrentVisibility() {
         return currentVisibility;
     }
@@ -44,19 +34,7 @@ public class AnalyzerContext {
         this.currentVisibility = visibility;
     }
 
-    public CppTypeMapper getTypeMapper() {
-        return typeMapper;
-    }
-
-    public CppVisibilityMapper getVisibilityMapper() {
-        return visibilityMapper;
-    }
-
     public boolean isHeaderFile() {
         return isHeaderFile;
-    }
-
-    public void addRelationship(String source, String target) {
-        relationships.computeIfAbsent(source, k -> new HashSet<>()).add(target);
     }
 }

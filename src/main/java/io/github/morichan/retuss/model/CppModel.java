@@ -145,25 +145,32 @@ public class CppModel {
             // 2. ヘッダーファイルの更新
             // インクルードガード、クラス名、コンストラクタ、デストラクタの更新
             String headerCode = headerFile.getCode();
-            headerCode = headerCode
-                    .replace(oldClassName.toUpperCase() + "_H", newClassName.toUpperCase() + "_H")
-                    .replaceAll("class\\s+" + oldClassName + "\\s*", "class " + newClassName + " ")
-                    .replaceAll("(?<![a-zA-Z0-9_])" + oldClassName + "\\s*\\(", newClassName + "(")
-                    .replaceAll("(?<![a-zA-Z0-9_])~" + oldClassName + "\\s*\\(", "~" + newClassName + "(");
+            // headerCode = headerCode
+            // .replace(oldClassName.toUpperCase() + "_H", newClassName.toUpperCase() +
+            // "_H")
+            // .replaceAll("class\\s+" + oldClassName + "\\s*", "class " + newClassName + "
+            // ")
+            // .replaceAll("(?<![a-zA-Z0-9_])" + oldClassName + "\\s*\\(", newClassName +
+            // "(")
+            // .replaceAll("(?<![a-zA-Z0-9_])~" + oldClassName + "\\s*\\(", "~" +
+            // newClassName + "(");
 
             // 3. 実装ファイルの更新
             if (implFile != null) {
-                String implCode = implFile.getCode();
-                // インクルード文、スコープ解決演算子、コンストラクタ、デストラクタの更新
-                implCode = implCode
-                        .replace("#include \"" + oldClassName + ".h\"", "#include \"" + newClassName + ".h\"")
-                        .replace(oldClassName + "::", newClassName + "::")
-                        .replaceAll(oldClassName + "::" + oldClassName, newClassName + "::" + newClassName)
-                        .replaceAll(oldClassName + "::~" + oldClassName, newClassName + "::~" + newClassName);
+                // String implCode = implFile.getCode();
+                // // インクルード文、スコープ解決演算子、コンストラクタ、デストラクタの更新
+                // implCode = implCode
+                // .replace("#include \"" + oldClassName + ".h\"", "#include \"" + newClassName
+                // + ".h\"")
+                // .replace(oldClassName + "::", newClassName + "::")
+                // .replaceAll(oldClassName + "::" + oldClassName, newClassName + "::" +
+                // newClassName)
+                // .replaceAll(oldClassName + "::~" + oldClassName, newClassName + "::~" +
+                // newClassName);
 
                 // ファイル名の更新
                 implFile.updateFileName(newClassName + ".cpp");
-                implFile.updateCode(implCode);
+                // implFile.updateCode(implCode);
             }
 
             // 4. マップの更新
@@ -171,7 +178,7 @@ public class CppModel {
             implFiles.remove(oldClassName);
 
             headerFile.updateFileName(newClassName + ".h");
-            headerFile.updateCode(headerCode);
+            // headerFile.updateCode(headerCode);
 
             headerFiles.put(newClassName, headerFile);
             if (implFile != null) {
@@ -179,16 +186,16 @@ public class CppModel {
             }
 
             // 5. リスナーへの通知
-            notifyFileRenamed(oldClassName + ".h", newClassName + ".h");
             if (implFile != null) {
                 notifyFileRenamed(oldClassName + ".cpp", newClassName + ".cpp");
             }
+            notifyFileRenamed(oldClassName + ".h", newClassName + ".h");
 
-            // 6. ファイルの内容更新を通知
-            notifyFileUpdated(headerFile);
-            if (implFile != null) {
-                notifyFileUpdated(implFile);
-            }
+            // // 6. ファイルの内容更新を通知
+            // if (implFile != null) {
+            // notifyFileUpdated(implFile);
+            // }
+            // notifyFileUpdated(headerFile);
 
         } catch (Exception e) {
             System.err.println("Error during class name change: " + e.getMessage());

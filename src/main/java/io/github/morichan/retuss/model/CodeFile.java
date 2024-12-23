@@ -50,6 +50,8 @@ public class CodeFile implements ICodeFile {
         if (Objects.isNull(compilationUnit)) {
             return "";
         }
+        System.out.println("DEBUG: get Java code:\n" + compilationUnit.toString());
+
         return compilationUnit.toString();
     }
 
