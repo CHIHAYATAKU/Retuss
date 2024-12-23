@@ -190,14 +190,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         if (!methodName.equals(currentClass.getName()) && !methodName.startsWith("~")) {
             analyzeReturnTypeDependency(returnType, currentClass);
         }
-
-        // パラメータからの依存関係を分析
-        if (operation.getParameters() != null) { // null チェックを追加
-            for (Parameter param : operation.getParameters()) {
-                analyzeParameterTypeDependency(param.getType().toString(),
-                        param.getName().toString(), currentClass);
-            }
-        }
     }
 
     private String cleanTypeForRelationship(String type) {
@@ -291,55 +283,204 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         return processedType.trim();
     }
 
-    private void processParameters(CPP14Parser.ParametersAndQualifiersContext params, Operation operation) {
-        System.out.println("DEBUG: Processing parameters");
-        // まず空のパラメータリストで初期化
-        operation.setParameters(new ArrayList<>());
+    private static class ParameterInfo {
+        String baseType; // 基本型名
+        String parameterName;
+        boolean isConst; // const修飾子の有無
+        boolean isPointer; // ポインタの有無
+        boolean isReference; // 参照の有無
 
-        // パラメータリストがある場合のみ処理
-        if (params.parameterDeclarationClause() != null &&
-                params.parameterDeclarationClause().parameterDeclarationList() != null) {
-            CPP14Parser.ParameterDeclarationListContext paramList = params.parameterDeclarationClause()
-                    .parameterDeclarationList();
+        RelationType determineRelationType() {
+            // const参照/ポインタの場合は依存関係
+            if (isConst && (isReference || isPointer)) {
+                return RelationType.DEPENDENCY_PARAMETER;
+            }
+            // 参照またはポインタの場合は関連関係
+            if (isReference || isPointer) {
+                return RelationType.ASSOCIATION;
+            }
+            // それ以外は依存関係
+            return RelationType.DEPENDENCY_PARAMETER;
+        }
+    }
 
-            if (paramList != null) {
-                for (CPP14Parser.ParameterDeclarationContext paramCtx : paramList.parameterDeclaration()) {
-                    try {
-                        String paramType = paramCtx.declSpecifierSeq().getText();
-                        String paramName = "";
-                        String paramModifier = "";
+    private ParameterInfo extractParameterInfo(CPP14Parser.ParameterDeclarationContext paramCtx) {
+        ParameterInfo info = new ParameterInfo();
 
-                        System.out.println("DEBUG: Parameter context: " + paramCtx.getText());
-                        System.out.println("DEBUG: Parameter type raw: " + paramType);
+        // 型指定子からの情報抽出
+        if (paramCtx.declSpecifierSeq() != null) {
+            for (CPP14Parser.DeclSpecifierContext spec : paramCtx.declSpecifierSeq().declSpecifier()) {
+                // typeSpecifierの処理
+                if (spec.typeSpecifier() != null) {
+                    var typeSpec = spec.typeSpecifier();
+                    if (typeSpec.trailingTypeSpecifier() != null) {
+                        var trailing = typeSpec.trailingTypeSpecifier();
 
-                        paramType = processOperationType(paramType);
-                        paramType = cleanType(paramType);
-
-                        if (paramCtx.declarator() != null) {
-                            String fullDeclarator = paramCtx.declarator().getText();
-                            System.out.println("DEBUG: Parameter declarator: " + fullDeclarator);
-
-                            // ポインタ/参照修飾子の抽出
-                            if (fullDeclarator.contains("*"))
-                                paramType += "*";
-                            if (fullDeclarator.contains("&"))
-                                paramType += "&";
-
-                            // 名前の抽出（修飾子を除去）
-                            paramName = cleanName(fullDeclarator);
+                        // const check
+                        if (trailing.cvQualifier() != null &&
+                                trailing.cvQualifier().getText().equals("const")) {
+                            info.isConst = true;
                         }
-
-                        Parameter param = new Parameter(new Name(paramName));
-                        param.setType(new Type(paramType));
-                        operation.addParameter(param);
-
-                        System.out.println("DEBUG: Added parameter - " + paramName + " : " + paramType + paramModifier);
-                    } catch (Exception e) {
-                        System.err.println("ERROR processing parameter: " + e.getMessage());
+                        // 型名の取得
+                        else if (trailing.simpleTypeSpecifier() != null) {
+                            info.baseType = trailing.simpleTypeSpecifier().getText()
+                                    .replaceAll("std::", "");
+                        }
                     }
+                }
+                // 直接のconst指定子の検出
+                else if (spec.getText().equals("const")) {
+                    info.isConst = true;
                 }
             }
         }
+
+        // declaratorからのポインタ/参照情報の抽出
+        if (paramCtx.declarator() != null) {
+            var declarator = paramCtx.declarator();
+            if (declarator.pointerDeclarator() != null) {
+                // ポインタ演算子の検出
+                for (CPP14Parser.PointerOperatorContext op : declarator.pointerDeclarator().pointerOperator()) {
+                    String opText = op.getText();
+                    if (opText.contains("*")) {
+                        info.isPointer = true;
+                    }
+                    if (opText.contains("&")) {
+                        info.isReference = true;
+                    }
+                }
+                // パラメータ名の取得
+                if (declarator.pointerDeclarator().noPointerDeclarator() != null &&
+                        declarator.pointerDeclarator().noPointerDeclarator().declaratorid() != null) {
+                    info.parameterName = declarator.pointerDeclarator()
+                            .noPointerDeclarator().declaratorid().getText();
+                }
+            }
+        }
+        return info;
+    }
+
+    private void processParameters(CPP14Parser.ParametersAndQualifiersContext params,
+            Operation operation) {
+
+        CppHeaderClass currentClass = context.getCurrentHeaderClass();
+
+        Map<String, RelationshipInfo> relationships = new HashMap<>();
+
+        if (params.parameterDeclarationClause() == null)
+            return;
+        var paramList = params.parameterDeclarationClause().parameterDeclarationList();
+        if (paramList == null)
+            return;
+
+        for (CPP14Parser.ParameterDeclarationContext paramCtx : paramList.parameterDeclaration()) {
+            ParameterInfo paramInfo = extractParameterInfo(paramCtx);
+            System.out.println(paramCtx.getText());
+
+            // 修飾子を含む完全な型名を構築
+            StringBuilder fullType = new StringBuilder();
+            if (paramInfo.isConst) {
+                fullType.append("const ");
+            }
+            fullType.append(paramInfo.baseType);
+            if (paramInfo.isPointer) {
+                fullType.append("*");
+            }
+            if (paramInfo.isReference) {
+                fullType.append("&");
+            }
+
+            Parameter param = new Parameter(new Name(paramInfo.parameterName));
+            param.setType(new Type(buildParameterType(paramInfo)));
+            operation.addParameter(param);
+
+            // ユーザー定義型の場合のみ関係を追加
+            if (isUserDefinedType(paramInfo.baseType)) {
+                addRelationship(currentClass, paramInfo, operation.getName().getNameText(), relationships);
+            }
+        }
+
+        for (RelationshipInfo relation : relationships.values()) {
+            currentClass.addRelationship(relation);
+        }
+    }
+
+    // パラメータの型名を構築（constを除外）
+    private String buildParameterType(ParameterInfo info) {
+        StringBuilder type = new StringBuilder();
+        type.append(info.baseType);
+        if (info.isPointer) {
+            type.append("*");
+        }
+        if (info.isReference) {
+            type.append("&");
+        }
+        return type.toString();
+    }
+
+    private void addRelationship(CppHeaderClass currentClass, ParameterInfo paramInfo,
+            String operationName, Map<String, RelationshipInfo> relationships) {
+
+        if (isUserDefinedType(paramInfo.baseType)) {
+            // ポインタまたは参照の場合は関連関係「のみ」
+            if (paramInfo.isPointer || paramInfo.isReference) {
+                RelationshipInfo relation = relationships.get(paramInfo.baseType);
+                if (relation == null) {
+                    relation = new RelationshipInfo(
+                            paramInfo.baseType,
+                            RelationType.ASSOCIATION);
+                    relationships.put(paramInfo.baseType, relation);
+                }
+
+                relation.addElement(
+                        operationName,
+                        ElementType.OPERATION,
+                        determineMultiplicity(paramInfo),
+                        Visibility.Public);
+                return; // 関連を追加したら終了（依存は作らない）
+            }
+            // 値型の場合のみ依存関係を作成
+            else {
+                RelationshipInfo relation = new RelationshipInfo(
+                        paramInfo.baseType,
+                        RelationType.DEPENDENCY_PARAMETER);
+                relationships.put(paramInfo.baseType, relation);
+            }
+        }
+    }
+
+    private void addAssociation(CppHeaderClass currentClass, ParameterInfo paramInfo) {
+        RelationshipInfo relation = new RelationshipInfo(
+                paramInfo.baseType,
+                RelationType.ASSOCIATION);
+
+        // 多重度の設定
+        String multiplicity = determineMultiplicity(paramInfo);
+        relation.addElement(
+                paramInfo.parameterName,
+                ElementType.PARAMETER,
+                multiplicity,
+                Visibility.Public // パラメータの場合は常にPublic
+        );
+
+        currentClass.addRelationship(relation);
+    }
+
+    private void addDependency(CppHeaderClass currentClass, ParameterInfo paramInfo) {
+        RelationshipInfo relation = new RelationshipInfo(
+                paramInfo.baseType,
+                RelationType.DEPENDENCY_PARAMETER);
+        currentClass.addRelationship(relation);
+    }
+
+    private String determineMultiplicity(ParameterInfo paramInfo) {
+        if (paramInfo.isPointer) {
+            return "0..1"; // ポインタの場合はnullableなので0..1
+        }
+        if (paramInfo.isReference) {
+            return "1"; // 参照の場合は必ず存在するので1
+        }
+        return "1"; // デフォルトは1
     }
 
     private Boolean extractIsOverride(CPP14Parser.MemberdeclarationContext ctx) {

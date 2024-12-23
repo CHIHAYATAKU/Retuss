@@ -498,11 +498,12 @@ public class UmlController implements CppModel.ModelChangeListener {
                 cppClassDiagramDrawer.draw(codeController.getSelectedClassName());
             }
 
-            // シーケンス図のタブを削除
-            if (tabPaneInSequenceTab != null) {
-                tabPaneInSequenceTab.getTabs().removeIf(tab -> tab.getText().equals(className + ".h") ||
-                        tab.getText().equals(className + ".cpp"));
-            }
+            // // シーケンス図のタブを削除
+            // if (tabPaneInSequenceTab != null) {
+            // tabPaneInSequenceTab.getTabs().removeIf(tab -> tab.getText().equals(className
+            // + ".h") ||
+            // tab.getText().equals(className + ".cpp"));
+            // }
         });
     }
 

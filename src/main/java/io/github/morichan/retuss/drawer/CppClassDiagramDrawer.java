@@ -371,12 +371,6 @@ public class CppClassDiagramDrawer {
             try {
                 List<CppHeaderClass> classes = model.getHeaderClasses();
                 System.out.println("DEBUG: CppClassDiagramDrawer - Number of classes: " + classes.size());
-                for (CppHeaderClass cls : classes) {
-                    System.out.println("DEBUG: CppClassDiagramDrawer - Drawing class: " + cls.getName());
-                    System.out.println("DEBUG: CppClassDiagramDrawer - Class type: " + cls.getClass().getName());
-                    System.out.println("DEBUG: CppClassDiagramDrawer - Attributes: " + cls.getAttributeList().size());
-                    System.out.println("DEBUG: CppClassDiagramDrawer - Operations: " + cls.getOperationList().size());
-                }
 
                 StringBuilder pumlBuilder = new StringBuilder("@startuml\n");
                 // pumlBuilder.append("skinparam style strictuml\n");
@@ -390,9 +384,6 @@ public class CppClassDiagramDrawer {
                 pumlBuilder.append("scale ").append(String.format("%.2f", currentScale)).append("\n");
 
                 for (CppHeaderClass cls : classes) {
-                    System.out.println("Processing class: " + cls.getName());
-                    System.out.println("Attributes: " + cls.getAttributeList().size());
-                    System.out.println("Operations: " + cls.getOperationList().size());
                     drawClass(pumlBuilder, cls, selectedClassName);
                 }
 
@@ -412,15 +403,11 @@ public class CppClassDiagramDrawer {
                 simplePumlBuilder.append("skinparam enumBorderColor Black\n");
 
                 simplePumlBuilder.append("scale ").append("1.0").append("\n");
-
                 for (CppHeaderClass cls : classes) {
-                    System.out.println("Processing class: " + cls.getName());
-                    System.out.println("Attributes: " + cls.getAttributeList().size());
-                    System.out.println("Operations: " + cls.getOperationList().size());
                     drawSimpleClass(simplePumlBuilder, cls);
                 }
 
-                pumlBuilder.append("@enduml\n");
+                simplePumlBuilder.append("@enduml\n");
                 String simplePuml = simplePumlBuilder.toString();
                 umlModel.setPlantUml(simplePuml);
 
