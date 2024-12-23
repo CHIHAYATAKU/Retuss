@@ -11,12 +11,23 @@ public enum Modifier {
     VOLATILE("volatile", "{volatile}", ElementType.ATTRIBUTE),
     MUTABLE("mutable", "{mutable}", ElementType.ATTRIBUTE),
     QUERY("const;", "{query}", ElementType.OPERATION),
+    EXTERN("extern", "", ElementType.ATTRIBUTE),
+    REGISTER("register", "", ElementType.ATTRIBUTE),
+    THREAD_LOCAL("thread_local", "", ElementType.LOCAL_VARIABLE),
+    CONSTEXPR("constexpr", "{readOnly}", ElementType.ATTRIBUTE, ElementType.OPERATION),
+    CONSTEVAL("consteval", "", ElementType.ATTRIBUTE),
+    CONSTINIT("constinit", "", ElementType.ATTRIBUTE),
 
     // メソッド用の修飾子
     VIRTUAL("virtual", "{virtual}", ElementType.OPERATION),
     OVERRIDE("override", "<<override>>", ElementType.OPERATION),
     FINAL("final", "{final}", ElementType.OPERATION,
             ElementType.CLASS),
+    EXPLICIT("explicit", "", ElementType.ATTRIBUTE),
+    INLINE("inline", "", ElementType.ATTRIBUTE),
+    FRIEND("friend", "", ElementType.ATTRIBUTE),
+    NOEXCEPT("noexcept", "", ElementType.ATTRIBUTE),
+
     ABSTRACT("abstract", "{abstract}", ElementType.CLASS, ElementType.OPERATION),
     PURE_VIRTUAL("= 0", "{abstract}", ElementType.OPERATION);
 

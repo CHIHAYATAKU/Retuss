@@ -19,10 +19,10 @@ public class CppToUmlTranslator {
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             CPP14Parser parser = new CPP14Parser(tokens);
             // 構文ツリーを取得
-            ParseTree tree = parser.translationUnit();
+            // ParseTree tree = parser.translationUnit();
 
             // 構文ツリーを文字列として出力
-            System.out.println(tree.toStringTree(parser));
+            // System.out.println(tree.toStringTree(parser));
             ParseTreeWalker walker = new ParseTreeWalker();
 
             // ヘッダファイルとして解析（true）

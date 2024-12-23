@@ -18,6 +18,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AttributeAnalyzer extends AbstractAnalyzer {
+    private static class TypeInfo {
+        String baseType;
+        Set<Modifier> modifiers = new HashSet<>();
+        boolean isSmartPointer;
+        String smartPointerType;
+        String innerType;
+        boolean isStdString;
+        boolean isCollection;
+        String collectionType;
+        String elementType;
+        boolean isPointer;
+        boolean isReference;
+    }
+
+    private static class DeclaratorInfo {
+        String name;
+        boolean isPointer;
+        boolean isReference;
+        String arraySpec;
+        String initialValue;
+    }
+
     @Override
     public boolean appliesTo(ParserRuleContext context) {
         if (!(context instanceof CPP14Parser.MemberdeclarationContext)) {
@@ -38,15 +60,11 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
 
         try {
-            String rawType = ctx.declSpecifierSeq().getText();
-            System.err.println("DEBUG: rawType -> " + rawType);
-            Set<Modifier> modifiers = extractModifiers(rawType);
-            String processedType = cleanTypeModifiers(rawType);
-            System.err.println("DEBUG: processedType -> " + processedType);
+            TypeInfo typeInfo = extractTypeInfo(ctx.declSpecifierSeq());
 
             if (ctx.memberDeclaratorList() != null) {
                 for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
-                    handleAttribute(memberDec, processedType, modifiers);
+                    handleAttribute(memberDec, typeInfo);
                 }
             }
         } catch (Exception e) {
@@ -55,58 +73,395 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
     }
 
+    private TypeInfo extractTypeInfo(CPP14Parser.DeclSpecifierSeqContext ctx) {
+        TypeInfo info = new TypeInfo();
+
+        for (CPP14Parser.DeclSpecifierContext spec : ctx.declSpecifier()) {
+            if (spec.storageClassSpecifier() != null) {
+                // ストレージクラス指定子
+                processStorageClassSpecifier(spec.storageClassSpecifier(), info);
+            } else if (spec.typeSpecifier() != null) {
+                // 型指定子
+                processTypeSpecifier(spec.typeSpecifier(), info);
+            } else {
+                // その他の修飾子
+                processOtherSpecifier(spec.getText(), info);
+            }
+        }
+        return info;
+    }
+
+    private void processStorageClassSpecifier(
+            CPP14Parser.StorageClassSpecifierContext ctx,
+            TypeInfo info) {
+        // ストレージ期間と連結を指定する修飾子
+        String specifier = ctx.getText();
+        switch (specifier) {
+            case "static": // 静的記憶域期間
+                info.modifiers.add(Modifier.STATIC);
+                break;
+            case "extern": // 外部連結
+                info.modifiers.add(Modifier.EXTERN);
+                break;
+            case "mutable": // const内での可変性
+                info.modifiers.add(Modifier.MUTABLE);
+                break;
+            case "register": // レジスタ記憶域（非推奨）
+                info.modifiers.add(Modifier.REGISTER);
+                break;
+            case "thread_local": // スレッドローカルストレージ
+                info.modifiers.add(Modifier.THREAD_LOCAL);
+                break;
+        }
+    }
+
+    private void processOtherSpecifier(String specifier, TypeInfo info) {
+        switch (specifier) {
+            // cv修飾子（const/volatile）
+            case "const":
+                info.modifiers.add(Modifier.READONLY);
+                break;
+            case "volatile":
+                info.modifiers.add(Modifier.VOLATILE);
+                break;
+
+            // 関数指定子
+            case "virtual":
+                info.modifiers.add(Modifier.VIRTUAL);
+                break;
+            case "explicit":
+                info.modifiers.add(Modifier.EXPLICIT);
+                break;
+            case "inline":
+                info.modifiers.add(Modifier.INLINE);
+                break;
+            case "constexpr":
+                info.modifiers.add(Modifier.CONSTEXPR);
+                break;
+            case "consteval":
+                info.modifiers.add(Modifier.CONSTEVAL);
+                break;
+            case "constinit":
+                info.modifiers.add(Modifier.CONSTINIT);
+                break;
+
+            // 特殊指定子
+            case "friend":
+                info.modifiers.add(Modifier.FRIEND);
+                break;
+            case "final":
+                info.modifiers.add(Modifier.FINAL);
+                break;
+            case "override":
+                info.modifiers.add(Modifier.OVERRIDE);
+                break;
+            case "noexcept":
+                info.modifiers.add(Modifier.NOEXCEPT);
+                break;
+        }
+    }
+
+    private void processTypeQualifiers(CPP14Parser.DeclSpecifierContext spec, TypeInfo info) {
+        String text = spec.getText();
+        if (text.equals("const")) {
+            info.modifiers.add(Modifier.READONLY);
+        } else if (text.equals("volatile")) {
+            info.modifiers.add(Modifier.VOLATILE);
+        }
+    }
+
+    private void processTypeSpecifier(
+            CPP14Parser.TypeSpecifierContext ctx,
+            TypeInfo info) {
+        String specText = ctx.getText();
+
+        // 修飾子の処理
+        if (specText.equals("const")) {
+            info.modifiers.add(Modifier.READONLY);
+        } else if (specText.equals("volatile")) {
+            info.modifiers.add(Modifier.VOLATILE);
+        }
+
+        // 型情報の処理
+        if (ctx.trailingTypeSpecifier() != null &&
+                ctx.trailingTypeSpecifier().simpleTypeSpecifier() != null) {
+
+            CPP14Parser.SimpleTypeSpecifierContext simpleType = ctx.trailingTypeSpecifier().simpleTypeSpecifier();
+
+            if (isStdNamespace(simpleType)) {
+                processStdType(simpleType, info);
+            } else {
+                info.baseType = extractBaseType(simpleType);
+            }
+        }
+    }
+
+    private void processStdType(
+            CPP14Parser.SimpleTypeSpecifierContext simpleType,
+            TypeInfo info) {
+        if (simpleType.theTypeName() != null &&
+                simpleType.theTypeName().className() != null) {
+
+            CPP14Parser.ClassNameContext className = simpleType.theTypeName().className();
+
+            if (className.simpleTemplateId() != null) {
+                processTemplateType(className.simpleTemplateId(), info);
+            } else if (className.getText().equals("string")) {
+                info.isStdString = true;
+                info.baseType = "string";
+            }
+        }
+    }
+
+    private void processTemplateType(
+            CPP14Parser.SimpleTemplateIdContext templateId,
+            TypeInfo info) {
+        String templateName = templateId.templateName().getText();
+
+        // スマートポインタのチェック
+        if (isSmartPointerType(templateName)) {
+            info.isSmartPointer = true;
+            info.smartPointerType = templateName;
+            info.innerType = extractTemplateArgument(templateId);
+        }
+        // コレクション型のチェック
+        else if (isCollectionType(templateName)) {
+            info.isCollection = true;
+            info.collectionType = templateName;
+            info.elementType = extractTemplateArgument(templateId);
+        }
+    }
+
+    // ヘルパーメソッド
+    private boolean isStdNamespace(CPP14Parser.SimpleTypeSpecifierContext ctx) {
+        return ctx.nestedNameSpecifier() != null &&
+                ctx.nestedNameSpecifier().theTypeName() != null &&
+                ctx.nestedNameSpecifier().theTypeName().className() != null &&
+                ctx.nestedNameSpecifier().theTypeName().className().getText().equals("std");
+    }
+
+    private boolean isSmartPointerType(String type) {
+        return type.equals("unique_ptr") ||
+                type.equals("shared_ptr") ||
+                type.equals("weak_ptr");
+    }
+
+    private boolean isCollectionType(String type) {
+        return type.equals("vector") || type.equals("list") ||
+                type.equals("set") || type.equals("map") ||
+                type.equals("array");
+    }
+
+    private DeclaratorInfo processDeclarator(CPP14Parser.DeclaratorContext ctx) {
+        DeclaratorInfo info = new DeclaratorInfo();
+
+        if (ctx.pointerDeclarator() != null) {
+            CPP14Parser.PointerDeclaratorContext ptrDec = ctx.pointerDeclarator();
+
+            // ポインタ演算子の処理
+            for (CPP14Parser.PointerOperatorContext op : ptrDec.pointerOperator()) {
+                if (op.getText().equals("*")) {
+                    info.isPointer = true;
+                }
+                if (op.getText().equals("&")) {
+                    info.isReference = true;
+                }
+            }
+
+            // 名前の抽出
+            if (ptrDec.noPointerDeclarator() != null) {
+                info.name = extractDeclaratorName(ptrDec.noPointerDeclarator());
+                info.arraySpec = extractArraySpecifier(ptrDec.noPointerDeclarator());
+            }
+        }
+
+        return info;
+    }
+
+    private String extractDeclaratorName(CPP14Parser.NoPointerDeclaratorContext ctx) {
+        if (ctx.declaratorid() != null &&
+                ctx.declaratorid().idExpression() != null &&
+                ctx.declaratorid().idExpression().unqualifiedId() != null) {
+            return ctx.declaratorid().idExpression().unqualifiedId().getText();
+        }
+        return "";
+    }
+
+    private String extractArraySpecifier(CPP14Parser.NoPointerDeclaratorContext ctx) {
+        if (ctx.constantExpression() != null) {
+            return "[" + ctx.constantExpression().getText() + "]";
+        }
+        return null;
+    }
+
+    private String extractTemplateArgument(CPP14Parser.SimpleTemplateIdContext ctx) {
+        if (ctx.templateArgumentList() != null) {
+            // 最初のテンプレート引数を取得
+            var args = ctx.templateArgumentList().templateArgument();
+            if (!args.isEmpty()) {
+                var arg = args.get(0);
+                if (arg.theTypeId() != null &&
+                        arg.theTypeId().typeSpecifierSeq() != null) {
+                    return extractTypeFromSpecifierSeq(
+                            arg.theTypeId().typeSpecifierSeq());
+                }
+            }
+        }
+        return null;
+    }
+
+    private String extractTypeFromSpecifierSeq(
+            CPP14Parser.TypeSpecifierSeqContext ctx) {
+        StringBuilder type = new StringBuilder();
+        for (CPP14Parser.TypeSpecifierContext spec : ctx.typeSpecifier()) {
+            if (spec.trailingTypeSpecifier() != null &&
+                    spec.trailingTypeSpecifier().simpleTypeSpecifier() != null) {
+
+                type.append(spec.trailingTypeSpecifier()
+                        .simpleTypeSpecifier()
+                        .getText());
+            }
+        }
+        return type.toString();
+    }
+
+    private String extractInitialValue(
+            CPP14Parser.BraceOrEqualInitializerContext ctx) {
+        if (ctx.initializerClause() != null) {
+            return processInitializerClause(ctx.initializerClause());
+        }
+        if (ctx.bracedInitList() != null) {
+            return processBracedInitList(ctx.bracedInitList());
+        }
+        return null;
+    }
+
+    private String processInitializerClause(
+            CPP14Parser.InitializerClauseContext ctx) {
+        if (ctx.assignmentExpression() != null) {
+            return ctx.assignmentExpression().getText();
+        }
+        if (ctx.bracedInitList() != null) {
+            return processBracedInitList(ctx.bracedInitList());
+        }
+        return ctx.getText();
+    }
+
+    private String processBracedInitList(CPP14Parser.BracedInitListContext ctx) {
+        if (ctx.initializerList() != null) {
+            return "{" + ctx.initializerList().getText() + "}";
+        }
+        return "{}";
+    }
+
+    private static final Set<String> BASIC_TYPES = Set.of(
+            "void", "bool", "char", "int", "float", "double",
+            "long", "short", "unsigned", "signed");
+
+    private static final Set<String> STD_CONTAINERS = Set.of(
+            "vector", "list", "set", "map", "array",
+            "queue", "stack", "deque");
+
+    private static final Set<String> SMART_PTRS = Set.of(
+            "unique_ptr", "shared_ptr", "weak_ptr");
+
     private void handleAttribute(
             CPP14Parser.MemberDeclaratorContext memberDec,
-            String type,
-            Set<Modifier> modifiers) {
+            TypeInfo typeInfo) {
+        DeclaratorInfo declInfo = processDeclarator(memberDec.declarator());
 
-        CppHeaderClass currentHeaderClass = context.getCurrentHeaderClass();
-        String attributeName = cleanName(extractAttributeName(memberDec.declarator()));
-        String initialValueStr = extractInitialValue(memberDec);
-        System.err.println("DEBUG: InitialValue of -> " + attributeName + " = " + initialValueStr);
-
-        if (currentHeaderClass.getAttributeList().stream()
-                .anyMatch(attr -> attr.getName().getNameText().equals(attributeName))) {
-            return;
+        // 初期値の処理
+        if (memberDec.braceOrEqualInitializer() != null) {
+            declInfo.initialValue = extractInitialValue(
+                    memberDec.braceOrEqualInitializer());
         }
 
-        Attribute attribute = new Attribute(new Name(attributeName));
-        attribute.setType(new Type(processAttributeType(type, memberDec.declarator())));
-        attribute.setVisibility(convertVisibility(context.getCurrentVisibility()));
+        // 属性の作成と設定
+        Attribute attribute = createAttribute(typeInfo, declInfo);
+
+        // クラスへの属性追加
+        CppHeaderClass currentClass = context.getCurrentHeaderClass();
+        currentClass.addAttribute(attribute);
+
+        // 修飾子の追加
+        for (Modifier mod : typeInfo.modifiers) {
+            currentClass.addMemberModifier(declInfo.name, mod);
+        }
+
+        // 関係性の解析と追加
+        if (shouldCreateRelationship(typeInfo)) {
+            addRelationship(typeInfo, declInfo);
+        }
+    }
+
+    private Attribute createAttribute(TypeInfo typeInfo, DeclaratorInfo declInfo) {
+        Attribute attribute = new Attribute(new Name(declInfo.name));
+
+        // 型の設定
+        String fullType = buildFullType(typeInfo, declInfo);
+        attribute.setType(new Type(fullType));
+
+        // 可視性の設定
+        attribute.setVisibility(
+                convertVisibility(context.getCurrentVisibility()));
+
         // 初期値の設定
-        if (initialValueStr != null) {
-            // 数値の場合
-            if (initialValueStr.matches("-?\\d+(\\.\\d+)?")) {
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            // 文字列の場合
-            else if (initialValueStr.startsWith("\"") && initialValueStr.endsWith("\"")) {
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            // メソッド呼び出しや式の場合
-            else if (initialValueStr.contains("(") || initialValueStr.contains("+") ||
-                    initialValueStr.contains("-") || initialValueStr.contains("*") ||
-                    initialValueStr.contains("/")) {
-                // とりあえず単純な識別子として処理
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            // その他の場合（変数名など）
-            else {
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            System.out.println("Debug - Attribute: " + attributeName);
-            System.out.println("  - Type: " + attribute.getType().toString());
-            System.out.println("  - Default Value: " + attribute.getDefaultValue());
-            System.out.println("  - Default Value Class: " + attribute.getDefaultValue().getClass());
+        if (declInfo.initialValue != null) {
+            attribute.setDefaultValue(
+                    new DefaultValue(new OneIdentifier(declInfo.initialValue)));
         }
 
-        currentHeaderClass.addAttribute(attribute);
-        for (Modifier modifier : modifiers) {
-            currentHeaderClass.addMemberModifier(attributeName, modifier);
-        }
+        return attribute;
+    }
 
-        // 型の関係解析
-        analyzeAttributeTypeRelationship(type, memberDec.declarator(), attributeName, memberDec);
+    private void addRelationship(TypeInfo typeInfo, DeclaratorInfo declInfo) {
+        CppHeaderClass currentClass = context.getCurrentHeaderClass();
+
+        RelationType relationType = determineRelationType(typeInfo);
+        String targetType = determineTargetType(typeInfo);
+        String multiplicity = determineMultiplicity(typeInfo, declInfo);
+
+        RelationshipInfo relation = new RelationshipInfo(targetType, relationType);
+        relation.addElement(
+                declInfo.name,
+                ElementType.ATTRIBUTE,
+                multiplicity,
+                convertVisibility(context.getCurrentVisibility()));
+
+        currentClass.addRelationship(relation);
+    }
+
+    private RelationType determineRelationType(TypeInfo typeInfo) {
+        if (typeInfo.isSmartPointer) {
+            return typeInfo.smartPointerType.equals("unique_ptr") ? RelationType.COMPOSITION : RelationType.ASSOCIATION;
+        }
+        if (typeInfo.isCollection) {
+            return RelationType.COMPOSITION;
+        }
+        if (typeInfo.isPointer || typeInfo.isReference) {
+            return RelationType.ASSOCIATION;
+        }
+        return RelationType.COMPOSITION;
+    }
+
+    private String determineMultiplicity(TypeInfo typeInfo, DeclaratorInfo declInfo) {
+        if (typeInfo.isCollection)
+            return "*";
+        if (typeInfo.isSmartPointer) {
+            switch (typeInfo.smartPointerType) {
+                case "unique_ptr":
+                    return "0..1";
+                case "shared_ptr":
+                    return "0..*";
+                case "weak_ptr":
+                    return "0..*";
+            }
+        }
+        if (declInfo.isPointer)
+            return "0..1";
+        if (declInfo.isReference)
+            return "1";
+        return "1";
     }
 
     private String cleanName(String name) {
@@ -562,11 +917,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 Character.isUpperCase(type.charAt(0));
     }
 
-    private boolean isCollectionType(String type) {
-        // 型名からテンプレート部分を含めて判定
-        return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
-    }
-
     private String extractElementType(String type) {
         try {
             // テンプレート引数を抽出
@@ -639,5 +989,49 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             default:
                 return Visibility.Private;
         }
+    }
+
+    private String extractBaseType(CPP14Parser.SimpleTypeSpecifierContext ctx) {
+        // 基本型の抽出
+        if (ctx.theTypeName() != null) {
+            return ctx.theTypeName().getText();
+        }
+        return ctx.getText();
+    }
+
+    private String buildFullType(TypeInfo typeInfo, DeclaratorInfo declInfo) {
+        StringBuilder type = new StringBuilder();
+        type.append(typeInfo.baseType);
+
+        if (typeInfo.isSmartPointer) {
+            type.append("<").append(typeInfo.innerType).append(">");
+        }
+
+        if (declInfo.isPointer) {
+            type.append("*");
+        }
+        if (declInfo.isReference) {
+            type.append("&");
+        }
+        if (declInfo.arraySpec != null) {
+            type.append(declInfo.arraySpec);
+        }
+        return type.toString();
+    }
+
+    private boolean shouldCreateRelationship(TypeInfo typeInfo) {
+        return typeInfo.isSmartPointer ||
+                typeInfo.isCollection ||
+                isUserDefinedType(typeInfo.baseType);
+    }
+
+    private String determineTargetType(TypeInfo typeInfo) {
+        if (typeInfo.isSmartPointer) {
+            return typeInfo.innerType;
+        }
+        if (typeInfo.isCollection) {
+            return typeInfo.elementType;
+        }
+        return typeInfo.baseType;
     }
 }
