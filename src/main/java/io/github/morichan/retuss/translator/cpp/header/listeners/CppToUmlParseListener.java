@@ -13,6 +13,7 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
     private final List<IAnalyzer> analyzers;
     private final AnalyzerContext context;
     private final List<CppHeaderClass> extractedHeaderClasses;
+    private CppHeaderClass currentProcessingClass;
     private final boolean isHeaderFile;
 
     public CppToUmlParseListener(boolean isHeaderFile) {
@@ -40,6 +41,10 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
     @Override
     public void enterClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
         System.out.println("DEBUG: Entering class specifier");
+
+        // 現在解析中のクラスを保持
+        currentProcessingClass = context.getCurrentHeaderClass();
+
         for (IAnalyzer analyzer : analyzers) {
             if (analyzer.appliesTo(ctx)) {
                 analyzer.analyze(ctx, context);
@@ -60,7 +65,43 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
     @Override
     public void exitClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
         System.out.println("DEBUG: Exiting class specifier");
-        // クラス解析終了時の処理があれば実装
+        // 親クラスの処理に戻る
+        if (currentProcessingClass != null) {
+            context.setCurrentHeaderClass(currentProcessingClass);
+        }
+    }
+
+    @Override
+    public void enterEnumSpecifier(CPP14Parser.EnumSpecifierContext ctx) {
+        System.out.println("DEBUG: Entering enum specifier");
+
+        // 現在解析中のクラスを保持
+        currentProcessingClass = context.getCurrentHeaderClass();
+
+        for (IAnalyzer analyzer : analyzers) {
+            if (analyzer.appliesTo(ctx)) {
+                analyzer.analyze(ctx, context);
+            }
+        }
+
+        // 新しいenumが作成された場合、リストに追加
+        if (context.getCurrentHeaderClass() != null) {
+            CppHeaderClass currentEnum = context.getCurrentHeaderClass();
+            if (!extractedHeaderClasses.contains(currentEnum)) {
+                extractedHeaderClasses.add(currentEnum);
+                System.out.println("DEBUG: Added new enum to extracted classes: " +
+                        currentEnum.getName());
+            }
+        }
+    }
+
+    @Override
+    public void exitEnumSpecifier(CPP14Parser.EnumSpecifierContext ctx) {
+        System.out.println("DEBUG: Exiting class specifier");
+        // 親クラスの処理に戻る
+        if (currentProcessingClass != null) {
+            context.setCurrentHeaderClass(currentProcessingClass);
+        }
     }
 
     @Override
