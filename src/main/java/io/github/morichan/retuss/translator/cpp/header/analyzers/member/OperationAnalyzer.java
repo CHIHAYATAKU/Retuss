@@ -227,17 +227,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         }
     }
 
-    private void analyzeParameterTypeDependency(String paramType, String paramName, CppHeaderClass currentClass) {
-        String cleanType = cleanTypeForRelationship(paramType);
-
-        if (isUserDefinedType(cleanType)) {
-            RelationshipInfo relation = new RelationshipInfo(
-                    cleanType,
-                    RelationType.DEPENDENCY_PARAMETER);
-            currentClass.addRelationship(relation);
-        }
-    }
-
     private boolean isUserDefinedType(String type) {
         Set<String> basicTypes = Set.of(
                 "void", "bool", "char", "int", "float", "double",
@@ -289,19 +278,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         boolean isConst; // const修飾子の有無
         boolean isPointer; // ポインタの有無
         boolean isReference; // 参照の有無
-
-        RelationType determineRelationType() {
-            // const参照/ポインタの場合は依存関係
-            if (isConst && (isReference || isPointer)) {
-                return RelationType.DEPENDENCY_PARAMETER;
-            }
-            // 参照またはポインタの場合は関連関係
-            if (isReference || isPointer) {
-                return RelationType.ASSOCIATION;
-            }
-            // それ以外は依存関係
-            return RelationType.DEPENDENCY_PARAMETER;
-        }
     }
 
     private ParameterInfo extractParameterInfo(CPP14Parser.ParameterDeclarationContext paramCtx) {
@@ -449,30 +425,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         }
     }
 
-    private void addAssociation(CppHeaderClass currentClass, ParameterInfo paramInfo) {
-        RelationshipInfo relation = new RelationshipInfo(
-                paramInfo.baseType,
-                RelationType.ASSOCIATION);
-
-        // 多重度の設定
-        String multiplicity = determineMultiplicity(paramInfo);
-        relation.addElement(
-                paramInfo.parameterName,
-                ElementType.PARAMETER,
-                multiplicity,
-                Visibility.Public // パラメータの場合は常にPublic
-        );
-
-        currentClass.addRelationship(relation);
-    }
-
-    private void addDependency(CppHeaderClass currentClass, ParameterInfo paramInfo) {
-        RelationshipInfo relation = new RelationshipInfo(
-                paramInfo.baseType,
-                RelationType.DEPENDENCY_PARAMETER);
-        currentClass.addRelationship(relation);
-    }
-
     private String determineMultiplicity(ParameterInfo paramInfo) {
         if (paramInfo.isPointer) {
             return "0..1"; // ポインタの場合はnullableなので0..1
@@ -532,10 +484,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             default:
                 return Visibility.Private;
         }
-    }
-
-    private String cleanName(String name) {
-        return name.replaceAll("std::", "").replaceAll("[*&]", "").trim();
     }
 
     private String extractMethodName(CPP14Parser.DeclaratorContext declarator) {

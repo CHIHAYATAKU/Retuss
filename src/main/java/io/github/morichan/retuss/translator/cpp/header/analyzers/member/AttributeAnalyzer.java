@@ -466,20 +466,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return result;
     }
 
-    private void processEnumSpecifier(CPP14Parser.EnumSpecifierContext ctx, StringBuilder type) {
-        type.append("enum ");
-        if (ctx.enumHead() != null) {
-            // enumHeadから名前を取得
-            type.append(ctx.enumHead().Identifier() != null ? ctx.enumHead().Identifier().getText() : "");
-        }
-    }
-
-    private void processClassSpecifier(CPP14Parser.ClassSpecifierContext ctx, StringBuilder type) {
-        if (ctx.classHead() != null && ctx.classHead().classHeadName() != null) {
-            type.append(ctx.classHead().classHeadName().getText());
-        }
-    }
-
     private void processTrailingTypeSpecifier(CPP14Parser.TrailingTypeSpecifierContext ctx, StringBuilder type) {
         if (ctx.simpleTypeSpecifier() != null) {
             var simple = ctx.simpleTypeSpecifier();
@@ -592,38 +578,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
     private String extractAttributeName(CPP14Parser.DeclaratorContext declarator) {
         String name = declarator.getText();
         return name.replaceAll("\\[.*\\]", "").trim();
-    }
-
-    private String cleanTypeModifiers(String type) {
-        // テンプレート部分と基本型を分離
-        int templateStart = type.indexOf('<');
-        if (templateStart != -1) {
-            int templateEnd = type.lastIndexOf('>');
-            if (templateEnd != -1) {
-                // テンプレート前の部分のみ修飾子を除去
-                String baseType = type.substring(0, templateStart);
-                baseType = removeModifiers(baseType);
-
-                // テンプレート部分はそのまま保持
-                String templatePart = type.substring(templateStart);
-
-                return baseType + templatePart;
-            }
-        }
-
-        // テンプレートがない場合は通常の処理
-        return removeModifiers(type);
-    }
-
-    private String removeModifiers(String text) {
-        // 単語境界を使用して修飾子を確実に識別
-        return text
-                .replaceAll("\\s+", " ")
-                .replaceAll(
-                        "(static|constexpr|const|mutable|volatile|virtual|final|explicit|friend|inline|thread_local|register|extern|enum)",
-                        "")
-                .replaceAll("\\s+", " ")
-                .trim();
     }
 
     private String extractBaseTypeName(String typeName) {
