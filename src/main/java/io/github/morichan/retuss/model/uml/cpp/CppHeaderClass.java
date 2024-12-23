@@ -7,6 +7,8 @@ import io.github.morichan.retuss.model.uml.cpp.utils.*;
 
 public class CppHeaderClass {
     // メンバー変数
+    private String namespace = "";
+    private String qualifiedName = "";
     private String name = "";
     private Boolean isAbstruct = false;
     private Boolean isInterface = false;
@@ -52,6 +54,19 @@ public class CppHeaderClass {
         public Optional<String> getType() {
             return Optional.ofNullable(type);
         }
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+        this.qualifiedName = namespace.isEmpty() ? name : namespace + "::" + name;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getQualifiedName() {
+        return qualifiedName;
     }
 
     public void addStereotype(String stereotype) {

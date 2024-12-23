@@ -3,6 +3,7 @@ package io.github.morichan.retuss.translator.cpp.header.analyzers.class_definiti
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.base.*;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.namespace.NamespaceAnalyzer;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
@@ -29,6 +30,7 @@ public class ClassAnalyzer extends AbstractAnalyzer {
 
             String className = ctx.classHead().classHeadName().className().getText();
             CppHeaderClass cppClass = new CppHeaderClass(className);
+            cppClass.setNamespace(this.context.getCurrentNamespace());
             this.context.setCurrentHeaderClass(cppClass);
 
             System.out.println("DEBUG: Created class: " + className);

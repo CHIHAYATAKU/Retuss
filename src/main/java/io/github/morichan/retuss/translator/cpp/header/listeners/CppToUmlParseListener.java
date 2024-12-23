@@ -5,6 +5,7 @@ import io.github.morichan.retuss.parser.cpp.CPP14ParserBaseListener;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.base.*;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.class_definition.*;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.member.*;
+import io.github.morichan.retuss.translator.cpp.header.analyzers.namespace.NamespaceAnalyzer;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 
 import java.util.*;
@@ -23,6 +24,7 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
 
         if (isHeaderFile()) {
             this.analyzers = Arrays.asList(
+                    new NamespaceAnalyzer(),
                     new ClassAnalyzer(),
                     new InheritanceAnalyzer(),
                     new VisibilityAnalyzer(),
@@ -36,6 +38,15 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
 
     public boolean isHeaderFile() {
         return isHeaderFile;
+    }
+
+    @Override
+    public void enterNamespaceDefinition(CPP14Parser.NamespaceDefinitionContext ctx) {
+        for (IAnalyzer analyzer : analyzers) {
+            if (analyzer.appliesTo(ctx)) {
+                analyzer.analyze(ctx, context);
+            }
+        }
     }
 
     @Override

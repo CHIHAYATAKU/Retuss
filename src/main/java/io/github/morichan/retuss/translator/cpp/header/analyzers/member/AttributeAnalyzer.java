@@ -10,6 +10,7 @@ import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.util.CollectionTypeInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
@@ -197,15 +198,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         currentClass.addRelationship(relation);
     }
 
-    private String extractInnerType(String type) {
-        if (type.contains("<") && type.contains(">")) {
-            return type.replaceAll(".*<(.+)>.*", "$1")
-                    .replaceAll("\\s+", "")
-                    .replaceAll("std::", "");
-        }
-        return type;
-    }
-
     private String extractRelationshipAnnotation(CPP14Parser.MemberDeclaratorContext memberDec) {
         try {
             // 開始位置を取得
@@ -358,25 +350,65 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             RelationType relationType,
             String declaratorText) {
 
-        String elementType = extractElementType(type);
-        String multiplicity = determineCollectionMultiplicity(type, declaratorText);
+        CollectionTypeInfo info = parseCollectionType(type);
 
-        System.out.println("Processing collection:");
-        System.out.println("  Collection type: " + type);
-        System.out.println("  Element type: " + elementType);
-        System.out.println("  Multiplicity: " + multiplicity);
-
-        if (isUserDefinedType(elementType)) {
-            RelationshipInfo relation = new RelationshipInfo(
-                    elementType,
-                    relationType);
-            relation.addElement(
-                    attributeName,
-                    ElementType.ATTRIBUTE,
-                    multiplicity, // 固定サイズか可変サイズかを反映
-                    visibility);
-            currentClass.addRelationship(relation);
+        // ユーザー定義型のパラメータのみ関係を作成
+        for (String paramType : info.getParameterTypes()) {
+            if (isUserDefinedType(paramType)) {
+                RelationshipInfo relation = new RelationshipInfo(
+                        paramType,
+                        RelationType.COMPOSITION);
+                relation.addElement(
+                        attributeName,
+                        ElementType.ATTRIBUTE,
+                        info.getMultiplicity(),
+                        visibility);
+                currentClass.addRelationship(relation);
+            }
         }
+    }
+
+    private CollectionTypeInfo parseCollectionType(String type) {
+        CollectionTypeInfo info = new CollectionTypeInfo();
+
+        // スマートポインタかコレクション型か判定
+        if (type.contains("_ptr<")) {
+            info.setBaseType(type.substring(0, type.indexOf("_ptr<"))
+                    .replaceAll("std::", "") + "ptr");
+            info.getParameterTypes().add(extractInnerType(type));
+        } else if (type.contains("<")) {
+            info.setBaseType(type.substring(0, type.indexOf("<"))
+                    .replaceAll("std::", ""));
+            // 複数パラメータの処理
+            String params = type.substring(type.indexOf("<") + 1, type.lastIndexOf(">"));
+            Arrays.stream(params.split(","))
+                    .map(param -> param.trim().replaceAll("std::", ""))
+                    .forEach(info.getParameterTypes()::add);
+        }
+
+        info.determineMultiplicity();
+        return info;
+    }
+
+    private String extractInnerType(String type) {
+        int start = type.indexOf("<") + 1;
+        int end = type.lastIndexOf(">");
+        return type.substring(start, end).trim().replaceAll("std::", "");
+    }
+
+    private List<String> extractTemplateTypes(String type) {
+        List<String> types = new ArrayList<>();
+        int start = type.indexOf('<');
+        int end = type.lastIndexOf('>');
+
+        if (start != -1 && end != -1) {
+            String inner = type.substring(start + 1, end);
+            String[] params = inner.split(",");
+            for (String param : params) {
+                types.add(param.trim());
+            }
+        }
+        return types;
     }
 
     private Set<Modifier> extractModifiers(CPP14Parser.DeclSpecifierSeqContext ctx) {
@@ -529,9 +561,10 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 "map", "Map",
                 "set", "Set",
                 "array", "Array",
-                "unique_ptr", "unique_ptr",
-                "shared_ptr", "shared_ptr",
-                "weak_ptr", "weak_ptr");
+                "shared_ptr", "sharedptr", // スペースなし
+                "unique_ptr", "uniqueptr", // スペースなし
+                "unordered_map", "unorderedmap",
+                "weak_ptr", "weakptr");
 
         // 基本型の変換
         if (standardTypes.containsKey(type)) {

@@ -10,6 +10,7 @@ import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.util.CollectionTypeInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.*;
@@ -94,22 +95,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         if (isConstructor || isDestructor) {
             return;
         } else {
-            // 通常のメソッドは戻り値型を処理
-            String processedReturnType = processOperationType(returnType);
-            if (processedReturnType == null || processedReturnType.trim().isEmpty()) {
-                processedReturnType = "void";
-            }
-            // メソッド名から修飾子を抽出し、型に移動
-            if (methodName.contains("*")) {
-                methodName = methodName.replace("*", "");
-                processedReturnType += "*";
-            }
-            if (methodName.contains("&")) {
-                methodName = methodName.replace("&", "");
-                processedReturnType += "&";
-            }
-            operation.setName(new Name(methodName));
-            operation.setReturnType(new Type(processedReturnType));
+            processReturnType(operation, returnType, currentHeaderClass);
         }
 
         operation.setVisibility(convertVisibility(context.getCurrentVisibility()));
@@ -147,6 +133,10 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                                 System.out.println("DEBUG: Found ParameterDeclarationClause: "
                                         + params.parameterDeclarationClause().getText());
                                 processParameters(params, operation);
+                                // 各パラメータの型を処理
+                                for (Parameter param : operation.getParameters()) {
+                                    processParameterType(param, currentHeaderClass);
+                                }
                             }
                         }
                     }
@@ -243,6 +233,90 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
     }
 
+    private void processReturnType(Operation operation, String returnType, CppHeaderClass currentClass) {
+        String processedType = processOperationType(returnType);
+
+        // void チェック
+        if (processedType == null || processedType.trim().isEmpty()) {
+            processedType = "void";
+        }
+
+        // コレクション型の場合
+        if (isCollectionType(processedType)) {
+            CollectionTypeInfo info = parseCollectionType(processedType);
+            // 関連を追加
+            for (String paramType : info.getParameterTypes()) {
+                if (isUserDefinedType(paramType)) {
+                    addDependencyUseRelation(currentClass, paramType);
+                }
+            }
+        }
+
+        // メソッド名の修飾子を型に移動
+        String methodName = operation.getName().getNameText();
+        if (methodName.contains("*")) {
+            methodName = methodName.replace("*", "");
+            processedType += "*";
+        }
+        if (methodName.contains("&")) {
+            methodName = methodName.replace("&", "");
+            processedType += "&";
+        }
+
+        operation.setName(new Name(methodName));
+        operation.setReturnType(new Type(processedType));
+    }
+
+    private void addDependencyUseRelation(CppHeaderClass currentClass, String targetType) {
+        RelationshipInfo relation = new RelationshipInfo(
+                targetType,
+                RelationType.DEPENDENCY_USE);
+        currentClass.addRelationship(relation);
+    }
+
+    private void processParameterType(Parameter param, CppHeaderClass currentClass) {
+        String paramType = param.getType().toString();
+        if (isCollectionType(paramType)) {
+            CollectionTypeInfo info = parseCollectionType(paramType);
+            for (String type : info.getParameterTypes()) {
+                if (isUserDefinedType(type)) {
+                    RelationshipInfo relation = new RelationshipInfo(
+                            type,
+                            RelationType.DEPENDENCY_PARAMETER);
+                    currentClass.addRelationship(relation);
+                }
+            }
+        }
+    }
+
+    private CollectionTypeInfo parseCollectionType(String type) {
+        CollectionTypeInfo info = new CollectionTypeInfo();
+
+        // スマートポインタかコレクション型か判定
+        if (type.contains("_ptr<")) {
+            info.setBaseType(type.substring(0, type.indexOf("_ptr<"))
+                    .replaceAll("std::", "") + "ptr");
+            info.getParameterTypes().add(extractInnerType(type));
+        } else if (type.contains("<")) {
+            info.setBaseType(type.substring(0, type.indexOf("<"))
+                    .replaceAll("std::", ""));
+            // 複数パラメータの処理
+            String params = type.substring(type.indexOf("<") + 1, type.lastIndexOf(">"));
+            Arrays.stream(params.split(","))
+                    .map(param -> param.trim().replaceAll("std::", ""))
+                    .forEach(info.getParameterTypes()::add);
+        }
+
+        info.determineMultiplicity();
+        return info;
+    }
+
+    private String extractInnerType(String type) {
+        int start = type.indexOf("<") + 1;
+        int end = type.lastIndexOf(">");
+        return type.substring(start, end).trim().replaceAll("std::", "");
+    }
+
     private String extractElementType(String type) {
         if (type.contains("<") && type.contains(">")) {
             return type.replaceAll(".*<(.+)>.*", "$1")
@@ -259,7 +333,10 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 "list", "List",
                 "map", "Map",
                 "set", "Set",
-                "array", "Array");
+                "array", "Array",
+                "shared_ptr", "sharedptr", // スペースなし
+                "unique_ptr", "uniqueptr", // スペースなし
+                "unordered_map", "unorderedmap");
 
         // std:: の除去
         String processedType = type.replaceAll("std::", "");
