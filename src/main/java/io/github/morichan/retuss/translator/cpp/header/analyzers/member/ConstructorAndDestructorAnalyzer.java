@@ -12,6 +12,7 @@ import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAn
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConstructorAndDestructorAnalyzer extends AbstractAnalyzer {
     @Override
@@ -112,10 +113,47 @@ public class ConstructorAndDestructorAnalyzer extends AbstractAnalyzer {
         return processedType.trim();
     }
 
+    private String parseTemplateType(String type) {
+        if (!type.contains("<"))
+            return type;
+
+        // 基本的なクリーンアップ
+        type = type.replaceAll("std::", "")
+                .replaceAll("(static|const|mutable|final)", "")
+                .trim();
+
+        // テンプレート部分の処理
+        String baseName = type.substring(0, type.indexOf("<"));
+        String params = extractTemplateParameters(type);
+        List<String> paramTypes = parseTemplateParameters(params);
+
+        // 標準型の変換も行う
+        Map<String, String> standardTypes = Map.of(
+                "string", "String",
+                "vector", "Vector",
+                "list", "List",
+                "map", "Map",
+                "set", "Set",
+                "array", "Array",
+                "shared_ptr", "sharedptr",
+                "unique_ptr", "uniqueptr",
+                "unordered_map", "unorderedmap",
+                "weak_ptr", "weakptr");
+        baseName = standardTypes.getOrDefault(baseName, baseName);
+
+        return baseName + "<" +
+                paramTypes.stream()
+                        .map(this::parseTemplateType)
+                        .collect(Collectors.joining(","))
+                +
+                ">";
+    }
+
     private void processParameters(CPP14Parser.ParametersAndQualifiersContext params, Operation operation) {
         System.out.println("DEBUG: Processing parameters");
         // まず空のパラメータリストで初期化
         operation.setParameters(new ArrayList<>());
+        CppHeaderClass currentHeaderClass = this.context.getCurrentHeaderClass();
 
         // パラメータリストがある場合のみ処理
         if (params.parameterDeclarationClause() != null &&
@@ -136,23 +174,27 @@ public class ConstructorAndDestructorAnalyzer extends AbstractAnalyzer {
                         paramType = processOperationType(paramType);
                         paramType = cleanType(paramType);
 
+                        handleCollectionType(paramType, currentHeaderClass);
+
                         if (paramCtx.declarator() != null) {
                             String fullDeclarator = paramCtx.declarator().getText();
                             System.out.println("DEBUG: Parameter declarator: " + fullDeclarator);
 
-                            // ポインタ/参照修飾子の抽出
-                            if (fullDeclarator.contains("*"))
-                                paramType += "*";
-                            if (fullDeclarator.contains("&"))
-                                paramType += "&";
-
                             // 名前の抽出（修飾子を除去）
                             paramName = cleanName(fullDeclarator);
+
+                            String fullParamType = paramType; // 元の型名を保持
+                            if (fullDeclarator.contains("*"))
+                                fullParamType += "*";
+                            if (fullDeclarator.contains("&"))
+                                fullParamType += "&";
+
+                            Parameter param = new Parameter(new Name(paramName));
+                            param.setType(new Type(fullParamType));
+                            operation.addParameter(param);
                         }
 
-                        Parameter param = new Parameter(new Name(paramName));
-                        param.setType(new Type(paramType));
-                        operation.addParameter(param);
+                        analyzeTypeForDependency(paramType, currentHeaderClass);
 
                         System.out.println("DEBUG: Added parameter - " + paramName + " : " + paramType + paramModifier);
                     } catch (Exception e) {
@@ -161,6 +203,108 @@ public class ConstructorAndDestructorAnalyzer extends AbstractAnalyzer {
                 }
             }
         }
+    }
+
+    private void analyzeTypeForDependency(String type, CppHeaderClass currentClass) {
+        // テンプレート型の要素を含めて依存関係を抽出
+        List<String> allTypes = extractAllTypesFromTemplate(type);
+        for (String t : allTypes) {
+            if (isUserDefinedType(t)) {
+                RelationshipInfo relation = new RelationshipInfo(
+                        t,
+                        RelationType.DEPENDENCY_PARAMETER);
+                currentClass.addRelationship(relation);
+            }
+        }
+    }
+
+    private List<String> extractAllTypesFromTemplate(String type) {
+        List<String> types = new ArrayList<>();
+        if (!type.contains("<")) {
+            types.add(type);
+            return types;
+        }
+
+        String baseName = type.substring(0, type.indexOf("<"));
+        types.add(baseName);
+
+        String params = extractTemplateParameters(type);
+        List<String> paramTypes = parseTemplateParameters(params);
+        for (String paramType : paramTypes) {
+            types.addAll(extractAllTypesFromTemplate(paramType));
+        }
+
+        return types;
+    }
+
+    private String extractTemplateParameters(String type) {
+        int nestLevel = 0;
+        int start = type.indexOf('<') + 1;
+        int end = -1;
+
+        for (int i = start; i < type.length(); i++) {
+            char c = type.charAt(i);
+            if (c == '<')
+                nestLevel++;
+            else if (c == '>') {
+                if (nestLevel == 0) {
+                    end = i;
+                    break;
+                }
+                nestLevel--;
+            }
+        }
+        return type.substring(start, end);
+    }
+
+    private List<String> parseTemplateParameters(String params) {
+        List<String> result = new ArrayList<>();
+        int nestLevel = 0;
+        StringBuilder current = new StringBuilder();
+
+        for (char c : params.toCharArray()) {
+            if (c == '<')
+                nestLevel++;
+            else if (c == '>')
+                nestLevel--;
+            else if (c == ',' && nestLevel == 0) {
+                result.add(current.toString().trim());
+                current = new StringBuilder();
+                continue;
+            }
+            current.append(c);
+        }
+
+        if (current.length() > 0) {
+            result.add(current.toString().trim());
+        }
+        return result;
+    }
+
+    private boolean isUserDefinedType(String type) {
+        // まず修飾子を除去
+        String baseType = type.replaceAll("[*&]", "").trim();
+        Set<String> basicTypes = Set.of(
+                // 基本型
+                "void", "bool", "char", "int", "float", "double", "long", "short",
+                "unsigned", "signed",
+                // STL型
+                "string", "vector", "list", "map", "set", "array", "queue", "stack",
+                // スマートポインタ
+                "unique_ptr", "shared_ptr", "weak_ptr");
+
+        if (baseType.startsWith("enum ")) {
+            return true; // enumは常にユーザー定義型として扱う
+        }
+
+        // std::を除去
+        baseType = baseType.replaceAll("std::", "");
+
+        if (baseType.contains("<")) {
+            baseType = baseType.substring(0, baseType.indexOf("<"));
+        }
+
+        return !basicTypes.contains(baseType.toLowerCase());
     }
 
     private Visibility convertVisibility(String visibility) {
@@ -177,6 +321,33 @@ public class ConstructorAndDestructorAnalyzer extends AbstractAnalyzer {
             default:
                 return Visibility.Private;
         }
+    }
+
+    // 追加すべきメソッド
+    private void handleCollectionType(String paramType, CppHeaderClass currentClass) {
+        if (isCollectionType(paramType)) {
+            String elementType = extractElementType(paramType);
+            if (isUserDefinedType(elementType)) {
+                RelationshipInfo relation = new RelationshipInfo(
+                        elementType,
+                        RelationType.DEPENDENCY_PARAMETER);
+                currentClass.addRelationship(relation);
+            }
+        }
+    }
+
+    private boolean isCollectionType(String type) {
+        return type.matches(".*(?:vector|list|map|set|array)<.*>");
+    }
+
+    private String extractElementType(String type) {
+        if (type.contains("<") && type.contains(">")) {
+            String innerType = type.substring(
+                    type.indexOf("<") + 1,
+                    type.lastIndexOf(">"));
+            return innerType.replaceAll("std::", "").trim();
+        }
+        return type;
     }
 
     private String cleanName(String name) {
