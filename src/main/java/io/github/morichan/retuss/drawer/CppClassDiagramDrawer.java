@@ -96,10 +96,10 @@ public class CppClassDiagramDrawer {
                 pumlBuilder.append(cls.getName());
 
                 // ハイライト処理
-                if (!cls.getRelationshipManager().getRelationshipsWith(selectedClassName).isEmpty()) {
-                    pumlBuilder.append(" #ADD8E6");
-                } else if (cls.getName().equals(selectedClassName)) {
+                if (cls.getName().equals(selectedClassName)) {
                     pumlBuilder.append(" #90EE90");
+                } else if (!cls.getRelationshipManager().getRelationshipsWith(selectedClassName).isEmpty()) {
+                    pumlBuilder.append(" #ADD8E6");
                 }
 
                 pumlBuilder.append(" {\n");
