@@ -56,9 +56,9 @@ public class CppModel {
         CppFile headerFile = new CppFile(baseName + ".h", true);
         CppFile implFile = new CppFile(baseName + ".cpp", false);
 
-        if (headerClass.isPresent()) {
-            headerFile.updateCode(headerFile.getCode());
-        }
+        // if (headerClass.isPresent()) {
+        // headerFile.updateCode(headerFile.getCode());
+        // }
 
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
