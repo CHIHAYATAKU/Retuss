@@ -651,7 +651,9 @@ public class CppModel {
 
         try {
             CppFile headerFile = headerFileOpt.get();
-            translator.removeInheritance(headerFile.getCode(), interfaceName);
+            String newCode = translator.removeInheritance(headerFile.getCode(), interfaceName);
+            headerFile.updateCode(newCode);
+            notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to remove realization: " + e.getMessage());
         }
