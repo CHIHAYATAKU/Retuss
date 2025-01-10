@@ -7,18 +7,16 @@ import io.github.morichan.retuss.model.uml.cpp.utils.*;
 
 public class CppHeaderClass {
     // メンバー変数
+    private String namespace = "";
     private String name = "";
     private Boolean isAbstruct = false;
     private Boolean isInterface = false;
     private Boolean isEnum = false;
-    private Boolean isActive; // 宣言されてたかどうか
-    private List<String> stereotypes = new ArrayList<>();
     private List<EnumValue> enumValues = new ArrayList<>();
     // private CppHeaderClass superClass;
     private List<CppHeaderClass> superClasses = new ArrayList<>();
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
-    private List<Interaction> interactionList = new ArrayList<>();
     private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
     private final CppRelationshipManager relationshipManager;
 
@@ -54,18 +52,12 @@ public class CppHeaderClass {
         }
     }
 
-    public void addStereotype(String stereotype) {
-        if (!stereotypes.contains(stereotype)) {
-            stereotypes.add(stereotype);
-        }
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 
-    public List<String> getStereotypes() {
-        return Collections.unmodifiableList(stereotypes);
-    }
-
-    public boolean hasStereotype(String stereotype) {
-        return stereotypes.contains(stereotype);
+    public String getNamespace() {
+        return namespace;
     }
 
     public void addEnumValue(String name) {
@@ -82,15 +74,6 @@ public class CppHeaderClass {
 
     public List<EnumValue> getEnumValues() {
         return Collections.unmodifiableList(enumValues);
-    }
-
-    public void setAsEnum() {
-        addStereotype("enumeration");
-    }
-
-    // enumかどうかの判定
-    public boolean isEnum() {
-        return hasStereotype("enumeration");
     }
 
     // メンバー修飾子の管理
@@ -119,13 +102,11 @@ public class CppHeaderClass {
 
     public CppHeaderClass(String name) {
         this.name = name;
-        this.isActive = true;
         this.relationshipManager = new CppRelationshipManager(name);
     }
 
     public CppHeaderClass(String name, Boolean isActive) {
         this.name = name;
-        this.isActive = isActive;
         this.relationshipManager = new CppRelationshipManager(name);
     }
 
@@ -161,14 +142,6 @@ public class CppHeaderClass {
         return this.isEnum;
     }
 
-    public Boolean getActive() {
-        return isActive;
-    }
-
-    public void setActive(Boolean active) {
-        isActive = active;
-    }
-
     public List<CppHeaderClass> getSuperClasses() {
         return Collections.unmodifiableList(superClasses);
     }
@@ -190,69 +163,22 @@ public class CppHeaderClass {
         return Collections.unmodifiableList(operationList);
     }
 
-    public List<Interaction> getInteractionList() {
-        return Collections.unmodifiableList(interactionList);
-    }
-
     public void addAttribute(Attribute attribute) {
         attributeList.add(attribute);
     }
 
     public void addOperation(Operation operation) {
         operationList.add(operation);
-        addInteraction(new Interaction(operation, operation.toString()));
-    }
-
-    public void addOperation(Operation operation, Interaction interaction) {
-        operationList.add(operation);
-        addInteraction(interaction);
-    }
-
-    public void addInteraction(Interaction interaction) {
-        interactionList.add(interaction);
     }
 
     public void removeAttribute(Attribute attribute) {
         attributeList.remove(attribute);
     }
 
-    public void removeOperation(Operation operation) {
-        operationList.remove(operation);
-        for (Interaction interaction : interactionList) {
-            if (operation.equals(interaction.getOperation())) {
-                removeInteraction(interaction);
-                return;
-            }
-        }
-    }
-
-    public void removeInteraction(Interaction interaction) {
-        interactionList.remove(interaction);
-    }
-
     public Optional<Operation> findOperation(String operationId) {
         for (Operation operation : operationList) {
             if (operation.toString().equals(operationId)) {
                 return Optional.of(operation);
-            }
-        }
-        return Optional.empty();
-    }
-
-    public Optional<Interaction> findInteraction(Operation operation) {
-        for (Interaction interaction : interactionList) {
-            if (interaction.getOperation().equals(operation)) {
-                return Optional.of(interaction);
-            }
-        }
-        return Optional.empty();
-    }
-
-    public Optional<Interaction> findInteraction(String operationName) {
-        // 同じ名前のInteractionが複数あるとダメ
-        for (Interaction interaction : interactionList) {
-            if (interaction.getOperation().getName().getNameText().equals(operationName)) {
-                return Optional.of(interaction);
             }
         }
         return Optional.empty();

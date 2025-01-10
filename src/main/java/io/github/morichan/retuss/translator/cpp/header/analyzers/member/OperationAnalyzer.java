@@ -10,9 +10,11 @@ import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.util.CollectionTypeInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class OperationAnalyzer extends AbstractAnalyzer {
     @Override
@@ -94,27 +96,11 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         if (isConstructor || isDestructor) {
             return;
         } else {
-            // 通常のメソッドは戻り値型を処理
-            String processedReturnType = processOperationType(returnType);
-            if (processedReturnType == null || processedReturnType.trim().isEmpty()) {
-                processedReturnType = "void";
-            }
-            // メソッド名から修飾子を抽出し、型に移動
-            if (methodName.contains("*")) {
-                methodName = methodName.replace("*", "");
-                processedReturnType += "*";
-            }
-            if (methodName.contains("&")) {
-                methodName = methodName.replace("&", "");
-                processedReturnType += "&";
-            }
-            operation.setName(new Name(methodName));
-            operation.setReturnType(new Type(processedReturnType));
+            processReturnType(operation, returnType, currentHeaderClass);
         }
 
         operation.setVisibility(convertVisibility(context.getCurrentVisibility()));
 
-        // パラメータ処理の既存コード
         CPP14Parser.DeclaratorContext declarator = memberDec.declarator();
         System.out.println("DEBUG: Declarator: " + (declarator != null ? declarator.getText() : "null"));
         System.out
@@ -147,6 +133,10 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                                 System.out.println("DEBUG: Found ParameterDeclarationClause: "
                                         + params.parameterDeclarationClause().getText());
                                 processParameters(params, operation);
+                                // 各パラメータの型を処理
+                                for (Parameter param : operation.getParameters()) {
+                                    processParameterType(param, currentHeaderClass);
+                                }
                             }
                         }
                     }
@@ -213,17 +203,34 @@ public class OperationAnalyzer extends AbstractAnalyzer {
     }
 
     private void analyzeReturnTypeDependency(String returnType, CppHeaderClass currentClass) {
-        // voidは依存関係を作成しない
-        if (returnType.equals("void"))
-            return;
+        if (!returnType.equals("void")) {
+            analyzeTypeForDependency(returnType, currentClass, RelationType.DEPENDENCY_USE);
+        }
+    }
 
-        String cleanType = cleanTypeForRelationship(returnType);
+    private void analyzeTypeForDependency(
+            String type,
+            CppHeaderClass currentClass,
+            RelationType relationType) {
 
-        if (isUserDefinedType(cleanType)) {
-            RelationshipInfo relation = new RelationshipInfo(
-                    cleanType,
-                    RelationType.DEPENDENCY_USE);
-            currentClass.addRelationship(relation);
+        // テンプレート型の解析
+        List<String> allTypes = new ArrayList<>();
+        allTypes.add(type);
+
+        if (isCollectionType(type)) {
+            String params = extractTemplateParameters(type);
+            allTypes.addAll(parseTemplateParameters(params));
+        }
+
+        // 全ての型について依存関係を検証
+        for (String t : allTypes) {
+            String cleanType = cleanTypeForRelationship(t);
+            if (isUserDefinedType(cleanType)) {
+                RelationshipInfo relation = new RelationshipInfo(
+                        cleanType,
+                        relationType);
+                currentClass.addRelationship(relation);
+            }
         }
     }
 
@@ -231,16 +238,226 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         Set<String> basicTypes = Set.of(
                 "void", "bool", "char", "int", "float", "double",
                 "long", "short", "unsigned", "signed",
-                "string", "vector", "list", "map", "set",
-                "array", "queue", "stack", "deque");
+                // コレクション型は除外
+                "vector", "list", "map", "unorderedmap", "array", "queue", "stack", "deque",
+                // スマートポインタは除外
+                "uniqueptr", "sharedptr", "weakptr",
+                // その他標準型
+                "string");
 
-        return !basicTypes.contains(type) &&
-                !type.startsWith("std::") &&
-                Character.isUpperCase(type.charAt(0));
+        type = type.replaceAll("std::", "");
+
+        // テンプレートパラメータは除外して型名のみを見る
+        if (type.contains("<")) {
+            type = type.substring(0, type.indexOf("<"));
+        }
+
+        return !basicTypes.contains(type.toLowerCase());
     }
 
     private boolean isCollectionType(String type) {
         return type.matches(".*(?:vector|list|set|map|array|queue|stack|deque)<.*>");
+    }
+
+    private String parseTemplateType(String type) {
+        // 1. 基本的なクリーンアップ
+        type = type.replaceAll("std::", "")
+                .replaceAll("(static|const|mutable|final)", "")
+                .trim();
+
+        // 2. 標準型の変換
+        Map<String, String> standardTypes = Map.of(
+                "string", "String",
+                "vector", "Vector",
+                "list", "List",
+                "map", "Map",
+                "set", "Set",
+                "array", "Array",
+                "shared_ptr", "sharedptr",
+                "unique_ptr", "uniqueptr",
+                "unordered_map", "unorderedmap",
+                "weak_ptr", "weakptr");
+        int templateStart = type.indexOf('<');
+        if (templateStart == -1) {
+            // テンプレートでない場合は標準型変換のみ
+            return standardTypes.getOrDefault(type, type);
+        }
+
+        // 4. テンプレートの場合
+        String baseName = type.substring(0, templateStart);
+        baseName = standardTypes.getOrDefault(baseName, baseName);
+
+        String params = extractTemplateParameters(type);
+        List<String> paramTypes = parseTemplateParameters(params);
+
+        // 5. パラメータも再帰的に同じ処理
+        return baseName + "<" +
+                paramTypes.stream()
+                        .map(this::parseTemplateType) // 再帰的に処理
+                        .collect(Collectors.joining(","))
+                +
+                ">";
+    }
+
+    private String extractTemplateParameters(String type) {
+        int nestLevel = 0;
+        int start = type.indexOf('<') + 1;
+        int end = -1;
+
+        for (int i = start; i < type.length(); i++) {
+            char c = type.charAt(i);
+            if (c == '<')
+                nestLevel++;
+            else if (c == '>') {
+                if (nestLevel == 0) {
+                    end = i;
+                    break;
+                }
+                nestLevel--;
+            }
+        }
+        return type.substring(start, end);
+    }
+
+    private List<String> parseTemplateParameters(String params) {
+        List<String> result = new ArrayList<>();
+        int nestLevel = 0;
+        StringBuilder current = new StringBuilder();
+
+        for (char c : params.toCharArray()) {
+            if (c == '<')
+                nestLevel++;
+            else if (c == '>')
+                nestLevel--;
+            else if (c == ',' && nestLevel == 0) {
+                result.add(current.toString().trim());
+                current = new StringBuilder();
+                continue;
+            }
+            current.append(c);
+        }
+
+        if (current.length() > 0) {
+            result.add(current.toString().trim());
+        }
+        return result;
+    }
+
+    private void processReturnType(Operation operation, String returnType, CppHeaderClass currentClass) {
+        String processedType = parseTemplateType(returnType);
+
+        // void チェック
+        if (processedType == null || processedType.trim().isEmpty()) {
+            processedType = "void";
+        }
+
+        // メソッド名の修飾子を型に移動（既存の処理）
+        String methodName = operation.getName().getNameText();
+        if (methodName.contains("*")) {
+            methodName = methodName.replace("*", "");
+            processedType += "*";
+        }
+        if (methodName.contains("&")) {
+            methodName = methodName.replace("&", "");
+            processedType += "&";
+        }
+
+        operation.setName(new Name(methodName));
+        operation.setReturnType(new Type(processedType));
+    }
+
+    private String processType(String type) {
+        StringBuilder processedType = new StringBuilder();
+
+        // テンプレート部分の分離
+        int templateStart = type.indexOf('<');
+        String templatePart = "";
+        if (templateStart != -1) {
+            int templateEnd = type.lastIndexOf('>');
+            if (templateEnd != -1) {
+                templatePart = type.substring(templateStart, templateEnd + 1);
+                type = type.substring(0, templateStart);
+            }
+        }
+
+        // 基本型の処理
+        type = type.replaceAll("std::", "")
+                .replaceAll("(static|const|mutable|final)", "")
+                .trim();
+
+        // 標準型の変換
+        Map<String, String> standardTypes = Map.of(
+                "string", "String",
+                "vector", "Vector",
+                "list", "List",
+                "map", "Map",
+                "set", "Set",
+                "array", "Array",
+                "shared_ptr", "sharedptr",
+                "unique_ptr", "uniqueptr",
+                "unordered_map", "unorderedmap",
+                "weak_ptr", "weakptr");
+
+        type = standardTypes.getOrDefault(type, type);
+        processedType.append(type);
+
+        // テンプレート部分の再帰的処理
+        if (!templatePart.isEmpty()) {
+            String innerTypes = templatePart.substring(1, templatePart.length() - 1);
+            String[] types = innerTypes.split(",");
+            processedType.append("<");
+            for (int i = 0; i < types.length; i++) {
+                String innerType = types[i].trim();
+                innerType = processType(innerType).replaceAll("std::", "");
+                processedType.append(innerType);
+                if (i < types.length - 1) {
+                    processedType.append(",");
+                }
+            }
+            processedType.append(">");
+        }
+
+        return processedType.toString();
+    }
+
+    private void addDependencyUseRelation(CppHeaderClass currentClass, String targetType) {
+        RelationshipInfo relation = new RelationshipInfo(
+                targetType,
+                RelationType.DEPENDENCY_USE);
+        currentClass.addRelationship(relation);
+    }
+
+    private void processParameterType(Parameter param, CppHeaderClass currentClass) {
+        String paramType = param.getType().toString();
+        analyzeTypeForDependency(paramType, currentClass, RelationType.DEPENDENCY_PARAMETER);
+    }
+
+    private CollectionTypeInfo parseCollectionType(String type) {
+        CollectionTypeInfo info = new CollectionTypeInfo();
+
+        // スマートポインタかコレクション型か判定
+        if (type.contains("_ptr<")) {
+            info.setBaseType(type.substring(0, type.indexOf("_ptr<"))
+                    .replaceAll("std::", "") + "ptr");
+            info.getParameterTypes().add(extractInnerType(type));
+        } else if (type.contains("<")) {
+            info.setBaseType(type.substring(0, type.indexOf("<"))
+                    .replaceAll("std::", ""));
+            // 複数パラメータの処理
+            String params = type.substring(type.indexOf("<") + 1, type.lastIndexOf(">"));
+            Arrays.stream(params.split(","))
+                    .map(param -> param.trim().replaceAll("std::", ""))
+                    .forEach(info.getParameterTypes()::add);
+        }
+
+        info.determineMultiplicity();
+        return info;
+    }
+
+    private String extractInnerType(String type) {
+        int start = type.indexOf("<") + 1;
+        int end = type.lastIndexOf(">");
+        return type.substring(start, end).trim().replaceAll("std::", "");
     }
 
     private String extractElementType(String type) {
@@ -252,6 +469,48 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         return type;
     }
 
+    private void handleCollectionRelationship(String type, String operationName,
+            CppHeaderClass currentClass, Visibility visibility) {
+
+        CollectionTypeInfo info = parseCollectionType(type);
+
+        // コレクション型のパラメータで、ユーザー定義型のみ関係を生成
+        for (String paramType : info.getParameterTypes()) {
+            if (isUserDefinedType(paramType)) {
+                String cleanType = extractBaseTypeName(paramType);
+
+                // パラメータの場合は関連ではなく依存関係
+                RelationshipInfo relation = new RelationshipInfo(
+                        cleanType,
+                        RelationType.DEPENDENCY_PARAMETER);
+                currentClass.addRelationship(relation);
+            }
+        }
+    }
+
+    private String extractBaseTypeName(String typeName) {
+        String baseType = typeName;
+
+        // 名前空間の除去
+        baseType = baseType.replace("std::", "");
+
+        // 空白の除去
+        baseType = baseType.replaceAll("\\s+", "");
+
+        // 修飾子の除去
+        String[] modifiers = {
+                "static", "const", "mutable", "volatile", "virtual",
+                "final", "explicit", "friend", "inline", "constexpr",
+                "thread_local", "register", "extern", "enum"
+        };
+
+        for (String modifier : modifiers) {
+            baseType = baseType.replace(modifier, "");
+        }
+
+        return baseType.trim();
+    }
+
     private String processOperationType(String type) {
         Map<String, String> standardTypes = Map.of(
                 "string", "String",
@@ -259,7 +518,11 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 "list", "List",
                 "map", "Map",
                 "set", "Set",
-                "array", "Array");
+                "array", "Array",
+                "shared_ptr", "sharedptr",
+                "unique_ptr", "uniqueptr",
+                "unordered_map", "unorderedmap",
+                "weak_ptr", "weakptr");
 
         // std:: の除去
         String processedType = type.replaceAll("std::", "");
@@ -353,27 +616,21 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             ParameterInfo paramInfo = extractParameterInfo(paramCtx);
             System.out.println(paramCtx.getText());
 
-            // 修飾子を含む完全な型名を構築
-            StringBuilder fullType = new StringBuilder();
-            if (paramInfo.isConst) {
-                fullType.append("const ");
-            }
-            fullType.append(paramInfo.baseType);
-            if (paramInfo.isPointer) {
-                fullType.append("*");
-            }
-            if (paramInfo.isReference) {
-                fullType.append("&");
-            }
+            String paramType = paramInfo.baseType;
 
+            // コレクション型の処理
+            if (isCollectionType(paramType)) {
+                handleCollectionRelationship(
+                        paramType,
+                        operation.getName().getNameText(),
+                        currentClass,
+                        Visibility.Public);
+            } else if (isUserDefinedType(paramInfo.baseType)) {
+                addRelationship(currentClass, paramInfo, operation.getName().getNameText(), relationships);
+            }
             Parameter param = new Parameter(new Name(paramInfo.parameterName));
             param.setType(new Type(buildParameterType(paramInfo)));
             operation.addParameter(param);
-
-            // ユーザー定義型の場合のみ関係を追加
-            if (isUserDefinedType(paramInfo.baseType)) {
-                addRelationship(currentClass, paramInfo, operation.getName().getNameText(), relationships);
-            }
         }
 
         for (RelationshipInfo relation : relationships.values()) {
@@ -383,45 +640,27 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
     // パラメータの型名を構築（constを除外）
     private String buildParameterType(ParameterInfo info) {
-        StringBuilder type = new StringBuilder();
-        type.append(info.baseType);
+        String processedType = parseTemplateType(info.baseType);
+
+        // ポインタ/参照の追加
         if (info.isPointer) {
-            type.append("*");
+            processedType += "*";
         }
         if (info.isReference) {
-            type.append("&");
+            processedType += "&";
         }
-        return type.toString();
+        return processedType;
     }
 
     private void addRelationship(CppHeaderClass currentClass, ParameterInfo paramInfo,
             String operationName, Map<String, RelationshipInfo> relationships) {
 
         if (isUserDefinedType(paramInfo.baseType)) {
-            // ポインタまたは参照の場合は関連関係「のみ」
-            if (paramInfo.isPointer || paramInfo.isReference) {
-                RelationshipInfo relation = relationships.get(paramInfo.baseType);
-                if (relation == null) {
-                    relation = new RelationshipInfo(
-                            paramInfo.baseType,
-                            RelationType.ASSOCIATION);
-                    relationships.put(paramInfo.baseType, relation);
-                }
-
-                relation.addElement(
-                        operationName,
-                        ElementType.OPERATION,
-                        determineMultiplicity(paramInfo),
-                        Visibility.Public);
-                return; // 関連を追加したら終了（依存は作らない）
-            }
-            // 値型の場合のみ依存関係を作成
-            else {
-                RelationshipInfo relation = new RelationshipInfo(
-                        paramInfo.baseType,
-                        RelationType.DEPENDENCY_PARAMETER);
-                relationships.put(paramInfo.baseType, relation);
-            }
+            // 全てのパラメータを依存関係として扱う
+            RelationshipInfo relation = new RelationshipInfo(
+                    paramInfo.baseType,
+                    RelationType.DEPENDENCY_PARAMETER);
+            relationships.put(paramInfo.baseType, relation);
         }
     }
 

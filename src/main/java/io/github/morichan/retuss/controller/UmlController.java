@@ -222,14 +222,6 @@ public class UmlController implements CppModel.ModelChangeListener {
         classDiagramWebView.setVisible(showingDiagram);
         plantUmlCodeArea.setVisible(!showingDiagram);
         toggleViewBtn.setText(showingDiagram ? "Show Code" : "Show Diagram");
-
-        if (!showingDiagram) {
-            // コード表示に切り替えたとき、最新のPlantUMLコードを表示
-            String currentPlantUml = umlModel.getPlantUml();
-            if (currentPlantUml != null && !currentPlantUml.isEmpty()) {
-                plantUmlCodeArea.setText(currentPlantUml);
-            }
-        }
     }
 
     public void setCodeController(CodeController controller) {

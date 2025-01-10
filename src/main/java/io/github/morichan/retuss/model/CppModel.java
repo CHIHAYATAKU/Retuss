@@ -56,9 +56,9 @@ public class CppModel {
         CppFile headerFile = new CppFile(baseName + ".h", true);
         CppFile implFile = new CppFile(baseName + ".cpp", false);
 
-        if (headerClass.isPresent()) {
-            headerFile.updateCode(headerFile.getCode());
-        }
+        // if (headerClass.isPresent()) {
+        // headerFile.updateCode(headerFile.getCode());
+        // }
 
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
@@ -651,7 +651,9 @@ public class CppModel {
 
         try {
             CppFile headerFile = headerFileOpt.get();
-            translator.removeInheritance(headerFile.getCode(), interfaceName);
+            String newCode = translator.removeInheritance(headerFile.getCode(), interfaceName);
+            headerFile.updateCode(newCode);
+            notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to remove realization: " + e.getMessage());
         }

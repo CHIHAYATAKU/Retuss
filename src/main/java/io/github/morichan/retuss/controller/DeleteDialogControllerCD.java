@@ -8,6 +8,7 @@ import io.github.morichan.retuss.model.JavaModel;
 import io.github.morichan.retuss.model.uml.Class;
 import io.github.morichan.retuss.model.uml.cpp.CppHeaderClass;
 import io.github.morichan.retuss.model.uml.cpp.utils.Modifier;
+import io.github.morichan.retuss.model.uml.cpp.utils.RelationType;
 import io.github.morichan.retuss.model.uml.cpp.utils.RelationshipElement;
 import io.github.morichan.retuss.model.uml.cpp.utils.RelationshipInfo;
 import javafx.collections.ObservableList;
@@ -155,12 +156,14 @@ public class DeleteDialogControllerCD {
             cdTreeItemList.add("relations");
             TreeItem<String> relationsNode = new TreeItem<>("Relations");
             for (RelationshipInfo relation : cls.getRelationshipManager().getAllRelationships()) {
-                String relationText = formatCppRelationship(relation);
-                if (relationText != null) {
-                    System.out.println("Adding relation: " + relationText); // デバッグ用
-                    cdTreeItemList.add(relation);
-                    TreeItem<String> relationItem = new TreeItem<>(relationText);
-                    relationsNode.getChildren().add(relationItem);
+                if (relation.getType() == RelationType.INHERITANCE || relation.getType() == RelationType.REALIZATION) {
+                    String relationText = formatCppRelationship(relation);
+                    if (relationText != null) {
+                        System.out.println("Adding relation: " + relationText); // デバッグ用
+                        cdTreeItemList.add(relation);
+                        TreeItem<String> relationItem = new TreeItem<>(relationText);
+                        relationsNode.getChildren().add(relationItem);
+                    }
                 }
             }
             classTreeItem.getChildren().add(relationsNode);
@@ -390,20 +393,20 @@ public class DeleteDialogControllerCD {
 
     private String formatCppAttribute(Attribute attr, CppHeaderClass cls) {
         StringBuilder sb = new StringBuilder();
-        sb.append(attr.getVisibility())
-                .append(" ")
+        sb.append(attr.getVisibility());
+        // Set<Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
+        // if (!modifiers.isEmpty()) {
+        // sb.append(" {")
+        // .append(modifiers.stream()
+        // .map(mod -> mod.getCppText(false)) // メソッド参照を修正
+        // .collect(Collectors.joining(", ")))
+        // .append("} ");
+        // }
+        sb.append(" ")
                 .append(attr.getName())
                 .append(" : ")
                 .append(attr.getType());
 
-        Set<Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
-        if (!modifiers.isEmpty()) {
-            sb.append(" {")
-                    .append(modifiers.stream()
-                            .map(mod -> mod.getCppText(false)) // メソッド参照を修正
-                            .collect(Collectors.joining(", ")))
-                    .append("}");
-        }
         return sb.toString();
     }
 
@@ -418,9 +421,18 @@ public class DeleteDialogControllerCD {
             // 可視性
             String visibility = (op.getVisibility() != null) ? op.getVisibility().toString() : "Unknown";
             sb.append(visibility).append(" ");
+            String name = (op.getName() != null) ? op.getName().getNameText() : "Unnamed";
+            // 修飾子
+            // Set<Modifier> modifiers = cls.getModifiers(name);
+            // if (modifiers != null && !modifiers.isEmpty()) {
+            // sb.append("{")
+            // .append(modifiers.stream()
+            // .map(mod -> mod.getCppText(false))
+            // .collect(Collectors.joining(", ")))
+            // .append("} ");
+            // }
 
             // 名前
-            String name = (op.getName() != null) ? op.getName().getNameText() : "Unnamed";
             sb.append(name).append("(");
 
             // パラメータ
@@ -432,7 +444,8 @@ public class DeleteDialogControllerCD {
                     parameters = Collections.emptyList();
                 }
             } catch (Exception e) {
-                System.out.println("Exception while fetching parameters for operation: " + name);
+                System.out.println("Exception while fetching parameters for operation: " +
+                        name);
                 e.printStackTrace();
                 parameters = Collections.emptyList();
             }
@@ -441,8 +454,9 @@ public class DeleteDialogControllerCD {
                 sb.append(parameters.stream()
                         .map(param -> {
                             String type = (param.getType() != null) ? param.getType().toString() : "UnknownType";
-                            String paramName = (param.getName() != null) ? param.getName().getNameText() : "Unnamed";
-                            return type + " " + paramName;
+                            String paramName = (param.getName() != null) ? param.getName().getNameText()
+                                    : "Unnamed";
+                            return paramName + " : " + type;
                         })
                         .collect(Collectors.joining(", ")));
             }
@@ -451,16 +465,6 @@ public class DeleteDialogControllerCD {
             // 戻り値
             String returnType = (op.getReturnType() != null) ? op.getReturnType().toString() : "void";
             sb.append(" : ").append(returnType);
-
-            // 修飾子
-            Set<Modifier> modifiers = cls.getModifiers(name);
-            if (modifiers != null && !modifiers.isEmpty()) {
-                sb.append(" {")
-                        .append(modifiers.stream()
-                                .map(mod -> mod.getCppText(false))
-                                .collect(Collectors.joining(", ")))
-                        .append("}");
-            }
         } catch (Exception e) {
             System.out.println("Exception in formatCppOperation: " + e.getMessage());
             e.printStackTrace();

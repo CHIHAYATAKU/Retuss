@@ -10,6 +10,7 @@ import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
+import io.github.morichan.retuss.translator.cpp.header.util.CollectionTypeInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
@@ -180,6 +181,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
 
         // コレクション型の処理
         if (isCollectionType(type)) {
+            System.out.println("DEBUG: type: " + type);
             handleCollectionRelationship(
                     type, attributeName, visibility, mods,
                     currentClass, relationType, declaratorText);
@@ -195,15 +197,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 multiplicity,
                 visibility);
         currentClass.addRelationship(relation);
-    }
-
-    private String extractInnerType(String type) {
-        if (type.contains("<") && type.contains(">")) {
-            return type.replaceAll(".*<(.+)>.*", "$1")
-                    .replaceAll("\\s+", "")
-                    .replaceAll("std::", "");
-        }
-        return type;
     }
 
     private String extractRelationshipAnnotation(CPP14Parser.MemberDeclaratorContext memberDec) {
@@ -285,6 +278,8 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                     return RelationType.AGGREGATION;
                 case "composition":
                     return RelationType.COMPOSITION;
+                case "association":
+                    return RelationType.ASSOCIATION;
             }
         }
 
@@ -358,25 +353,121 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             RelationType relationType,
             String declaratorText) {
 
-        String elementType = extractElementType(type);
-        String multiplicity = determineCollectionMultiplicity(type, declaratorText);
+        CollectionTypeInfo info = parseCollectionType(type);
 
-        System.out.println("Processing collection:");
-        System.out.println("  Collection type: " + type);
-        System.out.println("  Element type: " + elementType);
-        System.out.println("  Multiplicity: " + multiplicity);
-
-        if (isUserDefinedType(elementType)) {
-            RelationshipInfo relation = new RelationshipInfo(
-                    elementType,
-                    relationType);
-            relation.addElement(
-                    attributeName,
-                    ElementType.ATTRIBUTE,
-                    multiplicity, // 固定サイズか可変サイズかを反映
-                    visibility);
-            currentClass.addRelationship(relation);
+        // ユーザー定義型のパラメータのみ関係を作成
+        for (String paramType : info.getParameterTypes()) {
+            if (isUserDefinedType(paramType)) {
+                String cleanType = extractBaseTypeName(paramType);
+                RelationshipInfo relation = new RelationshipInfo(
+                        cleanType,
+                        determineRelationType(info));
+                relation.addElement(
+                        attributeName,
+                        ElementType.ATTRIBUTE,
+                        info.getMultiplicity(),
+                        visibility);
+                currentClass.addRelationship(relation);
+            }
         }
+    }
+
+    private RelationType determineRelationType(CollectionTypeInfo info) {
+        switch (info.getBaseType()) {
+            case "uniqueptr":
+                return RelationType.COMPOSITION;
+            case "sharedptr":
+            case "weakptr":
+                return RelationType.ASSOCIATION;
+            case "vector":
+            case "unorderedmap":
+                return RelationType.COMPOSITION; // コレクションは所有関係
+            default:
+                return RelationType.ASSOCIATION;
+        }
+    }
+
+    private CollectionTypeInfo parseCollectionType(String type) {
+        CollectionTypeInfo info = new CollectionTypeInfo();
+
+        // 複雑なテンプレートの解析
+        if (type.contains("<")) {
+            String baseType = type.substring(0, type.indexOf("<"));
+            info.setBaseType(baseType.replaceAll("std::", ""));
+
+            // テンプレートパラメータの解析
+            String params = extractTemplateParameters(type);
+            System.out.println("DEBUG: params " + params);
+            List<String> paramTypes = parseTemplateParameters(params);
+            info.getParameterTypes().addAll(paramTypes);
+        }
+        return info;
+    }
+
+    private String extractTemplateParameters(String type) {
+        // "<" と ">" の対応を考慮したパラメータ抽出
+        int nestLevel = 0;
+        int start = -1;
+
+        for (int i = 0; i < type.length(); i++) {
+            char c = type.charAt(i);
+            if (c == '<') {
+                nestLevel++;
+                if (start == -1)
+                    start = i + 1;
+            } else if (c == '>') {
+                nestLevel--;
+                if (nestLevel == 0) {
+                    return type.substring(start, i);
+                }
+            }
+        }
+        return "";
+    }
+
+    private List<String> parseTemplateParameters(String params) {
+        List<String> result = new ArrayList<>();
+        int nestLevel = 0;
+        StringBuilder current = new StringBuilder();
+
+        for (char c : params.toCharArray()) {
+            if (c == '<')
+                nestLevel++;
+            else if (c == '>')
+                nestLevel--;
+            else if (c == ',' && nestLevel == 0) {
+                result.add(current.toString().trim());
+                current = new StringBuilder();
+                continue;
+            }
+            current.append(c);
+        }
+
+        if (current.length() > 0) {
+            result.add(current.toString().trim());
+        }
+        return result;
+    }
+
+    private String extractInnerType(String type) {
+        int start = type.indexOf("<") + 1;
+        int end = type.lastIndexOf(">");
+        return type.substring(start, end).trim().replaceAll("std::", "");
+    }
+
+    private List<String> extractTemplateTypes(String type) {
+        List<String> types = new ArrayList<>();
+        int start = type.indexOf('<');
+        int end = type.lastIndexOf('>');
+
+        if (start != -1 && end != -1) {
+            String inner = type.substring(start + 1, end);
+            String[] params = inner.split(",");
+            for (String param : params) {
+                types.add(param.trim());
+            }
+        }
+        return types;
     }
 
     private Set<Modifier> extractModifiers(CPP14Parser.DeclSpecifierSeqContext ctx) {
@@ -504,8 +595,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
     private String processAttributeType(String type, CPP14Parser.DeclaratorContext declarator) {
         StringBuilder processedType = new StringBuilder();
 
-        System.err.println("タイプ！！: " + type);
-        // テンプレート部分を保持しながら処理
+        // テンプレート部分の分離
         int templateStart = type.indexOf('<');
         String templatePart = "";
         if (templateStart != -1) {
@@ -521,7 +611,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 .replaceAll("(static|const|mutable|final)", "")
                 .trim();
 
-        // 標準型の定義（スマートポインタを含む）
+        // 標準型の定義
         Map<String, String> standardTypes = Map.of(
                 "string", "String",
                 "vector", "Vector",
@@ -529,47 +619,58 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 "map", "Map",
                 "set", "Set",
                 "array", "Array",
-                "unique_ptr", "unique_ptr",
-                "shared_ptr", "shared_ptr",
-                "weak_ptr", "weak_ptr");
+                "shared_ptr", "sharedptr",
+                "unique_ptr", "uniqueptr",
+                "unordered_map", "unorderedmap",
+                "weak_ptr", "weakptr");
 
         // 基本型の変換
-        if (standardTypes.containsKey(type)) {
-            type = standardTypes.get(type);
-        }
-
+        type = standardTypes.getOrDefault(type, type);
         processedType.append(type);
 
-        // テンプレート部分の処理
+        // テンプレート部分の再帰的処理
         if (!templatePart.isEmpty()) {
-            // テンプレート内のstd::を除去
-            templatePart = templatePart.replaceAll("std::", "");
-
-            // テンプレート内の標準型を変換
-            for (Map.Entry<String, String> entry : standardTypes.entrySet()) {
-                templatePart = templatePart.replaceAll(
-                        "\\b" + entry.getKey() + "\\b",
-                        entry.getValue());
+            // カンマで分割してそれぞれの型を処理
+            String innerTypes = templatePart.substring(1, templatePart.length() - 1);
+            String[] types = innerTypes.split(",");
+            processedType.append("<");
+            for (int i = 0; i < types.length; i++) {
+                String innerType = types[i].trim();
+                // 内部の型も同様に処理（ただしDeclaratorは不要）
+                innerType = processAttributeType(innerType, declarator)
+                        .replaceAll("std::", "");
+                processedType.append(innerType);
+                if (i < types.length - 1) {
+                    processedType.append(",");
+                }
             }
-
-            processedType.append(templatePart);
+            processedType.append(">");
         }
 
-        // ポインタ/参照の処理（コレクション型でない場合のみ）
-        String declaratorText = declarator.getText();
-        if (!isCollectionType(processedType.toString()) && !isSmartPointer(processedType.toString())) {
-            if (declaratorText.contains("*") || type.contains("*")) {
-                processedType.append("*");
-            }
-            if (declaratorText.contains("&") || type.contains("&")) {
-                processedType.append("&");
-            }
-        }
+        // ポインタ/参照の処理
+        if (declarator != null) {
+            String declaratorText = declarator.getText();
 
-        // 配列サイズの処理
-        if (declaratorText.matches(".*\\[\\d+\\]")) {
-            String size = declaratorText.replaceAll(".*\\[(\\d+)\\].*", "[$1]");
-            processedType.append(size);
+            // 配列の処理
+            if (declaratorText.matches(".*\\[\\d+\\]")) {
+                String arrayDims = "";
+                Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+                Matcher matcher = pattern.matcher(declaratorText);
+                while (matcher.find()) {
+                    arrayDims += "[" + matcher.group(1) + "]";
+                }
+                processedType.append(arrayDims);
+            }
+
+            // ポインタ/参照の処理（コレクション型でない場合のみ）
+            if (!isCollectionType(processedType.toString()) && !isSmartPointer(processedType.toString())) {
+                if (declaratorText.contains("*") || type.contains("*")) {
+                    processedType.append("*");
+                }
+                if (declaratorText.contains("&") || type.contains("&")) {
+                    processedType.append("&");
+                }
+            }
         }
 
         return processedType.toString();
@@ -607,8 +708,12 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         Set<String> basicTypes = Set.of(
                 "void", "bool", "char", "int", "float", "double",
                 "long", "short", "unsigned", "signed",
-                "string", "vector", "list", "map", "set",
-                "array", "queue", "stack", "deque");
+                // コレクション型は除外
+                "vector", "list", "map", "unorderedmap", "array", "queue", "stack", "deque",
+                // スマートポインタは除外
+                "uniqueptr", "sharedptr", "weakptr",
+                // その他標準型
+                "string");
 
         if (type.startsWith("enum ")) {
             return true; // enumは常にユーザー定義型として扱う

@@ -7,11 +7,23 @@ import java.util.*;
 
 public class AnalyzerContext {
     private CppHeaderClass currentHeaderClass;
+    private String currentNamespace = "";
     private String currentVisibility = "private";
     private final boolean isHeaderFile;
 
     public AnalyzerContext(boolean isHeaderFile) {
         this.isHeaderFile = isHeaderFile;
+    }
+
+    public void setCurrentNamespace(String namespace) {
+        this.currentNamespace = namespace;
+        if (currentHeaderClass != null) {
+            currentHeaderClass.setNamespace(namespace);
+        }
+    }
+
+    public String getCurrentNamespace() {
+        return currentNamespace;
     }
 
     public CppHeaderClass getCurrentHeaderClass() {
