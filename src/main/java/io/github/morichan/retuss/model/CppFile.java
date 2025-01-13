@@ -155,8 +155,9 @@ public class CppFile {
             if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
                 boolean allAbstract = true;
                 for (Operation op : cls.getOperationList()) {
-                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.ABSTRACT)
-                            && !cls.getName().equals(op.getName().getNameText())) {
+                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.PURE_VIRTUAL)
+                            && !cls.getName().equals(op.getName().getNameText())
+                            && !("~" + cls.getName()).equals(op.getName().getNameText())) {
                         allAbstract = false;
                         cls.setInterface(false);
                         break;

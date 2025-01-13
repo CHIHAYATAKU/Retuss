@@ -52,7 +52,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
                 if (memberDec.pureSpecifier() != null) { // pureSpecifierの存在で判定
                     currentHeaderClass.setAbstruct(true);
-                    modifiers.add(Modifier.ABSTRACT);
+                    modifiers.add(Modifier.PURE_VIRTUAL);
                     System.err.println("DEBUG: " + currentHeaderClass.getName() + "is Abstract Class！！: ");
                     break;
                 }
@@ -153,10 +153,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         }
 
         System.out.println("DEBUG: Operation completed: " + methodName);
-        // 実現関係の処理
-        if (modifiers.contains(Modifier.OVERRIDE)) {
-            processRealization(currentHeaderClass, operation, methodName, returnType, modifiers);
-        }
 
         System.out.println("DEBUG: Adding operation: " + methodName);
         System.out.println("DEBUG: Is constructor: " + isConstructor);
@@ -554,40 +550,19 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                     var typeSpec = spec.typeSpecifier();
                     if (typeSpec.trailingTypeSpecifier() != null) {
                         var trailing = typeSpec.trailingTypeSpecifier();
-
-                        // const check
-                        if (trailing.cvQualifier() != null &&
-                                trailing.cvQualifier().getText().equals("const")) {
-                            info.isConst = true;
-                        }
-                        // 型名の取得
-                        else if (trailing.simpleTypeSpecifier() != null) {
+                        if (trailing.simpleTypeSpecifier() != null) {
                             info.baseType = trailing.simpleTypeSpecifier().getText()
                                     .replaceAll("std::", "");
                         }
                     }
                 }
-                // 直接のconst指定子の検出
-                else if (spec.getText().equals("const")) {
-                    info.isConst = true;
-                }
             }
         }
 
-        // declaratorからのポインタ/参照情報の抽出
+        // declaratorからパラメータ名の抽出
         if (paramCtx.declarator() != null) {
             var declarator = paramCtx.declarator();
             if (declarator.pointerDeclarator() != null) {
-                // ポインタ演算子の検出
-                for (CPP14Parser.PointerOperatorContext op : declarator.pointerDeclarator().pointerOperator()) {
-                    String opText = op.getText();
-                    if (opText.contains("*")) {
-                        info.isPointer = true;
-                    }
-                    if (opText.contains("&")) {
-                        info.isReference = true;
-                    }
-                }
                 // パラメータ名の取得
                 if (declarator.pointerDeclarator().noPointerDeclarator() != null &&
                         declarator.pointerDeclarator().noPointerDeclarator().declaratorid() != null) {
@@ -701,8 +676,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                             if (targetClass.getInterface() && targetClass.getAttributeList().isEmpty()) {
                                 // インターフェースを継承している時点で実現関係に変更
                                 relation.setType(RelationType.REALIZATION);
-                            } else {
-                                targetClass.setInterface(false);
                             }
                         });
             }

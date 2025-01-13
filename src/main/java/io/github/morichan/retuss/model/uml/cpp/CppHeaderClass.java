@@ -14,7 +14,7 @@ public class CppHeaderClass {
     private Boolean isEnum = false;
     private List<EnumValue> enumValues = new ArrayList<>();
     // private CppHeaderClass superClass;
-    private List<CppHeaderClass> superClasses = new ArrayList<>();
+    // private List<CppHeaderClass> superClasses = new ArrayList<>();
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
     private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
@@ -140,19 +140,6 @@ public class CppHeaderClass {
 
     public Boolean getEnum() {
         return this.isEnum;
-    }
-
-    public List<CppHeaderClass> getSuperClasses() {
-        return Collections.unmodifiableList(superClasses);
-    }
-
-    public void setSuperClass(CppHeaderClass superClass) {
-        if (!superClasses.contains(superClass)) {
-            superClasses.add(superClass);
-        }
-        if (superClass != null) {
-            relationshipManager.addInheritance(superClass.getName());
-        }
     }
 
     public List<Attribute> getAttributeList() {

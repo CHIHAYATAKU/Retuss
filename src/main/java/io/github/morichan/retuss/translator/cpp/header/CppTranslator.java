@@ -19,7 +19,6 @@ public class CppTranslator {
     protected final UmlToCppTranslator umlToCppTranslator;
 
     public CppTranslator() {
-        super();
         this.typeMapper = new CppTypeMapper();
         this.visibilityMapper = new CppVisibilityMapper();
         this.cppToUmlTranslator = createCodeToUmlTranslator();
@@ -36,50 +35,6 @@ public class CppTranslator {
 
     public String translateType(Type type) {
         return typeMapper.mapType(type.toString());
-    }
-
-    public String translateAttribute(Attribute attribute) {
-        StringBuilder sb = new StringBuilder();
-
-        // 型と名前
-        sb.append(translateType(attribute.getType()))
-                .append(" ")
-                .append(attribute.getName());
-
-        // デフォルト値がある場合
-        try {
-            if (attribute.getDefaultValue() != null) {
-                sb.append(" = ").append(attribute.getDefaultValue().toString());
-            }
-        } catch (IllegalStateException e) {
-            // デフォルト値なし
-        }
-
-        return sb.toString();
-    }
-
-    public String translateOperation(Operation operation) {
-        StringBuilder sb = new StringBuilder();
-
-        // 戻り値の型と名前
-        sb.append(translateType(operation.getReturnType()))
-                .append(" ")
-                .append(operation.getName())
-                .append("(");
-
-        if (!operation.getParameters().isEmpty() && operation.getParameters() != null) {
-            // パラメータ
-            List<String> params = new ArrayList<>();
-
-            operation.getParameters().forEach(param -> params.add(String.format("%s %s",
-                    translateType(param.getType()),
-                    param.getName())));
-            sb.append(String.join(", ", params));
-        }
-
-        sb.append(")");
-
-        return sb.toString();
     }
 
     public Optional<String> extractClassName(String code) {
@@ -145,8 +100,8 @@ public class CppTranslator {
         return umlToCppTranslator.addInheritance(existingCode, derivedClassName, baseClassName);
     }
 
-    public String addRealization(String code, String interfaceName) {
-        return umlToCppTranslator.addRealization(code, interfaceName);
+    public String addRealization(String code, String className, String interfaceName) {
+        return umlToCppTranslator.addRealization(code, className, interfaceName);
     }
 
     public String removeInheritance(String code, String baseClassName) {

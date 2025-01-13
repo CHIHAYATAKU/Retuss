@@ -261,62 +261,67 @@ public class UmlToCppTranslator {
         return builder.toString();
     }
 
-    public String addRealization(String existingCode, String interfaceName) {
+    public String addRealization(String existingCode, String derivedClassName, String interfaceName) {
         try {
-            List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
+            return addInheritance(existingCode, derivedClassName, derivedClassName);
+            // List<String> lines = new
+            // ArrayList<>(Arrays.asList(existingCode.split("\n")));
 
-            // クラス定義行を見つける
-            int classDefLine = -1;
-            String className = ""; // クラス名は既存のコードから抽出
-            Pattern classPattern = Pattern.compile("class\\s+(\\w+)");
+            // // クラス定義行を見つける
+            // int classDefLine = -1;
+            // String className = ""; // クラス名は既存のコードから抽出
+            // Pattern classPattern = Pattern.compile("class\\s+(\\w+)");
 
-            for (int i = 0; i < lines.size(); i++) {
-                Matcher matcher = classPattern.matcher(lines.get(i));
-                if (matcher.find()) {
-                    className = matcher.group(1);
-                    classDefLine = i;
-                    break;
-                }
-            }
+            // for (int i = 0; i < lines.size(); i++) {
+            // Matcher matcher = classPattern.matcher(lines.get(i));
+            // if (matcher.find()) {
+            // className = matcher.group(1);
+            // classDefLine = i;
+            // break;
+            // }
+            // }
 
-            if (classDefLine == -1)
-                return existingCode;
-            // 継承関係の追加
-            String currentLine = lines.get(classDefLine);
-            if (currentLine.contains(":")) {
-                int colonPos = currentLine.indexOf(":");
-                String beforeColon = currentLine.substring(0, colonPos + 1);
-                String afterColon = currentLine.substring(colonPos + 1);
-                lines.set(classDefLine, beforeColon + " public " + interfaceName + "," + afterColon);
-            } else {
-                lines.set(classDefLine, currentLine.replace("{", ": public " + interfaceName + " {"));
-            }
+            // if (classDefLine == -1)
+            // return existingCode;
+            // // 継承関係の追加
+            // String currentLine = lines.get(classDefLine);
+            // if (currentLine.contains(":")) {
+            // int colonPos = currentLine.indexOf(":");
+            // String beforeColon = currentLine.substring(0, colonPos + 1);
+            // String afterColon = currentLine.substring(colonPos + 1);
+            // lines.set(classDefLine, beforeColon + " public " + interfaceName + "," +
+            // afterColon);
+            // } else {
+            // lines.set(classDefLine, currentLine.replace("{", ": public " + interfaceName
+            // + " {"));
+            // }
 
-            // インターフェースのメソッドを取得して追加
-            Optional<CppHeaderClass> interfaceClass = CppModel.getInstance().findClass(interfaceName);
-            if (interfaceClass.isPresent()) {
-                // publicセクションを探す
-                int publicSection = findInsertPositionForOperation(lines, Visibility.Public);
+            // // インターフェースのメソッドを取得して追加
+            // Optional<CppHeaderClass> interfaceClass =
+            // CppModel.getInstance().findClass(interfaceName);
+            // if (interfaceClass.isPresent()) {
+            // // publicセクションを探す
+            // int publicSection = findInsertPositionForOperation(lines, Visibility.Public);
 
-                // 各メソッドを追加
-                for (Operation op : interfaceClass.get().getOperationList()) {
-                    StringBuilder methodBuilder = new StringBuilder();
-                    methodBuilder.append("    ").append(op.getReturnType()).append(" ");
-                    methodBuilder.append(op.getName().getNameText()).append("(");
+            // // 各メソッドを追加
+            // for (Operation op : interfaceClass.get().getOperationList()) {
+            // StringBuilder methodBuilder = new StringBuilder();
+            // methodBuilder.append(" ").append(op.getReturnType()).append(" ");
+            // methodBuilder.append(op.getName().getNameText()).append("(");
 
-                    // パラメータリストの構築
-                    List<String> params = new ArrayList<>();
-                    for (Parameter param : op.getParameters()) {
-                        params.add(param.getType() + " " + param.getName().getNameText());
-                    }
-                    methodBuilder.append(String.join(", ", params));
-                    methodBuilder.append(") override;");
+            // // パラメータリストの構築
+            // List<String> params = new ArrayList<>();
+            // for (Parameter param : op.getParameters()) {
+            // params.add(param.getType() + " " + param.getName().getNameText());
+            // }
+            // methodBuilder.append(String.join(", ", params));
+            // methodBuilder.append(") override;");
 
-                    lines.add(publicSection + 1, methodBuilder.toString());
-                }
-            }
+            // lines.add(publicSection + 1, methodBuilder.toString());
+            // }
+            // }
 
-            return String.join("\n", lines);
+            // return String.join("\n", lines);
         } catch (Exception e) {
             System.err.println("Failed to add realization: " + e.getMessage());
             return existingCode;

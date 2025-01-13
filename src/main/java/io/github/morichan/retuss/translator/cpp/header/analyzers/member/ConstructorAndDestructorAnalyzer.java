@@ -113,42 +113,6 @@ public class ConstructorAndDestructorAnalyzer extends AbstractAnalyzer {
         return processedType.trim();
     }
 
-    private String parseTemplateType(String type) {
-        if (!type.contains("<"))
-            return type;
-
-        // 基本的なクリーンアップ
-        type = type.replaceAll("std::", "")
-                .replaceAll("(static|const|mutable|final)", "")
-                .trim();
-
-        // テンプレート部分の処理
-        String baseName = type.substring(0, type.indexOf("<"));
-        String params = extractTemplateParameters(type);
-        List<String> paramTypes = parseTemplateParameters(params);
-
-        // 標準型の変換も行う
-        Map<String, String> standardTypes = Map.of(
-                "string", "String",
-                "vector", "Vector",
-                "list", "List",
-                "map", "Map",
-                "set", "Set",
-                "array", "Array",
-                "shared_ptr", "sharedptr",
-                "unique_ptr", "uniqueptr",
-                "unordered_map", "unorderedmap",
-                "weak_ptr", "weakptr");
-        baseName = standardTypes.getOrDefault(baseName, baseName);
-
-        return baseName + "<" +
-                paramTypes.stream()
-                        .map(this::parseTemplateType)
-                        .collect(Collectors.joining(","))
-                +
-                ">";
-    }
-
     private void processParameters(CPP14Parser.ParametersAndQualifiersContext params, Operation operation) {
         System.out.println("DEBUG: Processing parameters");
         // まず空のパラメータリストで初期化

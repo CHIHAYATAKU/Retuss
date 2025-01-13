@@ -1,6 +1,7 @@
 package io.github.morichan.retuss.translator.cpp.header.analyzers.class_definition;
 
 import io.github.morichan.fescue.feature.visibility.Visibility;
+import io.github.morichan.retuss.model.CppModel;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import io.github.morichan.retuss.parser.cpp.CPP14Parser;
@@ -44,31 +45,19 @@ public class InheritanceAnalyzer extends AbstractAnalyzer {
             CppHeaderClass currentClass) {
 
         String baseClassName = baseSpec.baseTypeSpecifier().getText();
-        String accessSpecifier = baseSpec.accessSpecifier() != null
-                ? baseSpec.accessSpecifier().getText().toLowerCase()
-                : "private";
-
-        // 可視性を取得
-        Visibility visibility;
-        switch (accessSpecifier) {
-            case "public":
-                visibility = Visibility.Public;
-                break;
-            case "protected":
-                visibility = Visibility.Protected;
-                break;
-            default:
-                visibility = Visibility.Private;
-        }
 
         RelationshipInfo relation = new RelationshipInfo(
                 baseClassName,
                 RelationType.INHERITANCE);
-        relation.addElement(
-                "",
-                ElementType.ATTRIBUTE,
-                "1",
-                visibility);
         currentClass.addRelationship(relation);
+        // インターフェースである可能性
+        CppModel.getInstance().findClass(baseClassName)
+                .ifPresent(targetClass -> {
+                    // インターフェースの条件チェック
+                    if (targetClass.getInterface() && targetClass.getAttributeList().isEmpty()) {
+                        // インターフェースを継承している時点で実現関係に変更
+                        relation.setType(RelationType.REALIZATION);
+                    }
+                });
     }
 }

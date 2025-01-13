@@ -384,43 +384,46 @@ public class CppModel {
             CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
             CppHeaderClass interfaceClass = interfaceFileOpt.get().getHeaderClasses().get(0);
 
-            String newCode = translator.addInheritance(
+            String newCode = translator.addRealization(
                     sourceFile.getCode(), sourceClassName,
                     interfaceName);
 
-            List<String> lines = new ArrayList<>(Arrays.asList(newCode.split("\n")));
-            int classStart = -1;
-            int classEnd = findClassEndPosition(lines);
+            // List<String> lines = new ArrayList<>(Arrays.asList(newCode.split("\n")));
+            // int classStart = -1;
+            // int classEnd = findClassEndPosition(lines);
 
-            for (int i = 0; i < lines.size(); i++) {
-                if (lines.get(i).contains("class " + sourceClassName)) {
-                    classStart = i;
-                    break;
-                }
-            }
+            // for (int i = 0; i < lines.size(); i++) {
+            // if (lines.get(i).contains("class " + sourceClassName)) {
+            // classStart = i;
+            // break;
+            // }
+            // }
 
-            for (Operation op : interfaceClass.getOperationList()) {
-                // 重複チェック
-                if (isDuplicateMethod(op, lines, classStart, classEnd)) {
-                    System.out.println("Skipping duplicate method: " + op.getName().getNameText());
-                    continue;
-                }
+            // for (Operation op : interfaceClass.getOperationList()) {
+            // // 重複チェック
+            // if (isDuplicateMethod(op, lines, classStart, classEnd)) {
+            // System.out.println("Skipping duplicate method: " +
+            // op.getName().getNameText());
+            // continue;
+            // }
 
-                Operation implementedOp = new Operation(op.getName());
-                implementedOp.setReturnType(op.getReturnType());
-                implementedOp.setVisibility(Visibility.Public);
-                implementedOp.setParameters(new ArrayList<>()); // 空のパラメータリストで初期化
+            // Operation implementedOp = new Operation(op.getName());
+            // implementedOp.setReturnType(op.getReturnType());
+            // implementedOp.setVisibility(Visibility.Public);
+            // implementedOp.setParameters(new ArrayList<>()); // 空のパラメータリストで初期化
 
-                // 安全にパラメータを取得してコピー
-                List<Parameter> params = safeGetParameters(op);
-                for (Parameter param : params) {
-                    implementedOp.addParameter(param);
-                }
+            // // 安全にパラメータを取得してコピー
+            // List<Parameter> params = safeGetParameters(op);
+            // for (Parameter param : params) {
+            // implementedOp.addParameter(param);
+            // }
 
-                System.out.println("Adding method: " + implementedOp.getName().getNameText());
-                sourceClass.addMemberModifier(implementedOp.getName().getNameText(), Modifier.OVERRIDE);
-                newCode = translator.addOperation(newCode, sourceClass, implementedOp);
-            }
+            // System.out.println("Adding method: " +
+            // implementedOp.getName().getNameText());
+            // sourceClass.addMemberModifier(implementedOp.getName().getNameText(),
+            // Modifier.OVERRIDE);
+            // newCode = translator.addOperation(newCode, sourceClass, implementedOp);
+            // }
 
             // sourceClass.getRelationshipManager().addRealization(interfaceName);
             sourceFile.updateCode(newCode);
