@@ -29,7 +29,7 @@ public class CppRelationshipManager {
     }
 
     // 継承関係の追加
-    public void addInheritance(String targetClass) {
+    public void addGeneralization(String targetClass) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.INHERITANCE);
         addRelationship(relation);
     }

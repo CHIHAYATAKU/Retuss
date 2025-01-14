@@ -96,8 +96,8 @@ public class CppTranslator {
         return umlToCppTranslator.addOperation(existingCode, cls, operation);
     }
 
-    public String addInheritance(String existingCode, String derivedClassName, String baseClassName) {
-        return umlToCppTranslator.addInheritance(existingCode, derivedClassName, baseClassName);
+    public String addGeneralization(String existingCode, String derivedClassName, String baseClassName) {
+        return umlToCppTranslator.addGeneralization(existingCode, derivedClassName, baseClassName);
     }
 
     public String addRealization(String code, String className, String interfaceName) {
@@ -115,10 +115,6 @@ public class CppTranslator {
     public String addCompositionWithAnnotation(String existingCode, String componentName, String memberName,
             Visibility visibility) {
         return umlToCppTranslator.addCompositionWithAnnotation(existingCode, componentName, memberName, visibility);
-    }
-
-    public String addAggregation(String existingCode, String componentName, String memberName, Visibility visibility) {
-        return umlToCppTranslator.addAggregation(existingCode, componentName, memberName, visibility);
     }
 
     public String addAggregationWithAnnotation(String existingCode, String componentName, String memberName,

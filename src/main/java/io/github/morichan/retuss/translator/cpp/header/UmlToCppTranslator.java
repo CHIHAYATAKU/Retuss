@@ -263,7 +263,7 @@ public class UmlToCppTranslator {
 
     public String addRealization(String existingCode, String derivedClassName, String interfaceName) {
         try {
-            return addInheritance(existingCode, derivedClassName, derivedClassName);
+            return addGeneralization(existingCode, derivedClassName, derivedClassName);
             // List<String> lines = new
             // ArrayList<>(Arrays.asList(existingCode.split("\n")));
 
@@ -345,7 +345,7 @@ public class UmlToCppTranslator {
         return false;
     }
 
-    public String addInheritance(String existingCode, String derivedClassName, String baseClassName) {
+    public String addGeneralization(String existingCode, String derivedClassName, String baseClassName) {
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
 
@@ -443,23 +443,6 @@ public class UmlToCppTranslator {
         }
     }
 
-    public String addAggregation(String existingCode, String componentName,
-            String memberName, Visibility visibility) {
-        try {
-            List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
-            int insertPosition = findInsertPositionForAttribute(lines, visibility);
-
-            String declaration = "    std::shared_ptr<" + componentName + "> " + memberName + ";";
-            lines.add(insertPosition + 1, declaration);
-
-            lines.add(0, "#include <memory>");
-            return String.join("\n", lines);
-        } catch (Exception e) {
-            System.err.println("Failed to add aggregation: " + e.getMessage());
-            return existingCode;
-        }
-    }
-
     public String addAggregationWithAnnotation(String existingCode, String componentName,
             String memberName, Visibility visibility) {
         try {
@@ -469,10 +452,9 @@ public class UmlToCppTranslator {
             // アノテーションの追加
             lines.add(insertPosition + 1, "    // @relationship aggregation");
             // メンバ変数の追加（shared_ptr使用）
-            String declaration = "    std::shared_ptr<" + componentName + "> " + memberName + ";";
+            String declaration = "    " + componentName + "* " + memberName + ";";
             lines.add(insertPosition + 2, declaration);
 
-            lines.add(0, "#include <memory>"); // shared_ptr用
             return String.join("\n", lines);
         } catch (Exception e) {
             System.err.println("Failed to add aggregation with annotation: " + e.getMessage());
@@ -552,16 +534,16 @@ public class UmlToCppTranslator {
                 }
             }
 
-            // インクルードの削除
-            // まずインクルードを見つける
-            for (int i = lines.size() - 1; i >= 0; i--) {
-                String line = lines.get(i).trim();
-                if (line.equals("#include \"" + baseClassName + ".h\"")) {
-                    System.out.println("Removing include line: " + line);
-                    lines.remove(i);
-                    break;
-                }
-            }
+            // // インクルードの削除
+            // // まずインクルードを見つける
+            // for (int i = lines.size() - 1; i >= 0; i--) {
+            // String line = lines.get(i).trim();
+            // if (line.equals("#include \"" + baseClassName + ".h\"")) {
+            // System.out.println("Removing include line: " + line);
+            // lines.remove(i);
+            // break;
+            // }
+            // }
 
             String result = String.join("\n", lines);
             System.out.println("Inheritance removal completed");
