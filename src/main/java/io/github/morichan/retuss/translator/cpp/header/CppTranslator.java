@@ -108,6 +108,10 @@ public class CppTranslator {
         return umlToCppTranslator.removeInheritance(code, baseClassName);
     }
 
+    public String removeRealization(String code, String interfaceName) {
+        return umlToCppTranslator.removeRealization(code, interfaceName);
+    }
+
     public String addComposition(String existingCode, String componentName, String memberName, Visibility visibility) {
         return umlToCppTranslator.addComposition(existingCode, componentName, memberName, visibility);
     }

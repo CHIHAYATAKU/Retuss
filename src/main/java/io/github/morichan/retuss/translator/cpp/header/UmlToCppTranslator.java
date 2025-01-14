@@ -490,6 +490,10 @@ public class UmlToCppTranslator {
         return String.join("\n", lines);
     }
 
+    public String removeRealization(String existingCode, String interfaceName) {
+        return removeInheritance(existingCode, interfaceName);
+    }
+
     public String removeInheritance(String existingCode, String baseClassName) {
         System.out.println("Removing inheritance/realization for base class: " + baseClassName);
         try {
