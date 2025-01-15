@@ -6,7 +6,6 @@ import io.github.morichan.retuss.parser.cpp.CPP14Parser;
 import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAnalyzer;
 
 public class NamespaceAnalyzer extends AbstractAnalyzer {
-    private String currentNamespace = "";
 
     @Override
     public boolean appliesTo(ParserRuleContext context) {

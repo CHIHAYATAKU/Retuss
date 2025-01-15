@@ -145,9 +145,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         System.out.println("Original type: " + type);
         System.out.println("Cleaned type: " + cleanType);
 
-        // アノテーションの取得
-        String relationshipAnnotation = extractRelationshipAnnotation(memberDec);
-        System.out.println("Relationship annotation: " + relationshipAnnotation);
         if (isSmartPointer(type)) {
             cleanType = extractInnerType(type); // Target を抽出
         }
@@ -172,6 +169,10 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 }
             }
         }
+
+        // アノテーションの取得
+        String relationshipAnnotation = extractRelationshipAnnotation(memberDec);
+        System.out.println("Relationship annotation: " + relationshipAnnotation);
 
         CppHeaderClass currentClass = context.getCurrentHeaderClass();
         Visibility visibility = convertVisibility(context.getCurrentVisibility());

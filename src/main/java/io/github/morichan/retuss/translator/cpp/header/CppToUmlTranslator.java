@@ -13,8 +13,7 @@ public class CppToUmlTranslator {
 
     public List<CppHeaderClass> translateHeader(String code) {
         try {
-            String processedCode = preprocessCode(code);
-            CharStream input = CharStreams.fromString(processedCode);
+            CharStream input = CharStreams.fromString(code);
             CPP14Lexer lexer = new CPP14Lexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             CPP14Parser parser = new CPP14Parser(tokens);
@@ -29,18 +28,14 @@ public class CppToUmlTranslator {
             ParseTreeWalker walker = new ParseTreeWalker();
 
             // ヘッダファイルとして解析（true）
-            CppToUmlParseListener classExtractor = new CppToUmlParseListener(true);
-            walker.walk(classExtractor, parser.translationUnit());
+            CppToUmlParseListener cppToUmlParseListener = new CppToUmlParseListener(true);
+            walker.walk(cppToUmlParseListener, parser.translationUnit());
 
-            return classExtractor.getExtractedClasses();
+            return cppToUmlParseListener.getExtractedClasses();
         } catch (Exception e) {
             System.err.println("Failed to translate C++ code: " + e.getMessage());
             e.printStackTrace();
             return new ArrayList<>();
         }
-    }
-
-    private String preprocessCode(String code) {
-        return code.replaceAll("#.*\\n", "\n");
     }
 }

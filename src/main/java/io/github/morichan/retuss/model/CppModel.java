@@ -290,22 +290,23 @@ public class CppModel {
 
             // コードから属性を削除
             String currentCode = headerFile.getCode();
+            String newCode = translator.removeAttribute(currentCode, attribute);
             List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
-            String attrName = attribute.getName().getNameText();
+            // String attrName = attribute.getName().getNameText();
 
-            for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i).trim();
-                if (line.contains(attrName) && line.endsWith(";") && !line.contains("(")) {
-                    lines.remove(i);
-                    if (i > 0 && lines.get(i - 1).trim().startsWith("//")) {
-                        // 関連するコメント（アノテーション）も削除
-                        lines.remove(i - 1);
-                    }
-                    break;
-                }
-            }
+            // for (int i = 0; i < lines.size(); i++) {
+            // String line = lines.get(i).trim();
+            // if (line.contains(attrName) && line.endsWith(";") && !line.contains("(")) {
+            // lines.remove(i);
+            // if (i > 0 && lines.get(i - 1).trim().startsWith("//")) {
+            // // 関連するコメント（アノテーション）も削除
+            // lines.remove(i - 1);
+            // }
+            // break;
+            // }
+            // }
 
-            headerFile.updateCode(String.join("\n", lines));
+            headerFile.updateCode(newCode);
             notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to delete attribute: " + e.getMessage());
@@ -328,25 +329,27 @@ public class CppModel {
 
             // コードから操作を削除
             String currentCode = headerFile.getCode();
-            List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
-            String opName = operation.getName().getNameText();
+            String newCode = translator.removeOperation(currentCode, operation);
 
-            for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i).trim();
-                if (line.contains(opName) && line.contains("(") && line.endsWith(";")) {
-                    lines.remove(i);
-                    break;
-                }
-            }
+            // List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
+            // String opName = operation.getName().getNameText();
 
-            headerFile.updateCode(String.join("\n", lines));
+            // for (int i = 0; i < lines.size(); i++) {
+            // String line = lines.get(i).trim();
+            // if (line.contains(opName) && line.contains("(") && line.endsWith(";")) {
+            // lines.remove(i);
+            // break;
+            // }
+            // }
+
+            headerFile.updateCode(newCode);
             notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to delete operation: " + e.getMessage());
         }
     }
 
-    public void addInheritance(String derivedClassName, String baseClassName) {
+    public void addGeneralization(String derivedClassName, String baseClassName) {
         Optional<CppFile> derivedFileOpt = findHeaderFileByClassName(derivedClassName);
 
         if (derivedFileOpt.isEmpty())
@@ -354,7 +357,7 @@ public class CppModel {
 
         try {
             CppFile derivedFile = derivedFileOpt.get();
-            String newCode = translator.addInheritance(derivedFile.getCode(), derivedClassName, baseClassName);
+            String newCode = translator.addGeneralization(derivedFile.getCode(), derivedClassName, baseClassName);
             derivedFile.updateCode(newCode);
             notifyFileUpdated(derivedFile);
         } catch (Exception e) {
@@ -381,48 +384,11 @@ public class CppModel {
 
         try {
             CppFile sourceFile = sourceFileOpt.get();
-            CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
-            CppHeaderClass interfaceClass = interfaceFileOpt.get().getHeaderClasses().get(0);
 
-            String newCode = translator.addInheritance(
+            String newCode = translator.addRealization(
                     sourceFile.getCode(), sourceClassName,
                     interfaceName);
 
-            List<String> lines = new ArrayList<>(Arrays.asList(newCode.split("\n")));
-            int classStart = -1;
-            int classEnd = findClassEndPosition(lines);
-
-            for (int i = 0; i < lines.size(); i++) {
-                if (lines.get(i).contains("class " + sourceClassName)) {
-                    classStart = i;
-                    break;
-                }
-            }
-
-            for (Operation op : interfaceClass.getOperationList()) {
-                // 重複チェック
-                if (isDuplicateMethod(op, lines, classStart, classEnd)) {
-                    System.out.println("Skipping duplicate method: " + op.getName().getNameText());
-                    continue;
-                }
-
-                Operation implementedOp = new Operation(op.getName());
-                implementedOp.setReturnType(op.getReturnType());
-                implementedOp.setVisibility(Visibility.Public);
-                implementedOp.setParameters(new ArrayList<>()); // 空のパラメータリストで初期化
-
-                // 安全にパラメータを取得してコピー
-                List<Parameter> params = safeGetParameters(op);
-                for (Parameter param : params) {
-                    implementedOp.addParameter(param);
-                }
-
-                System.out.println("Adding method: " + implementedOp.getName().getNameText());
-                sourceClass.addMemberModifier(implementedOp.getName().getNameText(), Modifier.OVERRIDE);
-                newCode = translator.addOperation(newCode, sourceClass, implementedOp);
-            }
-
-            // sourceClass.getRelationshipManager().addRealization(interfaceName);
             sourceFile.updateCode(newCode);
             notifyFileUpdated(sourceFile);
         } catch (Exception e) {
@@ -456,12 +422,6 @@ public class CppModel {
                     memberName,
                     visibility);
 
-            ownerClass.getRelationshipManager().addComposition(
-                    componentClassName,
-                    memberName,
-                    "1",
-                    visibility);
-
             ownerFile.updateCode(newCode);
             notifyFileUpdated(ownerFile);
         } catch (Exception e) {
@@ -478,52 +438,17 @@ public class CppModel {
             CppFile ownerFile = ownerFileOpt.get();
             CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
 
-            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String memberName = componentClassName.toLowerCase() + "compositionPtr";
             String newCode = translator.addCompositionWithAnnotation(
                     ownerFile.getCode(),
                     componentClassName,
                     memberName,
                     visibility);
 
-            ownerClass.getRelationshipManager().addComposition(
-                    componentClassName,
-                    memberName,
-                    "1",
-                    visibility);
-
             ownerFile.updateCode(newCode);
             notifyFileUpdated(ownerFile);
         } catch (Exception e) {
             System.err.println("Failed to add annotated composition: " + e.getMessage());
-        }
-    }
-
-    public void addAggregation(String ownerClassName, String componentClassName, Visibility visibility) {
-        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
-        if (ownerFileOpt.isEmpty())
-            return;
-
-        try {
-            CppFile ownerFile = ownerFileOpt.get();
-            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
-
-            String memberName = componentClassName.toLowerCase() + "Ptr";
-            String newCode = translator.addAggregation(
-                    ownerFile.getCode(),
-                    componentClassName,
-                    memberName,
-                    visibility);
-
-            ownerClass.getRelationshipManager().addAggregation(
-                    componentClassName,
-                    memberName,
-                    "1",
-                    visibility);
-
-            ownerFile.updateCode(newCode);
-            notifyFileUpdated(ownerFile);
-        } catch (Exception e) {
-            System.err.println("Failed to add aggregation: " + e.getMessage());
         }
     }
 
@@ -536,17 +461,11 @@ public class CppModel {
             CppFile ownerFile = ownerFileOpt.get();
             CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
 
-            String memberName = componentClassName.toLowerCase() + "Ptr";
+            String memberName = componentClassName.toLowerCase() + "aggregationPtr";
             String newCode = translator.addAggregationWithAnnotation(
                     ownerFile.getCode(),
                     componentClassName,
                     memberName,
-                    visibility);
-
-            ownerClass.getRelationshipManager().addAggregation(
-                    componentClassName,
-                    memberName,
-                    "1",
                     visibility);
 
             ownerFile.updateCode(newCode);
@@ -565,17 +484,11 @@ public class CppModel {
             CppFile sourceFile = sourceFileOpt.get();
             CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
 
-            String memberName = targetClassName.toLowerCase() + "Ptr";
+            String memberName = targetClassName.toLowerCase() + "associationPtr";
             String newCode = translator.addAssociation(
                     sourceFile.getCode(),
                     targetClassName,
                     memberName,
-                    visibility);
-
-            sourceClass.getRelationshipManager().addAssociation(
-                    targetClassName,
-                    memberName,
-                    "1",
                     visibility);
 
             sourceFile.updateCode(newCode);
@@ -583,50 +496,6 @@ public class CppModel {
         } catch (Exception e) {
             System.err.println("Failed to add association: " + e.getMessage());
         }
-    }
-
-    private boolean isDuplicateMethod(Operation newOp, List<String> lines, int startLine, int endLine) {
-        // メソッドのシグネチャを作成
-        String signature = getMethodSignature(newOp);
-        System.out.println("Checking for duplicate: " + signature);
-
-        // 既存のコードで同じシグネチャを持つメソッドを探す
-        for (int i = startLine; i < endLine; i++) {
-            String line = lines.get(i).trim();
-            if (line.endsWith(";") && line.contains("(")) {
-                // 既存メソッドのシグネチャを抽出して比較
-                String existingMethod = line.substring(0, line.indexOf(";"))
-                        .replaceAll("\\s+", "")
-                        .replaceAll("override", "")
-                        .replaceAll("virtual", "");
-                System.out.println("Comparing with: " + existingMethod);
-
-                if (existingMethod.contains(signature)) {
-                    System.out.println("Found duplicate: " + existingMethod);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private String getMethodSignature(Operation op) {
-        StringBuilder signature = new StringBuilder();
-        signature.append(op.getReturnType().toString())
-                .append(op.getName().getNameText())
-                .append("(");
-
-        List<Parameter> params = safeGetParameters(op);
-        if (!params.isEmpty()) {
-            List<String> paramTypes = new ArrayList<>();
-            for (Parameter param : params) {
-                paramTypes.add(param.getType().toString());
-            }
-            signature.append(String.join(",", paramTypes));
-        }
-        signature.append(")");
-
-        return signature.toString().replaceAll("\\s+", "");
     }
 
     public void removeInheritance(String className, String baseClassName) {
@@ -651,7 +520,7 @@ public class CppModel {
 
         try {
             CppFile headerFile = headerFileOpt.get();
-            String newCode = translator.removeInheritance(headerFile.getCode(), interfaceName);
+            String newCode = translator.removeRealization(headerFile.getCode(), interfaceName);
             headerFile.updateCode(newCode);
             notifyFileUpdated(headerFile);
         } catch (Exception e) {

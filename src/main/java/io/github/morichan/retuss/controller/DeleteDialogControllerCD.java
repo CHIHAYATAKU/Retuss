@@ -294,7 +294,7 @@ public class DeleteDialogControllerCD {
             if (params != null && !params.isEmpty()) {
                 List<String> paramStrings = new ArrayList<>();
                 for (Parameter param : params) {
-                    paramStrings.add(param.getType().toString() + " " + param.getName().getNameText());
+                    paramStrings.add(param.getName().getNameText() + " : " + param.getType().toString());
                 }
                 sb.append(String.join(", ", paramStrings));
             }

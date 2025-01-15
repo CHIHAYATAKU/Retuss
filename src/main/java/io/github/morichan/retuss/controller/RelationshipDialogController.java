@@ -42,10 +42,10 @@ public class RelationshipDialogController {
             "Composition", "Generalization");
     private final List<String> cppRelationshipTypes = Arrays.asList(
             "Composition (Value Type)",
-            "Composition with Annotation",
+            "Composition (Pointer & Annotation)",
             "Association (Pointer)",
-            "Aggregation with Annotation",
-            "Inheritance",
+            "Aggregation (Pointer & Annotation)",
+            "Generalization",
             "Realization");
 
     public void initialize() {
@@ -121,7 +121,7 @@ public class RelationshipDialogController {
         if (selectedType.contains("Composition") || selectedType.equals("Composition")) {
             imageName = "composition.png";
         } else if (selectedType.equals("Generalization") ||
-                selectedType.contains("Inheritance")) {
+                selectedType.contains("Generalization")) {
             imageName = "generalization.png";
         } else if (selectedType.contains("Association")) {
             imageName = "association.png";
@@ -136,7 +136,7 @@ public class RelationshipDialogController {
         relationshipImageView.setImage(new Image(imageName));
 
         if (umlController != null && umlController.isCppSelected()) {
-            boolean needsVisibility = !selectedType.equals("Inheritance") &&
+            boolean needsVisibility = !selectedType.equals("Generalization") &&
                     !selectedType.equals("Realization");
             visibilityComboBox.setVisible(needsVisibility);
 
@@ -187,17 +187,17 @@ public class RelationshipDialogController {
             case "Composition (Value Type)":
                 cppModel.addComposition(sourceClass, targetClass, visibility);
                 break;
-            case "Composition with Annotation":
+            case "Composition (Pointer & Annotation)":
                 cppModel.addCompositionWithAnnotation(sourceClass, targetClass, visibility);
                 break;
             case "Association (Pointer)":
                 cppModel.addAssociation(sourceClass, targetClass, visibility);
                 break;
-            case "Aggregation with Annotation":
+            case "Aggregation (Pointer & Annotation)":
                 cppModel.addAggregationWithAnnotation(sourceClass, targetClass, visibility);
                 break;
-            case "Inheritance":
-                cppModel.addInheritance(sourceClass, targetClass);
+            case "Generalization":
+                cppModel.addGeneralization(sourceClass, targetClass);
                 break;
             case "Realization":
                 cppModel.addRealization(sourceClass, targetClass);

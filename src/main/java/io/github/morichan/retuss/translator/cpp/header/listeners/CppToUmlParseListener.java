@@ -14,7 +14,6 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
     private final List<IAnalyzer> analyzers;
     private final AnalyzerContext context;
     private final List<CppHeaderClass> extractedHeaderClasses;
-    private CppHeaderClass currentProcessingClass;
     private final boolean isHeaderFile;
 
     public CppToUmlParseListener(boolean isHeaderFile) {
@@ -54,7 +53,7 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
         System.out.println("DEBUG: Entering class specifier");
 
         // 現在解析中のクラスを保持
-        currentProcessingClass = context.getCurrentHeaderClass();
+        context.setOuterClass(context.getCurrentHeaderClass());
 
         for (IAnalyzer analyzer : analyzers) {
             if (analyzer.appliesTo(ctx)) {
@@ -77,8 +76,8 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
     public void exitClassSpecifier(CPP14Parser.ClassSpecifierContext ctx) {
         System.out.println("DEBUG: Exiting class specifier");
         // 親クラスの処理に戻る
-        if (currentProcessingClass != null) {
-            context.setCurrentHeaderClass(currentProcessingClass);
+        if (context.getOuterClass() != null) {
+            context.setCurrentHeaderClass(context.getOuterClass());
         }
     }
 
@@ -87,7 +86,7 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
         System.out.println("DEBUG: Entering enum specifier");
 
         // 現在解析中のクラスを保持
-        currentProcessingClass = context.getCurrentHeaderClass();
+        context.setOuterClass(context.getCurrentHeaderClass());
 
         for (IAnalyzer analyzer : analyzers) {
             if (analyzer.appliesTo(ctx)) {
@@ -110,8 +109,8 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
     public void exitEnumSpecifier(CPP14Parser.EnumSpecifierContext ctx) {
         System.out.println("DEBUG: Exiting class specifier");
         // 親クラスの処理に戻る
-        if (currentProcessingClass != null) {
-            context.setCurrentHeaderClass(currentProcessingClass);
+        if (context.getOuterClass() != null) {
+            context.setCurrentHeaderClass(context.getOuterClass());
         }
     }
 

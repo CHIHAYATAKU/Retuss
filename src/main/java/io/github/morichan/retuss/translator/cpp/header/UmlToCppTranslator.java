@@ -261,62 +261,67 @@ public class UmlToCppTranslator {
         return builder.toString();
     }
 
-    public String addRealization(String existingCode, String interfaceName) {
+    public String addRealization(String existingCode, String derivedClassName, String interfaceName) {
         try {
-            List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
+            return addGeneralization(existingCode, derivedClassName, derivedClassName);
+            // List<String> lines = new
+            // ArrayList<>(Arrays.asList(existingCode.split("\n")));
 
-            // クラス定義行を見つける
-            int classDefLine = -1;
-            String className = ""; // クラス名は既存のコードから抽出
-            Pattern classPattern = Pattern.compile("class\\s+(\\w+)");
+            // // クラス定義行を見つける
+            // int classDefLine = -1;
+            // String className = ""; // クラス名は既存のコードから抽出
+            // Pattern classPattern = Pattern.compile("class\\s+(\\w+)");
 
-            for (int i = 0; i < lines.size(); i++) {
-                Matcher matcher = classPattern.matcher(lines.get(i));
-                if (matcher.find()) {
-                    className = matcher.group(1);
-                    classDefLine = i;
-                    break;
-                }
-            }
+            // for (int i = 0; i < lines.size(); i++) {
+            // Matcher matcher = classPattern.matcher(lines.get(i));
+            // if (matcher.find()) {
+            // className = matcher.group(1);
+            // classDefLine = i;
+            // break;
+            // }
+            // }
 
-            if (classDefLine == -1)
-                return existingCode;
-            // 継承関係の追加
-            String currentLine = lines.get(classDefLine);
-            if (currentLine.contains(":")) {
-                int colonPos = currentLine.indexOf(":");
-                String beforeColon = currentLine.substring(0, colonPos + 1);
-                String afterColon = currentLine.substring(colonPos + 1);
-                lines.set(classDefLine, beforeColon + " public " + interfaceName + "," + afterColon);
-            } else {
-                lines.set(classDefLine, currentLine.replace("{", ": public " + interfaceName + " {"));
-            }
+            // if (classDefLine == -1)
+            // return existingCode;
+            // // 継承関係の追加
+            // String currentLine = lines.get(classDefLine);
+            // if (currentLine.contains(":")) {
+            // int colonPos = currentLine.indexOf(":");
+            // String beforeColon = currentLine.substring(0, colonPos + 1);
+            // String afterColon = currentLine.substring(colonPos + 1);
+            // lines.set(classDefLine, beforeColon + " public " + interfaceName + "," +
+            // afterColon);
+            // } else {
+            // lines.set(classDefLine, currentLine.replace("{", ": public " + interfaceName
+            // + " {"));
+            // }
 
-            // インターフェースのメソッドを取得して追加
-            Optional<CppHeaderClass> interfaceClass = CppModel.getInstance().findClass(interfaceName);
-            if (interfaceClass.isPresent()) {
-                // publicセクションを探す
-                int publicSection = findInsertPositionForOperation(lines, Visibility.Public);
+            // // インターフェースのメソッドを取得して追加
+            // Optional<CppHeaderClass> interfaceClass =
+            // CppModel.getInstance().findClass(interfaceName);
+            // if (interfaceClass.isPresent()) {
+            // // publicセクションを探す
+            // int publicSection = findInsertPositionForOperation(lines, Visibility.Public);
 
-                // 各メソッドを追加
-                for (Operation op : interfaceClass.get().getOperationList()) {
-                    StringBuilder methodBuilder = new StringBuilder();
-                    methodBuilder.append("    ").append(op.getReturnType()).append(" ");
-                    methodBuilder.append(op.getName().getNameText()).append("(");
+            // // 各メソッドを追加
+            // for (Operation op : interfaceClass.get().getOperationList()) {
+            // StringBuilder methodBuilder = new StringBuilder();
+            // methodBuilder.append(" ").append(op.getReturnType()).append(" ");
+            // methodBuilder.append(op.getName().getNameText()).append("(");
 
-                    // パラメータリストの構築
-                    List<String> params = new ArrayList<>();
-                    for (Parameter param : op.getParameters()) {
-                        params.add(param.getType() + " " + param.getName().getNameText());
-                    }
-                    methodBuilder.append(String.join(", ", params));
-                    methodBuilder.append(") override;");
+            // // パラメータリストの構築
+            // List<String> params = new ArrayList<>();
+            // for (Parameter param : op.getParameters()) {
+            // params.add(param.getType() + " " + param.getName().getNameText());
+            // }
+            // methodBuilder.append(String.join(", ", params));
+            // methodBuilder.append(") override;");
 
-                    lines.add(publicSection + 1, methodBuilder.toString());
-                }
-            }
+            // lines.add(publicSection + 1, methodBuilder.toString());
+            // }
+            // }
 
-            return String.join("\n", lines);
+            // return String.join("\n", lines);
         } catch (Exception e) {
             System.err.println("Failed to add realization: " + e.getMessage());
             return existingCode;
@@ -340,7 +345,7 @@ public class UmlToCppTranslator {
         return false;
     }
 
-    public String addInheritance(String existingCode, String derivedClassName, String baseClassName) {
+    public String addGeneralization(String existingCode, String derivedClassName, String baseClassName) {
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
 
@@ -438,23 +443,6 @@ public class UmlToCppTranslator {
         }
     }
 
-    public String addAggregation(String existingCode, String componentName,
-            String memberName, Visibility visibility) {
-        try {
-            List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
-            int insertPosition = findInsertPositionForAttribute(lines, visibility);
-
-            String declaration = "    std::shared_ptr<" + componentName + "> " + memberName + ";";
-            lines.add(insertPosition + 1, declaration);
-
-            lines.add(0, "#include <memory>");
-            return String.join("\n", lines);
-        } catch (Exception e) {
-            System.err.println("Failed to add aggregation: " + e.getMessage());
-            return existingCode;
-        }
-    }
-
     public String addAggregationWithAnnotation(String existingCode, String componentName,
             String memberName, Visibility visibility) {
         try {
@@ -464,10 +452,9 @@ public class UmlToCppTranslator {
             // アノテーションの追加
             lines.add(insertPosition + 1, "    // @relationship aggregation");
             // メンバ変数の追加（shared_ptr使用）
-            String declaration = "    std::shared_ptr<" + componentName + "> " + memberName + ";";
+            String declaration = "    " + componentName + "* " + memberName + ";";
             lines.add(insertPosition + 2, declaration);
 
-            lines.add(0, "#include <memory>"); // shared_ptr用
             return String.join("\n", lines);
         } catch (Exception e) {
             System.err.println("Failed to add aggregation with annotation: " + e.getMessage());
@@ -501,6 +488,10 @@ public class UmlToCppTranslator {
             }
         }
         return String.join("\n", lines);
+    }
+
+    public String removeRealization(String existingCode, String interfaceName) {
+        return removeInheritance(existingCode, interfaceName);
     }
 
     public String removeInheritance(String existingCode, String baseClassName) {
@@ -547,16 +538,16 @@ public class UmlToCppTranslator {
                 }
             }
 
-            // インクルードの削除
-            // まずインクルードを見つける
-            for (int i = lines.size() - 1; i >= 0; i--) {
-                String line = lines.get(i).trim();
-                if (line.equals("#include \"" + baseClassName + ".h\"")) {
-                    System.out.println("Removing include line: " + line);
-                    lines.remove(i);
-                    break;
-                }
-            }
+            // // インクルードの削除
+            // // まずインクルードを見つける
+            // for (int i = lines.size() - 1; i >= 0; i--) {
+            // String line = lines.get(i).trim();
+            // if (line.equals("#include \"" + baseClassName + ".h\"")) {
+            // System.out.println("Removing include line: " + line);
+            // lines.remove(i);
+            // break;
+            // }
+            // }
 
             String result = String.join("\n", lines);
             System.out.println("Inheritance removal completed");

@@ -6,6 +6,7 @@ import io.github.morichan.retuss.translator.cpp.header.util.*;
 import java.util.*;
 
 public class AnalyzerContext {
+    private CppHeaderClass outerClass;
     private CppHeaderClass currentHeaderClass;
     private String currentNamespace = "";
     private String currentVisibility = "private";
@@ -20,6 +21,14 @@ public class AnalyzerContext {
         if (currentHeaderClass != null) {
             currentHeaderClass.setNamespace(namespace);
         }
+    }
+
+    public void setOuterClass(CppHeaderClass cls) {
+        outerClass = cls;
+    }
+
+    public CppHeaderClass getOuterClass() {
+        return outerClass;
     }
 
     public String getCurrentNamespace() {
