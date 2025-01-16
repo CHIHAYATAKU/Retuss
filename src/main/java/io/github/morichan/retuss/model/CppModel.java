@@ -572,9 +572,9 @@ public class CppModel {
             for (RelationshipInfo relation : cppHeaderClass.getRelationships()) {
                 System.out.println("    " + relation.getTargetClass() +
                         " (" + relation.getType() + ")");
-
-                System.out.println("      - " + relation.getElement().getName() +
-                        " [" + relation.getElement().getMultiplicity() + "]");
+                if (relation.getElement() != null)
+                    System.out.println("      - " + relation.getElement().getName() +
+                            " [" + relation.getElement().getMultiplicity() + "]");
             }
         }
         return Collections.unmodifiableList(allClasses);

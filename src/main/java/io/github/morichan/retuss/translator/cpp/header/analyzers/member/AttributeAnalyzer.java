@@ -13,6 +13,7 @@ import io.github.morichan.retuss.translator.cpp.header.analyzers.base.AbstractAn
 import io.github.morichan.retuss.translator.cpp.header.util.CollectionTypeInfo;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -39,12 +40,60 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
 
         try {
-            Set<Modifier> modifiers = extractModifiers(ctx.declSpecifierSeq());
-            String typeName = extractTypeName(ctx.declSpecifierSeq());
+            Boolean isPointer = false;
+            Boolean isRef = false;
             if (ctx.memberDeclaratorList() != null) {
-                for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
-                    handleAttribute(memberDec, typeName, modifiers);
+                var memberDec = ctx.memberDeclaratorList().memberDeclarator(0);
+                // 属性名の抽出
+                String attributeName = memberDec.declarator().pointerDeclarator().noPointerDeclarator()
+                        .declaratorid().idExpression().unqualifiedId().getText();
+                // もしすでに同じ属性名の属性があれば処理を中断
+                if (currentHeaderClass.getAttributeList().stream()
+                        .anyMatch(attr -> attr.getName().getNameText().equals(attributeName))) {
+                    return;
                 }
+
+                // ポインタか参照の抽出
+                if (memberDec.declarator().pointerDeclarator().pointerOperator() != null) {
+                    String pointerOpe = memberDec.declarator().pointerDeclarator().pointerOperator().toString();
+                    if (pointerOpe.equals("*")) {
+                        isPointer = true;
+                    } else if (pointerOpe.equals("&")) {
+                        isRef = true;
+                    }
+                }
+                // 初期値の抽出
+                String defaultValue = extractInitialValue(memberDec);
+
+                // 修飾子の抽出
+                Set<Modifier> modifiers = extractModifiers(ctx.declSpecifierSeq());
+
+                // 型と関係性抽出
+                Object[] result = processTypeAndRelationship(ctx.declSpecifierSeq(), isPointer, isRef,
+                        currentHeaderClass, attributeName,
+                        this.context.getCurrentVisibility());
+
+                // Attributeの生成と追加
+                if (result != null) {
+                    String typeName = (String) result[0];
+                    Attribute attribute = new Attribute(new Name(attributeName));
+                    attribute.setVisibility(convertVisibility(this.context.getCurrentVisibility()));
+                    attribute.setType(new Type(typeName));
+                    if (defaultValue != null)
+                        attribute.setDefaultValue(new DefaultValue(new OneIdentifier(defaultValue)));
+                    currentHeaderClass.addAttribute(attribute);
+
+                    // 修飾子の追加
+                    for (Modifier modifier : modifiers) {
+                        currentHeaderClass.addMemberModifier(attributeName, modifier);
+                    }
+                    // 関係性があれば追加
+                    if (result[1] != null) {
+                        RelationshipInfo relationshipInfo = (RelationshipInfo) result[1];
+                        currentHeaderClass.addRelationship(relationshipInfo);
+                    }
+                }
+
             }
         } catch (Exception e) {
             System.err.println("Error in attribute analysis: " + e.getMessage());
@@ -52,63 +101,68 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
     }
 
-    private void handleAttribute(
-            CPP14Parser.MemberDeclaratorContext memberDec,
-            String type,
-            Set<Modifier> modifiers) {
+    // private void handleAttribute(
+    // CPP14Parser.MemberDeclaratorContext memberDec,
+    // String type,
+    // Set<Modifier> modifiers) {
 
-        CppHeaderClass currentHeaderClass = context.getCurrentHeaderClass();
-        String attributeName = cleanName(extractAttributeName(memberDec.declarator()));
-        String initialValueStr = extractInitialValue(memberDec);
-        System.err.println("DEBUG: InitialValue of -> " + attributeName + " = " + initialValueStr);
+    // CppHeaderClass currentHeaderClass = context.getCurrentHeaderClass();
+    // String attributeName =
+    // cleanName(extractAttributeName(memberDec.declarator()));
+    // String initialValueStr = extractInitialValue(memberDec);
+    // System.err.println("DEBUG: InitialValue of -> " + attributeName + " = " +
+    // initialValueStr);
 
-        if (currentHeaderClass.getAttributeList().stream()
-                .anyMatch(attr -> attr.getName().getNameText().equals(attributeName))) {
-            return;
-        }
+    // if (currentHeaderClass.getAttributeList().stream()
+    // .anyMatch(attr -> attr.getName().getNameText().equals(attributeName))) {
+    // return;
+    // }
 
-        Attribute attribute = new Attribute(new Name(attributeName));
-        attribute.setType(new Type(processAttributeType(type, memberDec.declarator())));
-        attribute.setVisibility(convertVisibility(context.getCurrentVisibility()));
-        // 初期値の設定
-        if (initialValueStr != null) {
-            // 数値の場合
-            if (initialValueStr.matches("-?\\d+(\\.\\d+)?")) {
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            // 文字列の場合
-            else if (initialValueStr.startsWith("\"") && initialValueStr.endsWith("\"")) {
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            // メソッド呼び出しや式の場合
-            else if (initialValueStr.contains("(") || initialValueStr.contains("+") ||
-                    initialValueStr.contains("-") || initialValueStr.contains("*") ||
-                    initialValueStr.contains("/")) {
-                // とりあえず単純な識別子として処理
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            // その他の場合（変数名など）
-            else {
-                attribute.setDefaultValue(new DefaultValue(new OneIdentifier(initialValueStr)));
-            }
-            System.out.println("Debug - Attribute: " + attributeName);
-            System.out.println("  - Type: " + attribute.getType().toString());
-            System.out.println("  - Default Value: " + attribute.getDefaultValue());
-            System.out.println("  - Default Value Class: " + attribute.getDefaultValue().getClass());
-        }
+    // Attribute attribute = new Attribute(new Name(attributeName));
+    // attribute.setType(new Type(type));
+    // attribute.setVisibility(convertVisibility(context.getCurrentVisibility()));
+    // // 初期値の設定
+    // if (initialValueStr != null) {
+    // // 数値の場合
+    // if (initialValueStr.matches("-?\\d+(\\.\\d+)?")) {
+    // attribute.setDefaultValue(new DefaultValue(new
+    // OneIdentifier(initialValueStr)));
+    // }
+    // // 文字列の場合
+    // else if (initialValueStr.startsWith("\"") && initialValueStr.endsWith("\""))
+    // {
+    // attribute.setDefaultValue(new DefaultValue(new
+    // OneIdentifier(initialValueStr)));
+    // }
+    // // メソッド呼び出しや式の場合
+    // else if (initialValueStr.contains("(") || initialValueStr.contains("+") ||
+    // initialValueStr.contains("-") || initialValueStr.contains("*") ||
+    // initialValueStr.contains("/")) {
+    // // とりあえず単純な識別子として処理
+    // attribute.setDefaultValue(new DefaultValue(new
+    // OneIdentifier(initialValueStr)));
+    // }
+    // // その他の場合（変数名など）
+    // else {
+    // attribute.setDefaultValue(new DefaultValue(new
+    // OneIdentifier(initialValueStr)));
+    // }
+    // System.out.println("Debug - Attribute: " + attributeName);
+    // System.out.println(" - Type: " + attribute.getType().toString());
+    // System.out.println(" - Default Value: " + attribute.getDefaultValue());
+    // System.out.println(" - Default Value Class: " +
+    // attribute.getDefaultValue().getClass());
+    // }
 
-        currentHeaderClass.addAttribute(attribute);
-        for (Modifier modifier : modifiers) {
-            currentHeaderClass.addMemberModifier(attributeName, modifier);
-        }
+    // currentHeaderClass.addAttribute(attribute);
+    // for (Modifier modifier : modifiers) {
+    // currentHeaderClass.addMemberModifier(attributeName, modifier);
+    // }
 
-        // 型の関係解析
-        analyzeAttributeTypeRelationship(type, memberDec.declarator(), attributeName, memberDec);
-    }
-
-    private String cleanName(String name) {
-        return name.replaceAll("[*&]", "").trim();
-    }
+    // // 型の関係解析
+    // analyzeAttributeTypeRelationship(type, memberDec.declarator(), attributeName,
+    // memberDec);
+    // }
 
     private String extractInitialValue(CPP14Parser.MemberDeclaratorContext memberDec) {
         try {
@@ -250,23 +304,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private String determineCollectionMultiplicity(String type, String declaratorText) {
-        // array<Type, N> の場合はサイズを抽出
-        if (type.contains("array<")) {
-            try {
-                String size = type.replaceAll(".*,\\s*(\\d+)\\s*>.*", "$1");
-                if (size.matches("\\d+")) {
-                    return size;
-                }
-            } catch (Exception e) {
-                System.err.println("Error extracting array size: " + e.getMessage());
-            }
-        }
-
-        // それ以外のコレクション型は "*"
-        return "*";
     }
 
     private RelationType determineRelationshipType(String type,
@@ -456,230 +493,157 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return type.substring(start, end).trim().replaceAll("std::", "");
     }
 
-    private List<String> extractTemplateTypes(String type) {
-        List<String> types = new ArrayList<>();
-        int start = type.indexOf('<');
-        int end = type.lastIndexOf('>');
-
-        if (start != -1 && end != -1) {
-            String inner = type.substring(start + 1, end);
-            String[] params = inner.split(",");
-            for (String param : params) {
-                types.add(param.trim());
-            }
-        }
-        return types;
-    }
-
     private Set<Modifier> extractModifiers(CPP14Parser.DeclSpecifierSeqContext ctx) {
         Set<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
+        if (ctx == null || ctx.declSpecifier() == null)
+            return modifiers;
 
         for (CPP14Parser.DeclSpecifierContext spec : ctx.declSpecifier()) {
             // ストレージクラス指定子の処理
             if (spec.storageClassSpecifier() != null) {
                 String storage = spec.storageClassSpecifier().getText();
-                processStorageClassSpecifier(storage, modifiers);
+                switch (storage) {
+                    case "static":
+                        modifiers.add(Modifier.STATIC);
+                        break;
+                    case "mutable":
+                        modifiers.add(Modifier.MUTABLE);
+                        break;
+                    default:
+                        break;
+                }
+                continue;
             }
             // 型指定子の処理
-            else if (spec.typeSpecifier() != null) {
-                processTypeSpecifier(spec.typeSpecifier(), modifiers);
+            if (spec.typeSpecifier() != null && spec.typeSpecifier().trailingTypeSpecifier() != null
+                    && spec.typeSpecifier()
+                            .trailingTypeSpecifier().cvQualifier() != null) {
+                String typeSpecifier = spec.typeSpecifier().trailingTypeSpecifier().cvQualifier().getText();
+                if ("const".equals(typeSpecifier)) {
+                    modifiers.add(Modifier.READONLY);
+                }
+                continue;
             }
             // その他の指定子（constexpr等）
-            else {
-                processOtherSpecifier(spec.getText(), modifiers);
+            if (spec != null && spec.getText().equals("constexpr")) {
+                modifiers.add(Modifier.READONLY);
             }
         }
         return modifiers;
     }
 
-    private void processStorageClassSpecifier(String specifier, Set<Modifier> modifiers) {
-        switch (specifier) {
-            case "static":
-                modifiers.add(Modifier.STATIC);
-                break;
-            case "mutable":
-                modifiers.add(Modifier.MUTABLE);
-                break;
-        }
-    }
+    private Object[] processTypeAndRelationship(
+            CPP14Parser.DeclSpecifierSeqContext ctx,
+            Boolean isPointer,
+            Boolean isRef,
+            CppHeaderClass currentClass,
+            String attributeName,
+            String currentVisibility) {
 
-    private void processTypeSpecifier(CPP14Parser.TypeSpecifierContext spec, Set<Modifier> modifiers) {
-        if (spec.trailingTypeSpecifier() != null) {
-            // const/volatile修飾子の確認
-            if (spec.trailingTypeSpecifier().cvQualifier() != null) {
-                String cv = spec.trailingTypeSpecifier().cvQualifier().getText();
-                if ("const".equals(cv)) {
-                    modifiers.add(Modifier.READONLY);
-                }
-            }
-        }
-    }
-
-    private void processOtherSpecifier(String specifier, Set<Modifier> modifiers) {
-        switch (specifier) {
-            case "constexpr":
-                modifiers.add(Modifier.READONLY);
-                break;
-            case "volatile":
-                modifiers.add(Modifier.VOLATILE);
-                break;
-            case "virtual":
-                modifiers.add(Modifier.VIRTUAL);
-                break;
-        }
-    }
-
-    private String extractTypeName(CPP14Parser.DeclSpecifierSeqContext ctx) {
-        StringBuilder type = new StringBuilder();
+        if (ctx == null || ctx.declSpecifier() == null)
+            return new Object[] { null };
 
         for (CPP14Parser.DeclSpecifierContext spec : ctx.declSpecifier()) {
-            String specText = spec.getText();
-            System.out.println("DEBUG: Processing type specifier: " + specText);
-            if (spec.typeSpecifier() != null) {
-                var typeSpec = spec.typeSpecifier();
+            if (spec.typeSpecifier() == null)
+                continue;
 
-                // enumで始まる型名の特別処理
-                if (specText.startsWith("enum")) {
-                    String enumTypeName = specText.substring(4); // "enum"の4文字を除去
-                    type.append(enumTypeName);
-                    continue;
+            var typeSpec = spec.typeSpecifier();
+            if (typeSpec.trailingTypeSpecifier() == null)
+                continue;
+
+            var trailing = typeSpec.trailingTypeSpecifier();
+            if (trailing.simpleTypeSpecifier() == null)
+                continue;
+
+            var simple = trailing.simpleTypeSpecifier();
+
+            // // テンプレート型のからの関係抽出
+            // if (simple.theTypeName() != null && simple.theTypeName().simpleTemplateId()
+            // != null) {
+            // var templateId = simple.theTypeName().simpleTemplateId();
+            // String extractedTypeName = templateId.getText();
+
+            // // テンプレート引数からの関係抽出取得（一次元のみ対象）
+            // if (templateId.templateArgumentList() != null &&
+            // templateId.templateArgumentList().templateArgument() != null) {
+
+            // var firstTempArg = templateId.templateArgumentList().templateArgument(0);
+            // var firstTypeSpec =
+            // firstTempArg.theTypeId().typeSpecifierSeq().typeSpecifier(0);
+
+            // if (firstTypeSpec.trailingTypeSpecifier().simpleTypeSpecifier().theTypeName()
+            // != null
+            // && firstTypeSpec.trailingTypeSpecifier()
+            // .simpleTypeSpecifier().theTypeName().className() != null) {
+
+            // // 関係先クラス名
+            // String targetClassName = firstTypeSpec.trailingTypeSpecifier()
+            // .simpleTypeSpecifier().theTypeName().className().getText();
+
+            // // 関係性の判定（ポインタ/参照の要素の場合はASSOCIATION）
+            // String pointerOpe = "";
+            // if (firstTempArg.theTypeId().abstractDeclarator() != null) {
+            // pointerOpe = firstTempArg.theTypeId().abstractDeclarator()
+            // .pointerAbstractDeclarator().pointerOperator(0).getText();
+            // }
+
+            // RelationType relationType = pointerOpe.equals("*") || pointerOpe.equals("&")
+            // ? RelationType.ASSOCIATION
+            // : RelationType.COMPOSITION;
+
+            // System.err.println("DEBUG: targetClassName : " + targetClassName);
+            // // 関係性の追加
+            // RelationshipInfo relation = new RelationshipInfo(targetClassName,
+            // relationType);
+            // relation.setElement(
+            // attributeName,
+            // ElementType.ATTRIBUTE,
+            // "*", // コレクション型なので多重度は*
+            // convertVisibility(currentVisibility));
+
+            // return new Object[] { extractedTypeName, relation };
+            // }
+            // }
+            // } else
+            if (simple.theTypeName() != null && simple.theTypeName().className() != null) { // 普通のユーザ宣言の場合
+                // ユーザ定義型名
+                String extractedTypeName = simple.theTypeName().className().getText();
+
+                // 関係性の判定（ポインタ/参照の要素の場合はASSOCIATION）
+                RelationType relationType = isPointer || isRef
+                        ? RelationType.ASSOCIATION
+                        : RelationType.COMPOSITION;
+
+                // 関係性の追加
+                RelationshipInfo relation = new RelationshipInfo(extractedTypeName,
+                        relationType);
+                if (isPointer) {
+                    relation.setElement(
+                            attributeName,
+                            ElementType.ATTRIBUTE,
+                            "0..1",
+                            convertVisibility(currentVisibility));
+                } else if (isRef) {
+                    relation.setElement(
+                            attributeName,
+                            ElementType.ATTRIBUTE,
+                            "1",
+                            convertVisibility(currentVisibility));
+                } else {
+                    relation.setElement(
+                            attributeName,
+                            ElementType.ATTRIBUTE,
+                            "1",
+                            convertVisibility(currentVisibility));
                 }
-                // 通常の型指定子の処理
-                if (typeSpec.trailingTypeSpecifier() != null) {
-                    processTrailingTypeSpecifier(typeSpec.trailingTypeSpecifier(), type);
-                }
-            }
-            // デバッグ出力
-            System.out.println("DEBUG: Processing type specifier: " + spec.getText());
-        }
 
-        String result = type.toString().trim();
-        System.out.println("DEBUG: Extracted type name: " + result);
-        return result;
-    }
-
-    private void processTrailingTypeSpecifier(CPP14Parser.TrailingTypeSpecifierContext ctx, StringBuilder type) {
-        if (ctx.simpleTypeSpecifier() != null) {
-            var simple = ctx.simpleTypeSpecifier();
-
-            // 名前空間の処理
-            if (simple.nestedNameSpecifier() != null) {
-                type.append(simple.nestedNameSpecifier().getText());
-            }
-
-            // 基本型かユーザー定義型の処理
-            if (simple.theTypeName() != null) {
-                type.append(simple.theTypeName().getText());
+                return new Object[] { extractedTypeName, relation };
             } else {
-                // int, double などの基本型の処理
-                String basicType = simple.getText().trim();
-                if (!basicType.isEmpty()) {
-                    type.append(basicType);
-                }
-            }
-
-            // テンプレートパラメータの処理
-            if (simple.simpleTemplateId() != null) {
-                processTemplateId(simple.simpleTemplateId(), type);
+                return new Object[] { simple.getText(), null };
             }
         }
-    }
+        return new Object[] { null };
 
-    private void processTemplateId(CPP14Parser.SimpleTemplateIdContext ctx, StringBuilder type) {
-        type.append("<");
-        if (ctx.templateArgumentList() != null) {
-            type.append(ctx.templateArgumentList().getText());
-        }
-        type.append(">");
-    }
-
-    private String processAttributeType(String type, CPP14Parser.DeclaratorContext declarator) {
-        StringBuilder processedType = new StringBuilder();
-
-        // テンプレート部分の分離
-        int templateStart = type.indexOf('<');
-        String templatePart = "";
-        if (templateStart != -1) {
-            int templateEnd = type.lastIndexOf('>');
-            if (templateEnd != -1) {
-                templatePart = type.substring(templateStart, templateEnd + 1);
-                type = type.substring(0, templateStart);
-            }
-        }
-
-        // 基本型の処理
-        type = type.replaceAll("std::", "")
-                .replaceAll("(static|const|mutable|final)", "")
-                .trim();
-
-        // 標準型の定義
-        Map<String, String> standardTypes = Map.of(
-                "string", "String",
-                "vector", "Vector",
-                "list", "List",
-                "map", "Map",
-                "set", "Set",
-                "array", "Array",
-                "shared_ptr", "sharedptr",
-                "unique_ptr", "uniqueptr",
-                "unordered_map", "unorderedmap",
-                "weak_ptr", "weakptr");
-
-        // 基本型の変換
-        type = standardTypes.getOrDefault(type, type);
-        processedType.append(type);
-
-        // テンプレート部分の再帰的処理
-        if (!templatePart.isEmpty()) {
-            // カンマで分割してそれぞれの型を処理
-            String innerTypes = templatePart.substring(1, templatePart.length() - 1);
-            String[] types = innerTypes.split(",");
-            processedType.append("<");
-            for (int i = 0; i < types.length; i++) {
-                String innerType = types[i].trim();
-                // 内部の型も同様に処理（ただしDeclaratorは不要）
-                innerType = processAttributeType(innerType, declarator)
-                        .replaceAll("std::", "");
-                processedType.append(innerType);
-                if (i < types.length - 1) {
-                    processedType.append(",");
-                }
-            }
-            processedType.append(">");
-        }
-
-        // ポインタ/参照の処理
-        if (declarator != null) {
-            String declaratorText = declarator.getText();
-
-            // 配列の処理
-            if (declaratorText.matches(".*\\[\\d+\\]")) {
-                String arrayDims = "";
-                Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
-                Matcher matcher = pattern.matcher(declaratorText);
-                while (matcher.find()) {
-                    arrayDims += "[" + matcher.group(1) + "]";
-                }
-                processedType.append(arrayDims);
-            }
-
-            // ポインタ/参照の処理（コレクション型でない場合のみ）
-            if (!isCollectionType(processedType.toString()) && !isSmartPointer(processedType.toString())) {
-                if (declaratorText.contains("*") || type.contains("*")) {
-                    processedType.append("*");
-                }
-                if (declaratorText.contains("&") || type.contains("&")) {
-                    processedType.append("&");
-                }
-            }
-        }
-
-        return processedType.toString();
-    }
-
-    private String extractAttributeName(CPP14Parser.DeclaratorContext declarator) {
-        String name = declarator.getText();
-        return name.replaceAll("\\[.*\\]", "").trim();
     }
 
     private String extractBaseTypeName(String typeName) {
