@@ -54,14 +54,28 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 }
 
                 // ポインタか参照の抽出
-                if (memberDec.declarator().pointerDeclarator().pointerOperator() != null) {
-                    String pointerOpe = memberDec.declarator().pointerDeclarator().pointerOperator().toString();
-                    if (pointerOpe.equals("*")) {
-                        isPointer = true;
-                    } else if (pointerOpe.equals("&")) {
-                        isRef = true;
+                if (memberDec.declarator() != null &&
+                        memberDec.declarator().pointerDeclarator() != null) {
+
+                    var ptrDec = memberDec.declarator().pointerDeclarator();
+                    // pointerOperatorのリストを取得
+                    List<CPP14Parser.PointerOperatorContext> operators = ptrDec.pointerOperator();
+
+                    if (operators != null && !operators.isEmpty()) {
+                        // 各演算子をチェック
+                        for (var op : operators) {
+                            String opText = op.getText().trim();
+                            if (opText.equals("*")) {
+                                isPointer = true;
+                                break; // 最初のポインタ指定を見つけたら終了
+                            } else if (opText.equals("&")) {
+                                isRef = true;
+                                break; // 最初の参照指定を見つけたら終了
+                            }
+                        }
                     }
                 }
+
                 // 初期値の抽出
                 String defaultValue = extractInitialValue(memberDec);
 
@@ -89,7 +103,20 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                     }
                     // 関係性があれば追加
                     if (result[1] != null) {
+
                         RelationshipInfo relationshipInfo = (RelationshipInfo) result[1];
+                        // アノテーションの取得と設定
+                        String relationshipAnnotation = extractRelationshipAnnotation(memberDec);
+                        if (relationshipAnnotation != null) {
+                            switch (relationshipAnnotation) {
+                                case "aggregation":
+                                    relationshipInfo.setType(RelationType.AGGREGATION);
+                                case "composition":
+                                    relationshipInfo.setType(RelationType.COMPOSITION);
+                                case "association":
+                                    relationshipInfo.setType(RelationType.ASSOCIATION);
+                            }
+                        }
                         currentHeaderClass.addRelationship(relationshipInfo);
                     }
                 }
@@ -605,41 +632,58 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             // }
             // }
             // } else
-            if (simple.theTypeName() != null && simple.theTypeName().className() != null) { // 普通のユーザ宣言の場合
+            if (simple.theTypeName() != null && simple.theTypeName().className() != null) { // 普通のユーザ宣言の場合（stdも含む）
                 // ユーザ定義型名
                 String extractedTypeName = simple.theTypeName().className().getText();
+                if (isUserDefinedType(extractedTypeName)) {
 
-                // 関係性の判定（ポインタ/参照の要素の場合はASSOCIATION）
-                RelationType relationType = isPointer || isRef
-                        ? RelationType.ASSOCIATION
-                        : RelationType.COMPOSITION;
+                    // 関係性の判定（ポインタ/参照の要素の場合はASSOCIATION）
+                    RelationType relationType = isPointer || isRef
+                            ? RelationType.ASSOCIATION
+                            : RelationType.COMPOSITION;
 
-                // 関係性の追加
-                RelationshipInfo relation = new RelationshipInfo(extractedTypeName,
-                        relationType);
-                if (isPointer) {
-                    relation.setElement(
-                            attributeName,
-                            ElementType.ATTRIBUTE,
-                            "0..1",
-                            convertVisibility(currentVisibility));
-                } else if (isRef) {
-                    relation.setElement(
-                            attributeName,
-                            ElementType.ATTRIBUTE,
-                            "1",
-                            convertVisibility(currentVisibility));
+                    // 関係性の追加
+                    RelationshipInfo relation = new RelationshipInfo(extractedTypeName,
+                            relationType);
+                    if (isPointer) {
+                        extractedTypeName = extractedTypeName + "*";
+                        relation.setElement(
+                                attributeName,
+                                ElementType.ATTRIBUTE,
+                                "0..1",
+                                convertVisibility(currentVisibility));
+                    } else if (isRef) {
+                        extractedTypeName = extractedTypeName + "&";
+                        relation.setElement(
+                                attributeName,
+                                ElementType.ATTRIBUTE,
+                                "1",
+                                convertVisibility(currentVisibility));
+                    } else {
+                        relation.setElement(
+                                attributeName,
+                                ElementType.ATTRIBUTE,
+                                "1",
+                                convertVisibility(currentVisibility));
+                    }
+
+                    return new Object[] { extractedTypeName, relation };
                 } else {
-                    relation.setElement(
-                            attributeName,
-                            ElementType.ATTRIBUTE,
-                            "1",
-                            convertVisibility(currentVisibility));
+                    if (isPointer) {
+                        extractedTypeName = extractedTypeName + "*";
+                    } else if (isRef) {
+                        extractedTypeName = extractedTypeName + "&";
+                    }
+                    return new Object[] { extractedTypeName, null };
                 }
-
-                return new Object[] { extractedTypeName, relation };
             } else {
-                return new Object[] { simple.getText(), null };
+                String extractedTypeName = simple.getText();
+                if (isPointer) {
+                    extractedTypeName = extractedTypeName + "*";
+                } else if (isRef) {
+                    extractedTypeName = extractedTypeName + "&";
+                }
+                return new Object[] { extractedTypeName, null };
             }
         }
         return new Object[] { null };
@@ -669,30 +713,16 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return baseType.trim();
     }
 
-    private boolean isUserDefinedType(String type) {
-        Set<String> basicTypes = Set.of(
-                "void", "bool", "char", "int", "float", "double",
-                "long", "short", "unsigned", "signed",
-                // コレクション型は除外
-                "vector", "list", "map", "unorderedmap", "array", "queue", "stack", "deque",
-                // スマートポインタは除外
-                "uniqueptr", "sharedptr", "weakptr",
-                // その他標準型
-                "string");
+    private boolean isUserDefinedType(String typeName) {
 
-        if (type.startsWith("enum ")) {
-            return true; // enumは常にユーザー定義型として扱う
-        }
+        // stdライブラリの型のセット
+        Set<String> stdTypes = Set.of(
+                "string", "vector", "list", "map", "set",
+                "queue", "deque", "array", "stack",
+                "shared_ptr", "unique_ptr", "weak_ptr",
+                "pair", "tuple", "function");
 
-        // std::を除去
-        type = type.replaceAll("std::", "");
-
-        // 型名のみを抽出（テンプレートパラメータを除く）
-        if (type.contains("<")) {
-            type = type.substring(0, type.indexOf("<"));
-        }
-
-        return !basicTypes.contains(type.toLowerCase());
+        return !stdTypes.contains(typeName) && !typeName.contains("<");
     }
 
     private boolean isCollectionType(String type) {

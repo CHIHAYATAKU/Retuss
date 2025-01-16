@@ -138,7 +138,7 @@ public class CppFile {
         if (!newUmlClassList.isEmpty()) {
             headerClasses.clear();
             headerClasses.addAll(newUmlClassList);
-            this.fileName = headerClasses.get(headerClasses.size() - 1).getName() + ".h";
+            this.fileName = headerClasses.get(0).getName() + ".h";
             updateClassProperties();
         }
     }
