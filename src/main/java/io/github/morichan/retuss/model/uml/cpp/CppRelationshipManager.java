@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CppRelationshipManager {
-    private final Map<String, Set<RelationshipInfo>> relationshipsByTarget = new HashMap<>();
+    private final Map<String, Set<RelationshipInfo>> targetClassNameRelationshipInfoMap = new HashMap<>();
     private final String sourceClassName; // 関係元のクラス名
 
     public CppRelationshipManager(String sourceClassName) {
@@ -19,7 +19,7 @@ public class CppRelationshipManager {
 
     // 関係の追加
     public void addRelationship(RelationshipInfo relationship) {
-        relationshipsByTarget.computeIfAbsent(relationship.getTargetClass(), k -> new HashSet<>())
+        targetClassNameRelationshipInfoMap.computeIfAbsent(relationship.getTargetClass(), k -> new HashSet<>())
                 .add(relationship);
     }
 
@@ -37,20 +37,20 @@ public class CppRelationshipManager {
     // コンポジション関係の追加
     public void addComposition(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.COMPOSITION);
-        relation.addElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
+        relation.setElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
         addRelationship(relation);
     }
 
     // 集約関係の追加
     public void addAggregation(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.AGGREGATION);
-        relation.addElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
+        relation.setElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
         addRelationship(relation);
     }
 
     public void addAssociation(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.ASSOCIATION);
-        relation.addElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
+        relation.setElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
         addRelationship(relation);
     }
 
@@ -58,7 +58,7 @@ public class CppRelationshipManager {
     // Visibility visibility) {
     // RelationshipInfo relation = new RelationshipInfo(targetClass,
     // RelationType.DEPENDENCY);
-    // relation.addElement(
+    // relation.setElement(
     // memberName,
     // ElementType.OPERATION,
     // "1",
@@ -74,12 +74,12 @@ public class CppRelationshipManager {
     // 指定したターゲットクラスとの関係を取得
     public Set<RelationshipInfo> getRelationshipsWith(String targetClass) {
         return Collections.unmodifiableSet(
-                relationshipsByTarget.getOrDefault(targetClass, new HashSet<>()));
+                targetClassNameRelationshipInfoMap.getOrDefault(targetClass, new HashSet<>()));
     }
 
     // 全ての関係を取得
     public Set<RelationshipInfo> getAllRelationships() {
-        return relationshipsByTarget.values().stream()
+        return targetClassNameRelationshipInfoMap.values().stream()
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
     }
@@ -132,16 +132,15 @@ public class CppRelationshipManager {
                 .append(relation.getType().getPlantUmlText())
                 .append(" \"");
 
-        if (!relation.getElements().isEmpty()) {
-            RelationshipElement elem = relation.getElements().iterator().next();
+        RelationshipElement elem = relation.getElement();
+        if (elem != null) {
             sb.append(elem.getMultiplicity() != null ? elem.getMultiplicity() : "1");
         }
 
         sb.append("\" ")
                 .append(relation.getTargetClass());
 
-        if (!relation.getElements().isEmpty()) {
-            RelationshipElement elem = relation.getElements().iterator().next();
+        if (elem != null) {
             sb.append(" : ").append(elem.getVisibility()).append(elem.getName());
         }
 
@@ -181,12 +180,12 @@ public class CppRelationshipManager {
 
     // 特定のターゲットクラスとの関係を削除
     public void removeRelationshipsWith(String targetClass) {
-        relationshipsByTarget.remove(targetClass);
+        targetClassNameRelationshipInfoMap.remove(targetClass);
     }
 
     // 特定の種類の関係を全て削除
     public void removeRelationshipsOfType(RelationType type) {
-        relationshipsByTarget.values()
+        targetClassNameRelationshipInfoMap.values()
                 .removeIf(relations -> relations.removeIf(relation -> relation.getType() == type));
     }
 

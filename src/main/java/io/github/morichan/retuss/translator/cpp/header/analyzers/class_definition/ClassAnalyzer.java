@@ -55,14 +55,14 @@ public class ClassAnalyzer extends AbstractAnalyzer {
             if (ctx.enumeratorList() != null) {
                 for (CPP14Parser.EnumeratorDefinitionContext enumDef : ctx.enumeratorList().enumeratorDefinition()) {
                     String enumValue = enumDef.enumerator().getText();
-                    String value = null;
+                    String value = "";
 
                     // 初期化式がある場合は値を取得
                     if (enumDef.constantExpression() != null) {
                         value = enumDef.constantExpression().getText();
                     }
 
-                    enumClass.addEnumValue(enumValue, value, baseType);
+                    enumClass.addEnumValue(enumValue, value);
                 }
             }
 

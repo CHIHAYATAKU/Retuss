@@ -312,8 +312,8 @@ public class DeleteDialogControllerCD {
                 .append(" -> ")
                 .append(rel.getTargetClass());
 
-        if (!rel.getElements().isEmpty()) {
-            RelationshipElement elem = rel.getElements().iterator().next();
+        RelationshipElement elem = rel.getElement();
+        if (elem != null) {
             sb.append(" (")
                     .append(elem.getVisibility())
                     .append(" ")
@@ -480,8 +480,8 @@ public class DeleteDialogControllerCD {
                 .append(" -> ")
                 .append(relation.getTargetClass());
 
-        if (!relation.getElements().isEmpty()) {
-            RelationshipElement elem = relation.getElements().iterator().next();
+        RelationshipElement elem = relation.getElement();
+        if (elem != null) {
             sb.append(" (")
                     .append(elem.getVisibility())
                     .append(" ")

@@ -23,20 +23,10 @@ public class CppHeaderClass {
     public static class EnumValue {
         private final String name;
         private final String value;
-        private final String type;
-
-        public EnumValue(String name) {
-            this(name, null, null);
-        }
 
         public EnumValue(String name, String value) {
-            this(name, value, null);
-        }
-
-        public EnumValue(String name, String value, String type) {
             this.name = name;
             this.value = value;
-            this.type = type;
         }
 
         public String getName() {
@@ -45,10 +35,6 @@ public class CppHeaderClass {
 
         public Optional<String> getValue() {
             return Optional.ofNullable(value);
-        }
-
-        public Optional<String> getType() {
-            return Optional.ofNullable(type);
         }
     }
 
@@ -60,16 +46,8 @@ public class CppHeaderClass {
         return namespace;
     }
 
-    public void addEnumValue(String name) {
-        enumValues.add(new EnumValue(name));
-    }
-
     public void addEnumValue(String name, String value) {
         enumValues.add(new EnumValue(name, value));
-    }
-
-    public void addEnumValue(String name, String value, String type) {
-        enumValues.add(new EnumValue(name, value, type));
     }
 
     public List<EnumValue> getEnumValues() {

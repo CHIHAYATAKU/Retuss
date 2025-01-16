@@ -88,8 +88,8 @@ public class CppTranslator {
     }
 
     // CppTranslator.java に追加
-    public String addAttribute(String existingCode, CppHeaderClass cls, Attribute attribute) {
-        return umlToCppTranslator.addAttribute(existingCode, cls, attribute);
+    public String addAttribute(String existingCode, Attribute attribute) {
+        return umlToCppTranslator.addAttribute(existingCode, attribute);
     }
 
     public String addOperation(String existingCode, CppHeaderClass cls, Operation operation) {

@@ -49,7 +49,6 @@ public class InheritanceAnalyzer extends AbstractAnalyzer {
         RelationshipInfo relation = new RelationshipInfo(
                 baseClassName,
                 RelationType.INHERITANCE);
-        currentClass.addRelationship(relation);
         // インターフェースである可能性
         CppModel.getInstance().findClass(baseClassName)
                 .ifPresent(targetClass -> {
@@ -59,5 +58,6 @@ public class InheritanceAnalyzer extends AbstractAnalyzer {
                         relation.setType(RelationType.REALIZATION);
                     }
                 });
+        currentClass.addRelationship(relation);
     }
 }

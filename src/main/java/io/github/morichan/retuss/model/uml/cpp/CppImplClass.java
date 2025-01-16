@@ -63,7 +63,7 @@ public class CppImplClass {
                     extractClassName(variable.getType()),
                     RelationType.DEPENDENCY_USE);
 
-            relation.addElement(
+            relation.setElement(
                     variable.getName(), // name
                     ElementType.LOCAL_VARIABLE, // elemType
                     "1", // multiplicity
@@ -109,7 +109,7 @@ public class CppImplClass {
                 targetClass,
                 RelationType.DEPENDENCY_USE); // METHOD_CALL
 
-        relation.addElement(
+        relation.setElement(
                 methodName, // name
                 ElementType.METHOD_CALL, // elemType
                 "1", // multiplicity
@@ -125,7 +125,7 @@ public class CppImplClass {
                 targetClass,
                 RelationType.DEPENDENCY_USE);
 
-        relation.addElement(
+        relation.setElement(
                 "temp_" + context, // name
                 ElementType.TEMPORARY, // elemType
                 "1", // multiplicity
@@ -140,7 +140,7 @@ public class CppImplClass {
                 targetClass,
                 RelationType.DEPENDENCY_USE);
 
-        relation.addElement(
+        relation.setElement(
                 paramName, // name
                 ElementType.PARAMETER, // elemType
                 "1", // multiplicity

@@ -192,7 +192,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         String multiplicity = determineMultiplicity(type, declaratorText);
 
         RelationshipInfo relation = new RelationshipInfo(cleanType, relationType);
-        relation.addElement(
+        relation.setElement(
                 attributeName,
                 ElementType.ATTRIBUTE,
                 multiplicity,
@@ -363,7 +363,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 RelationshipInfo relation = new RelationshipInfo(
                         cleanType,
                         determineRelationType(info));
-                relation.addElement(
+                relation.setElement(
                         attributeName,
                         ElementType.ATTRIBUTE,
                         info.getMultiplicity(),

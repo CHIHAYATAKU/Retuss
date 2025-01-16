@@ -120,13 +120,13 @@ public class CppModel {
     }
 
     private void updateHeaderFile(CppFile headerFile, String code, String baseName) {
-        String oldClassName = headerFile.getFileName().replace(".h", "");
+        String oldFileName = headerFile.getFileName();
         headerFile.updateCode(code);
         // 新しいクラス名を取得
         String newClassName = headerFile.getBaseName();
-        if (!newClassName.equals(oldClassName)) {
+        if (!newClassName.equals(oldFileName)) {
             String newName = newClassName;
-            handleClassNameChange(oldClassName, newName, headerFile);
+            handleClassNameChange(oldFileName, newName, headerFile);
         }
 
         notifyFileUpdated(headerFile);
@@ -211,9 +211,8 @@ public class CppModel {
         CppFile headerFile = headerFileOpt.get();
         try {
             if (!headerFile.getHeaderClasses().isEmpty()) {
-                CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
 
-                String newCode = translator.addAttribute(headerFile.getCode(), targetClass, attribute);
+                String newCode = translator.addAttribute(headerFile.getCode(), attribute);
                 headerFile.updateCode(newCode);
                 notifyFileUpdated(headerFile);
             }
@@ -459,7 +458,6 @@ public class CppModel {
 
         try {
             CppFile ownerFile = ownerFileOpt.get();
-            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
 
             String memberName = componentClassName.toLowerCase() + "aggregationPtr";
             String newCode = translator.addAggregationWithAnnotation(
@@ -574,10 +572,9 @@ public class CppModel {
             for (RelationshipInfo relation : cppHeaderClass.getRelationships()) {
                 System.out.println("    " + relation.getTargetClass() +
                         " (" + relation.getType() + ")");
-                for (RelationshipElement elem : relation.getElements()) {
-                    System.out.println("      - " + elem.getName() +
-                            " [" + elem.getMultiplicity() + "]");
-                }
+
+                System.out.println("      - " + relation.getElement().getName() +
+                        " [" + relation.getElement().getMultiplicity() + "]");
             }
         }
         return Collections.unmodifiableList(allClasses);

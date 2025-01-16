@@ -22,7 +22,7 @@ public class UmlToCppTranslator {
         this.visibilityMapper = new CppVisibilityMapper();
     }
 
-    public String addAttribute(String existingCode, CppHeaderClass cls, Attribute attribute) {
+    public String addAttribute(String existingCode, Attribute attribute) {
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
             Visibility targetVisibility = attribute.getVisibility();
@@ -35,7 +35,7 @@ public class UmlToCppTranslator {
                 insertPosition++;
             }
 
-            String attributeDeclaration = "    " + translateAttribute(attribute, cls) + ";";
+            String attributeDeclaration = "    " + translateAttribute(attribute) + ";";
             lines.add(insertPosition + 1, attributeDeclaration);
 
             return String.join("\n", lines);
@@ -45,23 +45,24 @@ public class UmlToCppTranslator {
         }
     }
 
-    private String translateAttribute(Attribute attribute, CppHeaderClass cls) {
+    private String translateAttribute(Attribute attribute) {
         StringBuilder builder = new StringBuilder();
 
-        // 修飾子の追加
-        Set<Modifier> modifiers = cls.getModifiers(attribute.getName().getNameText());
-        if (modifiers.contains(Modifier.STATIC)) {
-            builder.append("static ");
-        }
-        if (modifiers.contains(Modifier.READONLY)) {
-            builder.append(Modifier.READONLY.getCppText(false) + " ");
-        }
-        if (modifiers.contains(Modifier.VOLATILE)) {
-            builder.append("volatile ");
-        }
-        if (modifiers.contains(Modifier.MUTABLE)) {
-            builder.append("mutable ");
-        }
+        // // 修飾子の追加
+        // Set<Modifier> modifiers =
+        // cls.getModifiers(attribute.getName().getNameText());
+        // if (modifiers.contains(Modifier.STATIC)) {
+        // builder.append("static ");
+        // }
+        // if (modifiers.contains(Modifier.READONLY)) {
+        // builder.append(Modifier.READONLY.getCppText(false) + " ");
+        // }
+        // if (modifiers.contains(Modifier.VOLATILE)) {
+        // builder.append("volatile ");
+        // }
+        // if (modifiers.contains(Modifier.MUTABLE)) {
+        // builder.append("mutable ");
+        // }
 
         // 型の処理
         String type = attribute.getType().toString();

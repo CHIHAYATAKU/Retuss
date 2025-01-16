@@ -134,18 +134,11 @@ public class CppFile {
     }
 
     private void analyzeHeaderFile(String code) {
-        Optional<String> newClassName = translator.extractClassName(code);
-        if (newClassName.isPresent()) {
-            String expectedFileName = newClassName.get() + ".h";
-            if (!expectedFileName.equals(this.fileName)) {
-                this.fileName = expectedFileName;
-            }
-        }
-
         List<CppHeaderClass> newUmlClassList = translator.translateHeaderCodeToUml(code);
         if (!newUmlClassList.isEmpty()) {
             headerClasses.clear();
             headerClasses.addAll(newUmlClassList);
+            this.fileName = headerClasses.get(headerClasses.size() - 1).getName() + ".h";
             updateClassProperties();
         }
     }

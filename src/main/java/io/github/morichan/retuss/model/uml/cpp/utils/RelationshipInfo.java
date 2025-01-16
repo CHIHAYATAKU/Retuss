@@ -10,7 +10,7 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 public class RelationshipInfo {
     private final String targetClass;
     private RelationType type;
-    private final Set<RelationshipElement> elements = new HashSet<>();
+    private RelationshipElement element;
 
     public RelationshipInfo(String targetClass, RelationType type) {
         this.targetClass = targetClass;
@@ -18,13 +18,12 @@ public class RelationshipInfo {
     }
 
     // 完全版
-    public void addElement(
+    public void setElement(
             String name,
             ElementType elemType,
             String multiplicity,
             Visibility visibility) {
-        elements.add(new RelationshipElement(
-                name, elemType, multiplicity, visibility));
+        this.element = new RelationshipElement(name, elemType, multiplicity, visibility);
     }
 
     // ゲッターメソッド
@@ -40,7 +39,7 @@ public class RelationshipInfo {
         return type;
     }
 
-    public Set<RelationshipElement> getElements() {
-        return Collections.unmodifiableSet(elements);
+    public RelationshipElement getElement() {
+        return element;
     }
 }
