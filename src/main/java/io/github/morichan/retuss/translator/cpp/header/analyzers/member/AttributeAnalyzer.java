@@ -18,6 +18,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.lang.reflect.Method;
 
 public class AttributeAnalyzer extends AbstractAnalyzer {
     @Override
@@ -42,15 +43,124 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         try {
             Boolean isPointer = false;
             Boolean isRef = false;
-            if (ctx.memberDeclaratorList() != null) {
-                var memberDec = ctx.memberDeclaratorList().memberDeclarator(0);
-                // 属性名の抽出
-                String attributeName = memberDec.declarator().pointerDeclarator().noPointerDeclarator()
-                        .declaratorid().idExpression().unqualifiedId().getText();
-                // もしすでに同じ属性名の属性があれば処理を中断
-                if (currentHeaderClass.getAttributeList().stream()
-                        .anyMatch(attr -> attr.getName().getNameText().equals(attributeName))) {
-                    return;
+            // memberDeclaratorListのnullチェック
+            if (ctx.memberDeclaratorList() == null ||
+                    ctx.memberDeclaratorList().memberDeclarator() == null ||
+                    ctx.memberDeclaratorList().memberDeclarator().isEmpty()) {
+                return;
+            }
+
+            for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
+                // declaratorのnullチェック
+                if (memberDec.declarator() == null) {
+                    continue;
+                }
+
+                // pointerDeclaratorのnullチェック
+                if (memberDec.declarator().pointerDeclarator() == null) {
+                    continue;
+                }
+
+                var noPtrDec = memberDec.declarator().pointerDeclarator().noPointerDeclarator();
+                if (noPtrDec == null) {
+                    System.err.println("DEBUG: noPtrDec is null");
+                    continue;
+                }
+
+                System.err.println("DEBUG: Processing declaration: " + noPtrDec.getText());
+
+                System.err.println("DEBUG: NoPointerDeclarator structure:");
+                System.err.println(" - Child count: " + noPtrDec.getChildCount());
+                for (int i = 0; i < noPtrDec.getChildCount(); i++) {
+                    ParseTree child = noPtrDec.getChild(i);
+                    System.err.println(
+                            " - Child " + i + ": [" + child.getClass().getSimpleName() + "] " + child.getText());
+                }
+
+                // 現在のノードの配列サイズをチェック
+                String size = null;
+                if (noPtrDec.constantExpression() != null) {
+                    size = noPtrDec.constantExpression().getText();
+                    System.err.println("DEBUG: Found size in current node: " + size);
+                }
+
+                // // 子ノードを確認
+                // if (noPtrDec.noPointerDeclarator() != null) {
+                // var childNoPtrDec = noPtrDec.noPointerDeclarator();
+                // System.err.println("DEBUG: Found child NoPointerDeclarator: " +
+                // childNoPtrDec.getText());
+
+                // // 子ノードのconstantExpressionを確認
+                // if (childNoPtrDec.constantExpression() != null) {
+                // String childSize = childNoPtrDec.constantExpression().getText();
+                // System.err.println("DEBUG: Found size in child node: " + childSize);
+                // sizes.add(childSize);
+                // }
+
+                // // さらに深い階層も確認
+                // for (int i = 0; i < childNoPtrDec.getChildCount(); i++) {
+                // ParseTree child = childNoPtrDec.getChild(i);
+                // System.err.println("DEBUG: Child node structure:");
+                // System.err.println(" - Type: " + child.getClass().getSimpleName());
+                // System.err.println(" - Text: " + child.getText());
+                // }
+                // }
+
+                // サイズが見つかった場合、ArrayInfoを更新
+                // if (size != null) {
+                // System.err.println("DEBUG: Processing found size: " + size);
+                // StringBuilder dimensions = new StringBuilder();
+
+                // dimensions.append("[").append(size).append("]");
+
+                // arrayInfo.dimensions = dimensions.toString();
+                // System.err.println("DEBUG: Final dimensions string: " +
+                // arrayInfo.dimensions);
+
+                // int total = sizes.stream()
+                // .mapToInt(Integer::parseInt)
+                // .reduce(1, (a, b) -> a * b);
+                // arrayInfo.multiplicity = String.valueOf(total);
+                // System.err.println("DEBUG: Final multiplicity: " + arrayInfo.multiplicity);
+                // }
+
+                // 一時変数を使用して値を設定
+                String attributeName = null;
+                // 配列変数の場合、最初の子ノードに変数名が含まれている
+                if (noPtrDec.getChildCount() > 0 &&
+                        noPtrDec.getChild(0) instanceof CPP14Parser.NoPointerDeclaratorContext) {
+                    var firstChild = (CPP14Parser.NoPointerDeclaratorContext) noPtrDec.getChild(0);
+                    System.err.println("DEBUG: First child content: " + firstChild.getText());
+
+                    // declaratoridから変数名を取得
+                    if (firstChild.declaratorid() != null &&
+                            firstChild.declaratorid().idExpression() != null &&
+                            firstChild.declaratorid().idExpression().unqualifiedId() != null) {
+                        attributeName = firstChild.declaratorid().idExpression().unqualifiedId().getText();
+                        System.err.println("DEBUG: Found attribute name from first child: " + attributeName);
+                    }
+                } else {
+                    // 通常の変数の場合（配列でない場合）
+                    if (noPtrDec.declaratorid() != null &&
+                            noPtrDec.declaratorid().idExpression() != null &&
+                            noPtrDec.declaratorid().idExpression().unqualifiedId() != null) {
+                        attributeName = noPtrDec.declaratorid().idExpression().unqualifiedId().getText();
+                        System.err.println("DEBUG: Found attribute name directly: " + attributeName);
+                    }
+                }
+
+                // 変数名が取得できなかった場合は処理を中断
+                if (attributeName == null) {
+                    System.err.println("DEBUG: Could not extract attribute name");
+                    continue;
+                }
+
+                // 属性名の重複チェック
+                for (Attribute attr : currentHeaderClass.getAttributeList()) {
+                    if (attr.getName().getNameText().equals(attributeName)) {
+                        System.err.println("DEBUG: Duplicate attribute name found: " + attributeName);
+                        continue;
+                    }
                 }
 
                 // ポインタか参照の抽出
@@ -83,6 +193,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 Set<Modifier> modifiers = extractModifiers(ctx.declSpecifierSeq());
 
                 // 型と関係性抽出
+                System.err.println("DEBUG before type processing:");
                 Object[] result = processTypeAndRelationship(ctx.declSpecifierSeq(), isPointer, isRef,
                         currentHeaderClass, attributeName,
                         this.context.getCurrentVisibility());
@@ -90,12 +201,27 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 // Attributeの生成と追加
                 if (result != null) {
                     String typeName = (String) result[0];
+                    System.err.println("DEBUG: Base type name: " + typeName);
+                    // 型名に配列の次元情報を追加
+                    if (size != null) {
+                        typeName = typeName + "[" + size + "]";
+                    }
+                    System.err.println("DEBUG: Type name with dimensions: " + typeName);
+
                     Attribute attribute = new Attribute(new Name(attributeName));
                     attribute.setVisibility(convertVisibility(this.context.getCurrentVisibility()));
                     attribute.setType(new Type(typeName));
+                    // デバッグ出力を追加
+                    System.err.println("DEBUG: Created attribute:");
+                    System.err.println(" - Name: " + attribute.getName().getNameText());
+                    System.err.println(" - Type: " + attribute.getType().toString());
+                    System.err.println(" - Visibility: " + attribute.getVisibility());
+
                     if (defaultValue != null)
                         attribute.setDefaultValue(new DefaultValue(new OneIdentifier(defaultValue)));
+
                     currentHeaderClass.addAttribute(attribute);
+                    System.err.println("DEBUG: Added attribute to class");
 
                     // 修飾子の追加
                     for (Modifier modifier : modifiers) {
@@ -117,17 +243,22 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                                     relationshipInfo.setType(RelationType.ASSOCIATION);
                             }
                         }
+
+                        if (size != null) {
+                            relationshipInfo.getElement().setMultiplicity(size);
+                            System.err.println("DEBUG: Set relationship multiplicity: " + size);
+                        }
                         currentHeaderClass.addRelationship(relationshipInfo);
+
+                        System.err.println(" - Relationship added");
                     }
                 }
-
             }
         } catch (Exception e) {
             System.err.println("Error in attribute analysis: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
     // private void handleAttribute(
     // CPP14Parser.MemberDeclaratorContext memberDec,
     // String type,

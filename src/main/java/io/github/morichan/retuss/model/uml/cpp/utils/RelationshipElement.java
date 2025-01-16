@@ -6,7 +6,7 @@ import java.util.*;
 public class RelationshipElement {
     private final String name; // 要素の名前
     private final ElementType elemType; // 要素の種類
-    private final String multiplicity; // 多重度
+    private String multiplicity; // 多重度
     private final Visibility visibility; // 可視性
 
     public RelationshipElement(
@@ -31,6 +31,10 @@ public class RelationshipElement {
 
     public String getMultiplicity() {
         return multiplicity;
+    }
+
+    public void setMultiplicity(String multiplicity) {
+        this.multiplicity = multiplicity;
     }
 
     public Visibility getVisibility() {
