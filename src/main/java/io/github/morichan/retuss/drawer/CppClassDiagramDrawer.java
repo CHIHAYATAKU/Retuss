@@ -384,8 +384,10 @@ public class CppClassDiagramDrawer {
                 pumlBuilder.append("skinparam enumBorderColor Black\n");
                 pumlBuilder.append("scale ").append("1.0").append("\n");
 
-                for (CppHeaderClass cls : classes) {
-                    drawClass(pumlBuilder, cls, selectedClassName);
+                if (!classes.isEmpty() && classes != null) {
+                    for (CppHeaderClass cls : classes) {
+                        drawClass(pumlBuilder, cls, selectedClassName);
+                    }
                 }
 
                 pumlBuilder.append("@enduml\n");
@@ -404,8 +406,10 @@ public class CppClassDiagramDrawer {
                 simplePumlBuilder.append("skinparam enumBorderColor Black\n");
 
                 simplePumlBuilder.append("scale ").append("1.0").append("\n");
-                for (CppHeaderClass cls : classes) {
-                    drawSimpleClass(simplePumlBuilder, cls);
+                if (!classes.isEmpty() && classes != null) {
+                    for (CppHeaderClass cls : classes) {
+                        drawSimpleClass(pumlBuilder, cls);
+                    }
                 }
 
                 simplePumlBuilder.append("@enduml\n");

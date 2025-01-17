@@ -298,11 +298,13 @@ public class DeleteDialogControllerCD {
                 }
                 sb.append(String.join(", ", paramStrings));
             }
-        } catch (IllegalStateException e) {
-            // パラメータが存在しない場合
-        }
 
-        sb.append(") : ").append(op.getReturnType().toString());
+            sb.append(") : ");
+            if (op.getReturnType() != null) {
+                sb.append(op.getReturnType().toString());
+            }
+        } catch (IllegalStateException e) {
+        }
         return sb.toString();
     }
 
