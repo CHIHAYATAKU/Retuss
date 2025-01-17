@@ -28,8 +28,9 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
                     new InheritanceAnalyzer(),
                     new VisibilityAnalyzer(),
                     new AttributeAnalyzer(),
-                    new OperationAnalyzer(),
-                    new ConstructorAndDestructorAnalyzer());
+                    new OperationAnalyzer()
+            // new ConstructorAndDestructorAnalyzer());
+            );
         } else {
             this.analyzers = Arrays.asList(new OperationAnalyzer());
         }
