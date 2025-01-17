@@ -10,11 +10,6 @@ import io.github.morichan.retuss.translator.cpp.header.CppTranslator;
 
 import java.util.*;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
-
 public class CppModel {
     private final UmlModel umlModel;
     private static final CppModel model = new CppModel();
@@ -67,48 +62,6 @@ public class CppModel {
         notifyFileAdded(implFile);
     }
 
-    private void handleFileRename(CppFile headerFile, String oldName, String newName) {
-        String oldBaseName = oldName.replace(".h", "");
-        String newBaseName = newName.replace(".h", "");
-
-        // ヘッダーファイル更新
-        updateHeaderForRename(headerFile, oldBaseName, newBaseName);
-
-        // 実装ファイル更新
-        updateImplForRename(oldBaseName, newBaseName, oldName, newName);
-
-        notifyFileRenamed(oldName, newName);
-    }
-
-    private void updateHeaderForRename(CppFile headerFile, String oldBaseName, String newBaseName) {
-        String headerCode = headerFile.getCode();
-        headerCode = headerCode
-                .replace(oldBaseName.toUpperCase() + "_H", newBaseName.toUpperCase() + "_H")
-                .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)", newBaseName + "$1")
-                .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*;)",
-                        "~" + newBaseName + "$1");
-        headerFile.updateCode(headerCode);
-    }
-
-    private void updateImplForRename(String oldBaseName, String newBaseName, String oldName, String newName) {
-        CppFile implFile = implFiles.get(oldBaseName);
-        if (implFile != null) {
-            implFile.updateFileName(newBaseName + ".cpp");
-
-            String implCode = implFile.getCode();
-            implCode = implCode
-                    .replace("#include \"" + oldName + "\"", "#include \"" + newName + "\"")
-                    .replace(oldBaseName + "::", newBaseName + "::")
-                    .replaceAll("(?<![a-zA-Z0-9_])" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
-                            newBaseName + "$1")
-                    .replaceAll("(?<![a-zA-Z0-9_])~" + oldBaseName + "(\\s*\\([^)]*\\)\\s*\\{)",
-                            "~" + newBaseName + "$1");
-
-            implFile.updateCode(implCode);
-            notifyFileUpdated(implFile);
-        }
-    }
-
     public void updateCode(CppFile file, String code) {
         String baseName = file.getBaseName();
 
@@ -145,32 +98,12 @@ public class CppModel {
             // 2. ヘッダーファイルの更新
             // インクルードガード、クラス名、コンストラクタ、デストラクタの更新
             String headerCode = headerFile.getCode();
-            // headerCode = headerCode
-            // .replace(oldClassName.toUpperCase() + "_H", newClassName.toUpperCase() +
-            // "_H")
-            // .replaceAll("class\\s+" + oldClassName + "\\s*", "class " + newClassName + "
-            // ")
-            // .replaceAll("(?<![a-zA-Z0-9_])" + oldClassName + "\\s*\\(", newClassName +
-            // "(")
-            // .replaceAll("(?<![a-zA-Z0-9_])~" + oldClassName + "\\s*\\(", "~" +
-            // newClassName + "(");
 
             // 3. 実装ファイルの更新
             if (implFile != null) {
-                // String implCode = implFile.getCode();
-                // // インクルード文、スコープ解決演算子、コンストラクタ、デストラクタの更新
-                // implCode = implCode
-                // .replace("#include \"" + oldClassName + ".h\"", "#include \"" + newClassName
-                // + ".h\"")
-                // .replace(oldClassName + "::", newClassName + "::")
-                // .replaceAll(oldClassName + "::" + oldClassName, newClassName + "::" +
-                // newClassName)
-                // .replaceAll(oldClassName + "::~" + oldClassName, newClassName + "::~" +
-                // newClassName);
 
                 // ファイル名の更新
                 implFile.updateFileName(newClassName + ".cpp");
-                // implFile.updateCode(implCode);
             }
 
             // 4. マップの更新
@@ -178,7 +111,6 @@ public class CppModel {
             implFiles.remove(oldClassName);
 
             headerFile.updateFileName(newClassName + ".h");
-            // headerFile.updateCode(headerCode);
 
             headerFiles.put(newClassName, headerFile);
             if (implFile != null) {
@@ -190,13 +122,6 @@ public class CppModel {
                 notifyFileRenamed(oldClassName + ".cpp", newClassName + ".cpp");
             }
             notifyFileRenamed(oldClassName + ".h", newClassName + ".h");
-
-            // // 6. ファイルの内容更新を通知
-            // if (implFile != null) {
-            // notifyFileUpdated(implFile);
-            // }
-            // notifyFileUpdated(headerFile);
-
         } catch (Exception e) {
             System.err.println("Error during class name change: " + e.getMessage());
             e.printStackTrace();
@@ -282,7 +207,6 @@ public class CppModel {
 
         try {
             CppFile headerFile = headerFileOpt.get();
-            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
 
             System.out.println("Attempting to delete attribute: " + attribute.getName().getNameText() + " from class: "
                     + className);
@@ -290,20 +214,6 @@ public class CppModel {
             // コードから属性を削除
             String currentCode = headerFile.getCode();
             String newCode = translator.removeAttribute(currentCode, attribute);
-            List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
-            // String attrName = attribute.getName().getNameText();
-
-            // for (int i = 0; i < lines.size(); i++) {
-            // String line = lines.get(i).trim();
-            // if (line.contains(attrName) && line.endsWith(";") && !line.contains("(")) {
-            // lines.remove(i);
-            // if (i > 0 && lines.get(i - 1).trim().startsWith("//")) {
-            // // 関連するコメント（アノテーション）も削除
-            // lines.remove(i - 1);
-            // }
-            // break;
-            // }
-            // }
 
             headerFile.updateCode(newCode);
             notifyFileUpdated(headerFile);
@@ -321,7 +231,6 @@ public class CppModel {
 
         try {
             CppFile headerFile = headerFileOpt.get();
-            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
 
             System.out.println("Attempting to delete operation: " + operation.getName().getNameText() + " from class: "
                     + className);
@@ -329,17 +238,6 @@ public class CppModel {
             // コードから操作を削除
             String currentCode = headerFile.getCode();
             String newCode = translator.removeOperation(currentCode, operation);
-
-            // List<String> lines = new ArrayList<>(Arrays.asList(currentCode.split("\n")));
-            // String opName = operation.getName().getNameText();
-
-            // for (int i = 0; i < lines.size(); i++) {
-            // String line = lines.get(i).trim();
-            // if (line.contains(opName) && line.contains("(") && line.endsWith(";")) {
-            // lines.remove(i);
-            // break;
-            // }
-            // }
 
             headerFile.updateCode(newCode);
             notifyFileUpdated(headerFile);
@@ -364,16 +262,6 @@ public class CppModel {
         }
     }
 
-    private int findClassEndPosition(List<String> lines) {
-        // 後ろから検索してクラスの終了位置を見つける
-        for (int i = lines.size() - 1; i >= 0; i--) {
-            if (lines.get(i).trim().equals("};")) {
-                return i;
-            }
-        }
-        return lines.size() - 1;
-    }
-
     public void addRealization(String sourceClassName, String interfaceName) {
         Optional<CppFile> sourceFileOpt = findHeaderFileByClassName(sourceClassName);
         Optional<CppFile> interfaceFileOpt = findHeaderFileByClassName(interfaceName);
@@ -396,15 +284,6 @@ public class CppModel {
         }
     }
 
-    private List<Parameter> safeGetParameters(Operation op) {
-        try {
-            return op.getParameters() != null ? op.getParameters() : new ArrayList<>();
-        } catch (IllegalStateException e) {
-            System.out.println("No parameters initialized for method: " + op.getName().getNameText());
-            return new ArrayList<>();
-        }
-    }
-
     public void addComposition(String ownerClassName, String componentClassName, Visibility visibility) {
         Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
         if (ownerFileOpt.isEmpty())
@@ -412,7 +291,6 @@ public class CppModel {
 
         try {
             CppFile ownerFile = ownerFileOpt.get();
-            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
 
             String memberName = componentClassName.toLowerCase();
             String newCode = translator.addComposition(
@@ -435,7 +313,6 @@ public class CppModel {
 
         try {
             CppFile ownerFile = ownerFileOpt.get();
-            CppHeaderClass ownerClass = ownerFile.getHeaderClasses().get(0);
 
             String memberName = componentClassName.toLowerCase() + "compositionPtr";
             String newCode = translator.addCompositionWithAnnotation(
@@ -480,7 +357,6 @@ public class CppModel {
 
         try {
             CppFile sourceFile = sourceFileOpt.get();
-            CppHeaderClass sourceClass = sourceFile.getHeaderClasses().get(0);
 
             String memberName = targetClassName.toLowerCase() + "associationPtr";
             String newCode = translator.addAssociation(
@@ -523,29 +399,6 @@ public class CppModel {
             notifyFileUpdated(headerFile);
         } catch (Exception e) {
             System.err.println("Failed to remove realization: " + e.getMessage());
-        }
-    }
-
-    private void updateImplFileForHeaderChange(CppFile headerFile) {
-        String baseName = getBaseName(headerFile.getFileName());
-        CppFile implFile = implFiles.get(baseName);
-        if (implFile != null) {
-            System.out.println("DEBUG: Updating implementation file for header change: " +
-                    headerFile.getFileName());
-
-            String currentCode = implFile.getCode();
-            String expectedInclude = "#include \"" + headerFile.getFileName() + "\"";
-            String oldIncludePattern = "#include \".*?.h\"";
-            String newCode = currentCode;
-
-            if (!currentCode.contains(expectedInclude)) {
-                if (currentCode.matches("(?s).*" + oldIncludePattern + ".*")) {
-                    newCode = currentCode.replaceFirst(oldIncludePattern, expectedInclude);
-                } else {
-                    newCode = expectedInclude + "\n\n" + currentCode;
-                }
-                implFile.updateCode(newCode);
-            }
         }
     }
 
@@ -636,16 +489,6 @@ public class CppModel {
                 listener.onFileRenamed(oldName, newName);
             } catch (Exception e) {
                 System.err.println("Error notifying file rename: " + e.getMessage());
-            }
-        }
-    }
-
-    private void notifyModelChanged() {
-        for (ModelChangeListener listener : listeners) {
-            try {
-                listener.onModelChanged();
-            } catch (Exception e) {
-                System.err.println("Error notifying model change: " + e.getMessage());
             }
         }
     }

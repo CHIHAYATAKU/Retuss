@@ -1,10 +1,5 @@
 package io.github.morichan.retuss.model.uml.cpp.utils;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-
 import io.github.morichan.fescue.feature.visibility.Visibility;
 
 public class RelationshipInfo {
@@ -33,6 +28,7 @@ public class RelationshipInfo {
 
     public void setType(RelationType type) {
         this.type = type;
+        System.err.println("DEBUG: Set type: " + type);
     }
 
     public RelationType getType() {

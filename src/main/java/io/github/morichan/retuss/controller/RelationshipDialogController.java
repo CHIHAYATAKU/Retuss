@@ -15,9 +15,6 @@ import javafx.stage.Stage;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-
-import javax.management.relation.RelationType;
 
 public class RelationshipDialogController {
     @FXML

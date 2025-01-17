@@ -513,23 +513,6 @@ public class CodeController implements CppModel.ModelChangeListener {
         Files.writeString(path, content, StandardCharsets.UTF_8);
     }
 
-    private void updateModel(Tab tab, String content) {
-        if (umlController.isJavaSelected()) {
-            Optional<CodeFile> javaFile = findJavaFileByTab(tab);
-            javaFile.ifPresent(file -> javaModel.updateCodeFile(file, content));
-        } else {
-            Optional<CppFile> cppFile = findFileByTab(tab);
-            cppFile.ifPresent(file -> cppModel.updateCode(file, content));
-        }
-    }
-
-    private Optional<CodeFile> findJavaFileByTab(Tab tab) {
-        return javaFileTabList.stream()
-                .filter(pair -> pair.getValue().equals(tab))
-                .map(Pair::getKey)
-                .findFirst();
-    }
-
     private void setupCodeAreaChangeListener(CodeArea codeArea, Tab tab) {
         // テキスト変更時のリスナー
         codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -617,16 +600,6 @@ public class CodeController implements CppModel.ModelChangeListener {
         }
 
         Platform.exit();
-    }
-
-    private Optional<CppFile> findFileByTab(Tab tab) {
-        // C++ファイルを探す
-        for (Pair<CppFile, Tab> pair : cppFileTabList) {
-            if (pair.getValue().equals(tab)) {
-                return Optional.of(pair.getKey());
-            }
-        }
-        return Optional.empty();
     }
 
     @FXML

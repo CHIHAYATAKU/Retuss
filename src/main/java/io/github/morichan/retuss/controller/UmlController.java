@@ -34,15 +34,7 @@ import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.fxmisc.richtext.CodeArea;
 
 public class UmlController implements CppModel.ModelChangeListener {
     private CodeController codeController;
