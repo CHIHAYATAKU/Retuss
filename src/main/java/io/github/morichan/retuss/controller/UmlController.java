@@ -18,6 +18,7 @@ import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -107,6 +108,63 @@ public class UmlController implements CppModel.ModelChangeListener {
         }
     }
 
+    // マウスの初期位置
+    private double initialMouseX = 0;
+    private double initialMouseY = 0;
+
+    // 初期スクロール位置
+    private double currentScrollX = 0;
+    private double currentScrollY = 0;
+
+    private final double scrollSpeedFactor = 2.0; // 倍率を変えることで速さを調整
+
+    public void enableHoverSlide(WebView webView) {
+        // マウスが押されたときの位置を記録
+        webView.setOnMousePressed(event -> {
+            initialMouseX = event.getSceneX();
+            initialMouseY = event.getSceneY();
+
+            // 現在のスクロール位置を取得
+            currentScrollX = (double) webView.getEngine().executeScript(
+                    "document.documentElement.scrollLeft || document.body.scrollLeft");
+            currentScrollY = (double) webView.getEngine().executeScript(
+                    "document.documentElement.scrollTop || document.body.scrollTop");
+
+            event.consume();
+        });
+
+        // マウスをドラッグしたときにスクロールを移動
+        webView.setOnMouseDragged(event -> {
+            double deltaX = (initialMouseX - event.getSceneX()) * scrollSpeedFactor; // スクロール速度を調整
+            double deltaY = (initialMouseY - event.getSceneY()) * scrollSpeedFactor; // スクロール速度を調整
+
+            // スクロール位置を更新
+            currentScrollX += deltaX;
+            currentScrollY += deltaY;
+
+            try {
+                webView.getEngine().executeScript(
+                        String.format("window.scrollTo(%f, %f);", currentScrollX, currentScrollY));
+            } catch (Exception e) {
+                System.err.println("Error during hover slide: " + e.getMessage());
+            }
+
+            // 次のドラッグ操作に備えて位置を更新
+            initialMouseX = event.getSceneX();
+            initialMouseY = event.getSceneY();
+
+            event.consume();
+        });
+    }
+
+    @FXML
+    public void setZoom(double zoomFactor) {
+        if (classDiagramWebView != null) {
+            classDiagramWebView.setZoom(zoomFactor); // WebViewのズーム機能を利用
+            System.out.println("Zoom set to: " + zoomFactor);
+        }
+    }
+
     private DiagramState classDiagramState = new DiagramState();
 
     @Override
@@ -178,9 +236,16 @@ public class UmlController implements CppModel.ModelChangeListener {
             if (isJavaSelected()) {
                 javaClassDiagramDrawer.setScale(newVal.doubleValue());
             } else if (isCppSelected()) {
-                cppClassDiagramDrawer.setScale(newVal.doubleValue(), codeController.getSelectedClassName());
+                // cppClassDiagramDrawer.setScale(newVal.doubleValue(),
+                // codeController.getSelectedClassName());
+                setZoom(newVal.doubleValue());
             }
         });
+
+        enableHoverSlide(classDiagramWebView);
+
+        classDiagramWebView.setOnMouseEntered(event -> classDiagramWebView.setCursor(Cursor.HAND));
+        classDiagramWebView.setOnMouseExited(event -> classDiagramWebView.setCursor(Cursor.DEFAULT));
 
         // TextAreaの設定
         plantUmlCodeArea.setEditable(true);
@@ -335,7 +400,7 @@ public class UmlController implements CppModel.ModelChangeListener {
 
     @FXML
     public void handleRefreshAll() {
-        System.out.println("DEBUG: Starting refresh all");
+        System.out.println("DEBUG: Starting Reload");
 
         try {
             Collection<CppFile> headers = cppModel.getHeaderFiles().values();

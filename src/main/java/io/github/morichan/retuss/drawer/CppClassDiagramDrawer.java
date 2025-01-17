@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CppClassDiagramDrawer {
-    private double currentScale = 1.0;
     private final CppModel model;
     private final UmlModel umlModel;
     private WebView webView;
@@ -62,14 +61,6 @@ public class CppClassDiagramDrawer {
             System.out.println("Restored scroll position - X: " + savedScrollX + ", Y: " + savedScrollY);
         } catch (Exception e) {
             System.err.println("Error restoring scroll position: " + e.getMessage());
-        }
-    }
-
-    public void setScale(double scale, String selectedClassName) {
-        if (this.currentScale != scale) { // 値が実際に変化した場合のみ
-            this.currentScale = scale;
-            clearCache(); // キャッシュをクリアして
-            draw(selectedClassName); // 再描画
         }
     }
 
@@ -391,7 +382,7 @@ public class CppClassDiagramDrawer {
                 pumlBuilder.append("hide empty members\n"); // 空のメンバーを非表示
                 pumlBuilder.append("skinparam enumBackgroundColor White\n"); // enum背景色
                 pumlBuilder.append("skinparam enumBorderColor Black\n");
-                pumlBuilder.append("scale ").append(String.format("%.2f", currentScale)).append("\n");
+                pumlBuilder.append("scale ").append("1.0").append("\n");
 
                 for (CppHeaderClass cls : classes) {
                     drawClass(pumlBuilder, cls, selectedClassName);
