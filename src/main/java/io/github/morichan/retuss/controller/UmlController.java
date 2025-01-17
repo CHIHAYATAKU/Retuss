@@ -71,6 +71,8 @@ public class UmlController implements CppModel.ModelChangeListener {
     private ComboBox<String> languageSelector;
     @FXML
     private Slider scaleSlider;
+    @FXML
+    private Slider scaleSlider2;
 
     private String currentLanguage = "Java";
 
@@ -233,13 +235,10 @@ public class UmlController implements CppModel.ModelChangeListener {
             });
         });
         scaleSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (isJavaSelected()) {
-                javaClassDiagramDrawer.setScale(newVal.doubleValue());
-            } else if (isCppSelected()) {
-                // cppClassDiagramDrawer.setScale(newVal.doubleValue(),
-                // codeController.getSelectedClassName());
-                setZoom(newVal.doubleValue());
-            }
+            setZoom(newVal.doubleValue());
+        });
+        scaleSlider2.valueProperty().addListener((obs, oldVal, newVal) -> {
+            setZoom(newVal.doubleValue());
         });
 
         enableHoverSlide(classDiagramWebView);
@@ -266,6 +265,7 @@ public class UmlController implements CppModel.ModelChangeListener {
 
             // 図の更新
             if ("Java".equals(currentLanguage)) {
+                javaClassDiagramDrawer.draw();
                 javaClassDiagramDrawer.draw();
             } else if ("C++".equals(currentLanguage)) {
                 cppClassDiagramDrawer.draw(codeController.getSelectedClassName());

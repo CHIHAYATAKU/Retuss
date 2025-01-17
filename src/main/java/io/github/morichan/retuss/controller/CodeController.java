@@ -61,8 +61,9 @@ public class CodeController implements CppModel.ModelChangeListener {
     private JavaModel javaModel = JavaModel.getInstance();
     private CppModel cppModel = CppModel.getInstance();
     private List<Pair<CodeFile, Tab>> javaFileTabList = new ArrayList<>();
-    private List<Pair<CppFile, Tab>> cppFileTabList = new ArrayList<>();
     private UmlController umlController;
+    private Map<Tab, CppFile> tabToCppFileMap = new HashMap<>();
+    private Map<String, Tab> cppFileNameToTabMap = new HashMap<>();
     private Map<Tab, Path> tabPathMap = new HashMap<>();
 
     public void setUmlController(UmlController controller) {
@@ -91,14 +92,14 @@ public class CodeController implements CppModel.ModelChangeListener {
         Platform.runLater(() -> {
             try {
                 // Find the corresponding tab for the updated file
-                Optional<Tab> tab = findTab(file.getID());
+                Tab tab = cppFileNameToTabMap.get(file.getFileName());
 
-                if (tab.isPresent()) {
+                if (tab != null) {
                     // Select the tab
-                    codeTabPane.getSelectionModel().select(tab.get());
+                    codeTabPane.getSelectionModel().select(tab);
 
                     // Get the CodeArea from the tab's content
-                    AnchorPane anchorPane = (AnchorPane) tab.get().getContent();
+                    AnchorPane anchorPane = (AnchorPane) tab.getContent();
                     CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
 
                     // Store the current caret position
@@ -127,14 +128,21 @@ public class CodeController implements CppModel.ModelChangeListener {
     @Override
     public void onFileDeleted(String className) {
         Platform.runLater(() -> {
-            cppFileTabList.removeIf(pair -> {
-                if (pair.getKey().getFileName().equals(className + ".h") ||
-                        pair.getKey().getFileName().equals(className + ".cpp")) {
-                    codeTabPane.getTabs().remove(pair.getValue());
-                    return true;
-                }
-                return false;
-            });
+            String headerFileName = className + ".h";
+            String implFileName = className + ".cpp";
+
+            // Remove both .h and .cpp files
+            Tab headerTab = cppFileNameToTabMap.remove(headerFileName);
+            Tab implTab = cppFileNameToTabMap.remove(implFileName);
+
+            if (headerTab != null) {
+                tabToCppFileMap.remove(headerTab);
+                codeTabPane.getTabs().remove(headerTab);
+            }
+            if (implTab != null) {
+                tabToCppFileMap.remove(implTab);
+                codeTabPane.getTabs().remove(implTab);
+            }
         });
     }
 

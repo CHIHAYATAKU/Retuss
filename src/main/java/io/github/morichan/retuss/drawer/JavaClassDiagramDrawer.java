@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class JavaClassDiagramDrawer {
-    private double currentScale = 1.0;
     private JavaModel javaModel = JavaModel.getInstance();
     private final UmlModel umlModel;
     private WebView webView;
@@ -32,14 +31,6 @@ public class JavaClassDiagramDrawer {
     private final ExecutorService diagramExecutor = Executors.newSingleThreadExecutor();
     private final AtomicReference<String> lastSvg = new AtomicReference<>();
     private volatile boolean isUpdating = false;
-
-    public void setScale(double scale) {
-        if (this.currentScale != scale) { // 値が実際に変化した場合のみ
-            this.currentScale = scale;
-            clearCache(); // キャッシュをクリアして
-            draw(); // 再描画
-        }
-    }
 
     public JavaClassDiagramDrawer(WebView webView) {
         this.javaModel = JavaModel.getInstance();
@@ -68,7 +59,7 @@ public class JavaClassDiagramDrawer {
                 // pumlBuilder.append("skinparam linetype polyline\n");
                 pumlBuilder.append("skinparam classAttributeIconSize 0\n");
                 pumlBuilder.append("skinparam LineThickness 1.5\n");
-                pumlBuilder.append("scale ").append(String.format("%.2f", currentScale)).append("\n");
+                pumlBuilder.append("scale ").append("1.0").append("\n");
                 for (Class umlClass : umlClassList) {
                     pumlBuilder.append(umlClassToPlantUml(umlClass));
                 }

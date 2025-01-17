@@ -17,7 +17,6 @@ public class CppFile {
     private final ScheduledExecutorService updateExecutor = Executors.newSingleThreadScheduledExecutor(); // 更新用のスレッド
     private Future<?> lastTask; // 最後の非同期タスクを追跡
     private final Object updateLock = new Object(); // 同期処理用ロック
-    private final UUID ID = UUID.randomUUID();
     private String fileName = "";
     private String sourceCode;
     private final List<CppHeaderClass> headerClasses = new ArrayList<>();
@@ -79,10 +78,6 @@ public class CppFile {
         sb.append(className).append("::~").append(className).append("() {\n}\n");
 
         this.sourceCode = sb.toString();
-    }
-
-    public UUID getID() {
-        return ID;
     }
 
     public String getFileName() {
