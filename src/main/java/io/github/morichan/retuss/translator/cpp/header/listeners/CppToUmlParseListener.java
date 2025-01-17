@@ -64,7 +64,14 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
         // 新しいクラスが作成された場合、リストに追加
         if (context.getCurrentHeaderClass() != null) {
             CppHeaderClass currentClass = context.getCurrentHeaderClass();
-            if (!extractedHeaderClasses.contains(currentClass)) {
+
+            // `extractedHeaderClasses` 内に同じクラスが存在するかチェック
+            boolean alreadyExists = extractedHeaderClasses.stream()
+                    .anyMatch(cls -> cls.getName().equals(currentClass.getName()))
+                    || extractedHeaderClasses.contains(currentClass);
+
+            // 存在しない場合のみ追加
+            if (!alreadyExists) {
                 extractedHeaderClasses.add(currentClass);
                 System.out.println("DEBUG: Added new class to extracted classes: " +
                         currentClass.getName());
@@ -96,11 +103,18 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
 
         // 新しいenumが作成された場合、リストに追加
         if (context.getCurrentHeaderClass() != null) {
-            CppHeaderClass currentEnum = context.getCurrentHeaderClass();
-            if (!extractedHeaderClasses.contains(currentEnum)) {
-                extractedHeaderClasses.add(currentEnum);
-                System.out.println("DEBUG: Added new enum to extracted classes: " +
-                        currentEnum.getName());
+            CppHeaderClass currentClass = context.getCurrentHeaderClass();
+
+            // `extractedHeaderClasses` 内に同じクラスが存在するかチェック
+            boolean alreadyExists = extractedHeaderClasses.stream()
+                    .anyMatch(cls -> cls.getName().equals(currentClass.getName()))
+                    || extractedHeaderClasses.contains(currentClass);
+
+            // 存在しない場合のみ追加
+            if (!alreadyExists) {
+                extractedHeaderClasses.add(currentClass);
+                System.out.println("DEBUG: Added new class to extracted classes: " +
+                        currentClass.getName());
             }
         }
     }

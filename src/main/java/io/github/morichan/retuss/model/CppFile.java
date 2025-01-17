@@ -22,13 +22,11 @@ public class CppFile {
     private String sourceCode;
     private final List<CppHeaderClass> headerClasses = new ArrayList<>();
     private CppImplClass implClass;
-    private CppTranslator translator;
     private final boolean isHeader;
 
     public CppFile(String fileName, boolean isHeader) {
         this.fileName = fileName;
         this.isHeader = isHeader;
-        this.translator = new CppTranslator();
         if (isHeader) {
             // 初期のヘッダークラスを追加
             CppHeaderClass headerClass = new CppHeaderClass(getBaseName());
@@ -38,6 +36,7 @@ public class CppFile {
     }
 
     private void initializeFile() {
+        CppTranslator translator = new CppTranslator();
         if (isHeader) {
             initializeHeaderFile();
         } else {
@@ -134,6 +133,7 @@ public class CppFile {
     }
 
     private void analyzeHeaderFile(String code) {
+        CppTranslator translator = new CppTranslator();
         List<CppHeaderClass> newUmlClassList = translator.translateHeaderCodeToUml(code);
         if (!newUmlClassList.isEmpty()) {
             headerClasses.clear();

@@ -120,13 +120,13 @@ public class CppModel {
     }
 
     private void updateHeaderFile(CppFile headerFile, String code, String baseName) {
-        String oldFileName = headerFile.getFileName();
+        String oldClassName = headerFile.getBaseName();
         headerFile.updateCode(code);
         // 新しいクラス名を取得
-        String newClassName = headerFile.getBaseName();
-        if (!newClassName.equals(oldFileName)) {
+        String newClassName = headerFile.getHeaderClasses().get(0).getName();
+        if (!newClassName.equals(oldClassName)) {
             String newName = newClassName;
-            handleClassNameChange(oldFileName, newName, headerFile);
+            handleClassNameChange(oldClassName, newName, headerFile);
         }
 
         notifyFileUpdated(headerFile);
