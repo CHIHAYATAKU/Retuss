@@ -19,11 +19,40 @@ public class OperationAnalyzer extends AbstractAnalyzer {
     @Override
     public boolean appliesTo(ParserRuleContext context) {
         if (!(context instanceof CPP14Parser.MemberdeclarationContext)) {
+            System.err.println("DEBUG: 1: " + context.getText());
             return false;
         }
         CPP14Parser.MemberdeclarationContext ctx = (CPP14Parser.MemberdeclarationContext) context;
 
-        return (ctx.memberDeclaratorList() != null && isMethodDeclaration(ctx.memberDeclaratorList()));
+        // メソッドとして判定する条件：
+        // 1. declSpecifierSeq が存在する（戻り値の型がある）
+        // 2. memberDeclaratorList が存在する
+        // 3. パラメータリストを持つ
+        if (ctx.memberDeclaratorList() == null) {
+            System.err.println("DEBUG: 2: " + context.getText());
+            return false;
+        }
+
+        // コンストラクタ/デストラクタはConstructorAndDestructorAnalyzerで処理するため、
+        // declSpecifierSeqが空または virtual のみの場合は除外
+        // String declSpec = ctx.declSpecifierSeq().getText();
+        // if (declSpec.isEmpty() || declSpec.equals("virtual")) {
+        // return false;
+        // }
+
+        // パラメータリストを持つメソッド宣言かチェック
+        for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
+            if (memberDec.declarator() != null &&
+                    memberDec.declarator().pointerDeclarator() != null &&
+                    memberDec.declarator().pointerDeclarator().noPointerDeclarator() != null &&
+                    memberDec.declarator().pointerDeclarator().noPointerDeclarator()
+                            .parametersAndQualifiers() != null) {
+                System.err.println("DEBUG: 3: " + context.getText());
+                return true;
+            }
+        }
+        System.err.println("DEBUG: 4: " + context.getText());
+        return false;
     }
 
     @Override
@@ -32,7 +61,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             CPP14Parser.MemberdeclarationContext ctx = (CPP14Parser.MemberdeclarationContext) context;
             CppHeaderClass currentHeaderClass = this.context.getCurrentHeaderClass();
 
-            if (currentHeaderClass == null || ctx.declSpecifierSeq() == null) {
+            if (currentHeaderClass == null) {
                 return;
             }
 
@@ -117,17 +146,19 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
                 // 戻り値の型を取得
                 String operationType = null;
-                for (CPP14Parser.DeclSpecifierContext declSpec : ctx.declSpecifierSeq().declSpecifier()) {
-                    // cvQualifierの場合はスキップ（これは修飾子として別途処理）
-                    if (declSpec.typeSpecifier() != null &&
-                            declSpec.typeSpecifier().trailingTypeSpecifier() != null &&
-                            declSpec.typeSpecifier().trailingTypeSpecifier().cvQualifier() != null) {
-                        continue;
-                    }
+                if (ctx.declSpecifierSeq() != null) {
+                    for (CPP14Parser.DeclSpecifierContext declSpec : ctx.declSpecifierSeq().declSpecifier()) {
+                        // cvQualifierの場合はスキップ（これは修飾子として別途処理）
+                        if (declSpec.typeSpecifier() != null &&
+                                declSpec.typeSpecifier().trailingTypeSpecifier() != null &&
+                                declSpec.typeSpecifier().trailingTypeSpecifier().cvQualifier() != null) {
+                            continue;
+                        }
 
-                    String returnType = extractReturnType(declSpec, operation, currentHeaderClass);
-                    if (returnType != null) {
-                        operationType = returnType;
+                        String returnType = extractReturnType(declSpec, operation, currentHeaderClass);
+                        if (returnType != null) {
+                            operationType = returnType;
+                        }
                     }
                 }
 

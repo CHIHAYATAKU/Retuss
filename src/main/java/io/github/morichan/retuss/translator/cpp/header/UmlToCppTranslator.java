@@ -31,7 +31,7 @@ public class UmlToCppTranslator {
                 insertPosition++;
             }
 
-            String attributeDeclaration = "    " + translateAttribute(attribute) + ";";
+            String attributeDeclaration = "  " + translateAttribute(attribute) + ";";
             lines.add(insertPosition + 1, attributeDeclaration);
 
             return String.join("\n", lines);
@@ -163,7 +163,7 @@ public class UmlToCppTranslator {
                 insertPosition++;
             }
 
-            String operationDeclaration = "    " + translateOperation(operation, cls) + ";";
+            String operationDeclaration = "  " + translateOperation(operation, cls) + ";";
             lines.add(insertPosition + 1, operationDeclaration);
 
             // デバッグ出力
@@ -314,7 +314,7 @@ public class UmlToCppTranslator {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
             int insertPosition = findInsertPositionForAttribute(lines, visibility);
 
-            String declaration = "    " + targetClassName + "* " + memberName + ";";
+            String declaration = "  " + targetClassName + "* " + memberName + ";";
             lines.add(insertPosition + 1, declaration);
 
             return String.join("\n", lines);
@@ -330,7 +330,7 @@ public class UmlToCppTranslator {
             int insertPosition = findInsertPositionForAttribute(lines, visibility);
 
             // コンポジション用のメンバ変数を追加
-            String declaration = "    " + componentName + " " + memberName + ";";
+            String declaration = "  " + componentName + " " + memberName + ";";
             lines.add(insertPosition + 1, declaration);
 
             return String.join("\n", lines);
@@ -349,7 +349,7 @@ public class UmlToCppTranslator {
             // アノテーションの追加
             lines.add(insertPosition + 1, "    // @relationship composition");
             // メンバ変数の追加
-            String declaration = "    " + componentName + "* " + memberName + ";";
+            String declaration = "  " + componentName + "* " + memberName + ";";
             lines.add(insertPosition + 2, declaration);
 
             return String.join("\n", lines);
@@ -368,7 +368,7 @@ public class UmlToCppTranslator {
             // アノテーションの追加
             lines.add(insertPosition + 1, "    // @relationship aggregation");
             // メンバ変数の追加（shared_ptr使用）
-            String declaration = "    " + componentName + "* " + memberName + ";";
+            String declaration = "  " + componentName + "* " + memberName + ";";
             lines.add(insertPosition + 2, declaration);
 
             return String.join("\n", lines);
