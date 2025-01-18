@@ -7,7 +7,7 @@ import io.github.morichan.retuss.model.uml.cpp.utils.*;
 
 public class CppHeaderClass {
     // メンバー変数
-    private String namespace = "";
+    // private String namespace = "";
     private String name = "";
     private Boolean isAbstruct = false;
     private Boolean isInterface = false;
@@ -38,13 +38,13 @@ public class CppHeaderClass {
         }
     }
 
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
+    // public void setNamespace(String namespace) {
+    // this.namespace = namespace;
+    // }
 
-    public String getNamespace() {
-        return namespace;
-    }
+    // public String getNamespace() {
+    // return namespace;
+    // }
 
     public void addEnumValue(String name, String value) {
         enumValues.add(new EnumValue(name, value));

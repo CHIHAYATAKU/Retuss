@@ -74,10 +74,10 @@ public class CppClassDiagramDrawer {
 
     private void drawClass(StringBuilder pumlBuilder, CppHeaderClass cls, String selectedClassName) {
         try {
-            String namespace = cls.getNamespace();
-            if (!namespace.isEmpty()) {
-                pumlBuilder.append("namespace ").append(namespace).append(" {\n");
-            }
+            // String namespace = cls.getNamespace();
+            // if (!namespace.isEmpty()) {
+            // pumlBuilder.append("namespace ").append(namespace).append(" {\n");
+            // }
             // enumの場合の処理を分離
             if (cls.getEnum()) {
                 pumlBuilder.append("enum ");
@@ -136,9 +136,9 @@ public class CppClassDiagramDrawer {
 
             // 関係の描画
             pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
-            if (!namespace.isEmpty()) {
-                pumlBuilder.append("}\n");
-            }
+            // if (!namespace.isEmpty()) {
+            // pumlBuilder.append("}\n");
+            // }
         } catch (Exception e) {
             System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
             e.printStackTrace();
@@ -147,10 +147,10 @@ public class CppClassDiagramDrawer {
 
     private void drawSimpleClass(StringBuilder pumlBuilder, CppHeaderClass cls) {
         try {
-            String namespace = cls.getNamespace();
-            if (!namespace.isEmpty()) {
-                pumlBuilder.append("namespace ").append(namespace).append(" {\n");
-            }
+            // String namespace = cls.getNamespace();
+            // if (!namespace.isEmpty()) {
+            // pumlBuilder.append("namespace ").append(namespace).append(" {\n");
+            // }
             if (cls.getEnum()) {
                 pumlBuilder.append("enum ");
                 pumlBuilder.append(cls.getName());
@@ -194,9 +194,9 @@ public class CppClassDiagramDrawer {
 
             // 関係の描画
             pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
-            if (!namespace.isEmpty()) {
-                pumlBuilder.append("}\n");
-            }
+            // if (!namespace.isEmpty()) {
+            //     pumlBuilder.append("}\n");
+            // }
         } catch (Exception e) {
             System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
             e.printStackTrace();
@@ -408,7 +408,7 @@ public class CppClassDiagramDrawer {
                 simplePumlBuilder.append("scale ").append("1.0").append("\n");
                 if (!classes.isEmpty() && classes != null) {
                     for (CppHeaderClass cls : classes) {
-                        drawSimpleClass(pumlBuilder, cls);
+                        drawSimpleClass(simplePumlBuilder, cls);
                     }
                 }
 

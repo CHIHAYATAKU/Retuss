@@ -8,7 +8,7 @@ import java.util.*;
 public class AnalyzerContext {
     private CppHeaderClass outerClass;
     private CppHeaderClass currentHeaderClass;
-    private String currentNamespace = "";
+    // private String currentNamespace = "";
     private String currentVisibility = "private";
     private final boolean isHeaderFile;
 
@@ -16,12 +16,12 @@ public class AnalyzerContext {
         this.isHeaderFile = isHeaderFile;
     }
 
-    public void setCurrentNamespace(String namespace) {
-        this.currentNamespace = namespace;
-        if (currentHeaderClass != null) {
-            currentHeaderClass.setNamespace(namespace);
-        }
-    }
+    // public void setCurrentNamespace(String namespace) {
+    // this.currentNamespace = namespace;
+    // if (currentHeaderClass != null) {
+    // currentHeaderClass.setNamespace(namespace);
+    // }
+    // }
 
     public void setOuterClass(CppHeaderClass cls) {
         outerClass = cls;
@@ -31,9 +31,9 @@ public class AnalyzerContext {
         return outerClass;
     }
 
-    public String getCurrentNamespace() {
-        return currentNamespace;
-    }
+    // public String getCurrentNamespace() {
+    // return currentNamespace;
+    // }
 
     public CppHeaderClass getCurrentHeaderClass() {
         return currentHeaderClass;
