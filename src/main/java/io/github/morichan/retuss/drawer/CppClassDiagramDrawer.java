@@ -195,7 +195,7 @@ public class CppClassDiagramDrawer {
             // 関係の描画
             pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
             // if (!namespace.isEmpty()) {
-            //     pumlBuilder.append("}\n");
+            // pumlBuilder.append("}\n");
             // }
         } catch (Exception e) {
             System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
@@ -210,7 +210,7 @@ public class CppClassDiagramDrawer {
                     .append(" ");
 
             // 修飾子の追加
-            Set<Modifier> modifiers = cls.getModifiers(attr.getName().getNameText());
+            Set<Modifier> modifiers = cls.getModifiers(attr);
             appendAttributeModifiers(pumlBuilder, modifiers);
 
             // 属性名と型を表示
@@ -284,7 +284,7 @@ public class CppClassDiagramDrawer {
             boolean isDestructor = methodName.startsWith("~");
 
             // 修飾子の追加
-            Set<Modifier> modifiers = cls.getModifiers(methodName);
+            Set<Modifier> modifiers = cls.getModifiers(op);
             if (modifiers != null && !modifiers.isEmpty()) {
                 appendOperationModifiers(pumlBuilder, modifiers);
             }

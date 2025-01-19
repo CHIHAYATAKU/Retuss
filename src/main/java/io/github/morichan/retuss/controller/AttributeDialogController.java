@@ -75,7 +75,7 @@ public class AttributeDialogController {
                 Attribute attribute = parseAttributeString(attributeText);
                 Set<Modifier> modifiers = extractModifiers(attributeText);
                 CppHeaderClass cls = cppModel.findClass(className).get();
-                modifiers.forEach(mod -> cls.addMemberModifier(attribute.getName().getNameText(), mod));
+                modifiers.forEach(mod -> cls.addMemberModifier(attribute, mod));
                 cppModel.addAttribute(className, attribute);
             }
 

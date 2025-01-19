@@ -183,7 +183,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
 
                     // 修飾子の追加
                     for (Modifier modifier : modifiers) {
-                        currentHeaderClass.addMemberModifier(attributeName, modifier);
+                        currentHeaderClass.addMemberModifier(attribute, modifier);
                     }
                     // 関係性があれば追加
                     if (result[1] != null) {

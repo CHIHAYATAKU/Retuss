@@ -10,6 +10,7 @@ import io.github.morichan.fescue.feature.visibility.Visibility;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class UmlToCppTranslator {
     private final CppVisibilityMapper visibilityMapper;
@@ -226,7 +227,7 @@ public class UmlToCppTranslator {
         builder.append(")");
 
         // 修飾子の処理
-        Set<Modifier> modifiers = cls.getModifiers(operation.getName().getNameText());
+        Set<Modifier> modifiers = cls.getModifiers(operation);
         if (modifiers.contains(Modifier.QUERY)) {
             builder.append(" const");
         }
@@ -382,11 +383,52 @@ public class UmlToCppTranslator {
         List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
         String opName = operation.getName().getNameText();
 
+        // 引数リストの取得（nullチェック付き）
+        List<String> paramNames = new ArrayList<>();
+        try {
+            List<Parameter> params = operation.getParameters();
+            if (params != null) {
+                paramNames = params.stream()
+                        .map(param -> param.getName().getNameText())
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            // 引数取得に失敗した場合は空リストのまま
+        }
+
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
+
             if (line.contains(opName) && line.contains("(") && line.endsWith(";")) {
-                lines.remove(i);
-                break;
+                int start = line.indexOf("(") + 1;
+                int end = line.lastIndexOf(")");
+
+                if (start > 0 && end > start) {
+                    String params = line.substring(start, end).trim();
+
+                    // パラメータがない場合は、パラメータ部分が空であることのみチェック
+                    if (paramNames.isEmpty()) {
+                        System.out.println("DEBUG: Found empty param method: " + line); // デバッグ出力
+                        if (params.isEmpty()) {
+                            lines.remove(i);
+                            break;
+                        }
+                    } else {
+                        // パラメータがある場合は全てのパラメータ名を含むかチェック
+                        boolean allParamsFound = paramNames.stream()
+                                .allMatch(params::contains);
+                        if (allParamsFound) {
+                            lines.remove(i);
+                            break;
+                        }
+                    }
+                } else if (start > 0 && end == start) {
+                    // ()が連続している場合（空の引数リスト）
+                    if (paramNames.isEmpty()) {
+                        lines.remove(i);
+                        break;
+                    }
+                }
             }
         }
         return String.join("\n", lines);

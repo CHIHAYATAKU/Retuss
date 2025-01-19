@@ -143,7 +143,7 @@ public class CppFile {
             if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
                 boolean allAbstract = true;
                 for (Operation op : cls.getOperationList()) {
-                    if (!cls.getModifiers(op.getName().getNameText()).contains(Modifier.PURE_VIRTUAL)
+                    if (!cls.getModifiers(op).contains(Modifier.PURE_VIRTUAL)
                             && !cls.getName().equals(op.getName().getNameText())
                             && !("~" + cls.getName()).equals(op.getName().getNameText())) {
                         allAbstract = false;

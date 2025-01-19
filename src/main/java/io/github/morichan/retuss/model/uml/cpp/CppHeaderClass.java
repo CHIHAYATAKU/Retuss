@@ -15,7 +15,7 @@ public class CppHeaderClass {
     private List<EnumValue> enumValues = new ArrayList<>();
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
-    private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
+    private final Map<Object, Set<Modifier>> memberModifiers = new HashMap<>();
     private final CppRelationshipManager relationshipManager;
 
     public static class EnumValue {
@@ -53,14 +53,14 @@ public class CppHeaderClass {
     }
 
     // メンバー修飾子の管理
-    public void addMemberModifier(String memberName, Modifier modifier) {
-        memberModifiers.computeIfAbsent(memberName, k -> EnumSet.noneOf(Modifier.class))
+    public void addMemberModifier(Object member, Modifier modifier) {
+        memberModifiers.computeIfAbsent(member, k -> EnumSet.noneOf(Modifier.class))
                 .add(modifier);
     }
 
-    public Set<Modifier> getModifiers(String memberName) {
+    public Set<Modifier> getModifiers(Object member) {
         return Collections.unmodifiableSet(
-                memberModifiers.getOrDefault(memberName, EnumSet.noneOf(Modifier.class)));
+                memberModifiers.getOrDefault(member, EnumSet.noneOf(Modifier.class)));
     }
 
     // 関係の管理

@@ -202,6 +202,11 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                             if (declSpec.typeSpecifier() != null &&
                                     declSpec.typeSpecifier().trailingTypeSpecifier() != null) {
 
+                                // constの場合はスキップする条件を追加
+                                if (declSpec.typeSpecifier().trailingTypeSpecifier().cvQualifier() != null) {
+                                    continue; // const修飾子の場合はスキップ
+                                }
+
                                 CPP14Parser.SimpleTypeSpecifierContext simple = declSpec.typeSpecifier()
                                         .trailingTypeSpecifier().simpleTypeSpecifier();
 
@@ -270,11 +275,10 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                         }
                     }
                 }
-            }
-
-            // 修飾子の追加
-            for (Modifier modifier : modifiers) {
-                currentHeaderClass.addMemberModifier(operationName, modifier);
+                // 修飾子の追加
+                for (Modifier modifier : modifiers) {
+                    currentHeaderClass.addMemberModifier(operation, modifier);
+                }
             }
             // String processedType = cleanType(rawType);
             // System.err.println("DEBUG: " + processedType);

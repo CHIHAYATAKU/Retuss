@@ -73,7 +73,7 @@ public class OperationDialogController {
                 Operation operation = parseOperationString(operationText);
                 Set<Modifier> modifiers = extractModifiers(operationText);
                 CppHeaderClass cls = cppModel.findClass(className).get();
-                modifiers.forEach(mod -> cls.addMemberModifier(operation.getName().getNameText(), mod));
+                modifiers.forEach(mod -> cls.addMemberModifier(operation, mod));
                 cppModel.addOperation(className, operation);
             }
 

@@ -146,9 +146,12 @@ public class DeleteDialogControllerCD {
             System.out.println("Operations found in " + cls.getName() + ": " + cls.getOperationList().size()); // デバッグ用
             for (Operation op : cls.getOperationList()) {
                 System.out.println("Adding operation: " + op.getName()); // デバッグ用
-                cdTreeItemList.add(op);
-                TreeItem<String> opItem = new TreeItem<>(formatCppOperation(op, cls));
-                operationsNode.getChildren().add(opItem);
+                if (!op.getName().getNameText().equals(cls.getName())
+                        && !op.getName().getNameText().equals("~" + cls.getName())) {
+                    cdTreeItemList.add(op);
+                    TreeItem<String> opItem = new TreeItem<>(formatCppOperation(op, cls));
+                    operationsNode.getChildren().add(opItem);
+                }
             }
             classTreeItem.getChildren().add(operationsNode);
 
@@ -237,20 +240,28 @@ public class DeleteDialogControllerCD {
         boolean isOperation = path.contains("Operations");
         boolean isRelation = path.contains("Relations");
 
+        CppHeaderClass cls = cppModel.getHeaderClasses().stream()
+                .filter(c -> c.getName().equals(path.get(0)))
+                .findFirst()
+                .orElse(null);
+
+        if (cls == null)
+            return -1;
+
         for (int i = 0; i < cdTreeItemList.size(); i++) {
             Object item = cdTreeItemList.get(i);
 
             if (isAttribute && item instanceof Attribute) {
                 Attribute attr = (Attribute) item;
-                String attrStr = formatAttributeString(attr);
-                System.out.println("DEBUG: Comparing attribute: " + attrStr + " with " + targetName);
+                // formatAttributeStringの代わりにformatCppAttributeを使用
+                String attrStr = formatCppAttribute(attr, cls);
                 if (attrStr.equals(targetName)) {
                     return i;
                 }
             } else if (isOperation && item instanceof Operation) {
                 Operation op = (Operation) item;
-                String opStr = formatOperationString(op);
-                System.out.println("DEBUG: Comparing operation: " + opStr + " with " + targetName);
+                // formatOperationStringの代わりにformatCppOperationを使用
+                String opStr = formatCppOperation(op, cls);
                 if (opStr.equals(targetName)) {
                     return i;
                 }
@@ -299,8 +310,9 @@ public class DeleteDialogControllerCD {
                 sb.append(String.join(", ", paramStrings));
             }
 
-            sb.append(") : ");
+            sb.append(")");
             if (op.getReturnType() != null) {
+                sb.append(" : ");
                 sb.append(op.getReturnType().toString());
             }
         } catch (IllegalStateException e) {
@@ -424,6 +436,8 @@ public class DeleteDialogControllerCD {
             String visibility = (op.getVisibility() != null) ? op.getVisibility().toString() : "Unknown";
             sb.append(visibility).append(" ");
             String name = (op.getName() != null) ? op.getName().getNameText() : "Unnamed";
+            boolean isConstructorOrDestructor = name.equals(cls.getName()) ||
+                    name.equals("~" + cls.getName());
             // 修飾子
             // Set<Modifier> modifiers = cls.getModifiers(name);
             // if (modifiers != null && !modifiers.isEmpty()) {
@@ -446,9 +460,6 @@ public class DeleteDialogControllerCD {
                     parameters = Collections.emptyList();
                 }
             } catch (Exception e) {
-                System.out.println("Exception while fetching parameters for operation: " +
-                        name);
-                e.printStackTrace();
                 parameters = Collections.emptyList();
             }
 
@@ -465,8 +476,10 @@ public class DeleteDialogControllerCD {
             sb.append(")");
 
             // 戻り値
-            String returnType = (op.getReturnType() != null) ? op.getReturnType().toString() : "void";
-            sb.append(" : ").append(returnType);
+            if (!isConstructorOrDestructor && op.getReturnType() != null &&
+                    !op.getReturnType().toString().equals("")) {
+                sb.append(" : ").append(op.getReturnType().toString());
+            }
         } catch (Exception e) {
             System.out.println("Exception in formatCppOperation: " + e.getMessage());
             e.printStackTrace();
