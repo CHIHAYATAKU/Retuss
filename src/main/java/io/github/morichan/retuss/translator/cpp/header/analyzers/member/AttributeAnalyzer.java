@@ -449,11 +449,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                     return true;
                 }
             }
-
-            if (declarator.pointerDeclarator() != null &&
-                    declarator.getText().contains("(*)")) {
-                return true;
-            }
         }
         return false;
     }

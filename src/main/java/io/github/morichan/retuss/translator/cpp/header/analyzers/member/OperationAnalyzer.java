@@ -33,13 +33,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             return false;
         }
 
-        // コンストラクタ/デストラクタはConstructorAndDestructorAnalyzerで処理するため、
-        // declSpecifierSeqが空または virtual のみの場合は除外
-        // String declSpec = ctx.declSpecifierSeq().getText();
-        // if (declSpec.isEmpty() || declSpec.equals("virtual")) {
-        // return false;
-        // }
-
         // パラメータリストを持つメソッド宣言かチェック
         for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
             if (memberDec.declarator() != null &&
@@ -169,6 +162,19 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 }
 
                 currentHeaderClass.addOperation(operation);
+
+                // queryの抽出
+                if (noPtrDec.parametersAndQualifiers() != null &&
+                        noPtrDec.parametersAndQualifiers().cvqualifierseq() != null &&
+                        noPtrDec.parametersAndQualifiers().cvqualifierseq().cvQualifier() != null) {
+                    for (CPP14Parser.CvQualifierContext cvQualifier : noPtrDec.parametersAndQualifiers()
+                            .cvqualifierseq()
+                            .cvQualifier()) {
+                        if (cvQualifier.getText().equals("const")) {
+                            modifiers.add(Modifier.QUERY);
+                        }
+                    }
+                }
 
                 // パラメータの処理
                 if (noPtrDec.parametersAndQualifiers() != null &&
@@ -432,45 +438,5 @@ public class OperationAnalyzer extends AbstractAnalyzer {
             pumlBuilder.append(String.join(" ", modifierStrings))
                     .append(" ");
         }
-    }
-
-    private boolean isMethodDeclaration(CPP14Parser.MemberDeclaratorListContext memberDecList) {
-        if (memberDecList == null)
-            return false;
-
-        for (CPP14Parser.MemberDeclaratorContext memberDec : memberDecList.memberDeclarator()) {
-            if (memberDec.declarator() == null)
-                continue;
-
-            CPP14Parser.DeclaratorContext declarator = memberDec.declarator();
-            if (declarator.pointerDeclarator() != null) {
-                var noPointerDec = declarator.pointerDeclarator().noPointerDeclarator();
-                if (noPointerDec != null) {
-                    // パラメータリストの存在をチェック
-                    if (noPointerDec.parametersAndQualifiers() != null) {
-                        return true;
-                    }
-
-                    // コンストラクタ/デストラクタのチェック
-                    if (noPointerDec.declaratorid() != null &&
-                            noPointerDec.declaratorid().idExpression() != null &&
-                            noPointerDec.declaratorid().idExpression().unqualifiedId() != null) {
-
-                        String name = noPointerDec.declaratorid().idExpression().unqualifiedId().getText();
-                        // デストラクタチェック (~で始まる)
-                        if (name.startsWith("~")) {
-                            return true;
-                        }
-
-                        // コンストラクタチェック (クラス名と同じ)
-                        if (this.context.getCurrentHeaderClass() != null &&
-                                name.equals(this.context.getCurrentHeaderClass().getName())) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
     }
 }

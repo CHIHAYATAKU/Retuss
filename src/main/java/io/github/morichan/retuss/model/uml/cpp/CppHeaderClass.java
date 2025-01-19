@@ -13,8 +13,6 @@ public class CppHeaderClass {
     private Boolean isInterface = false;
     private Boolean isEnum = false;
     private List<EnumValue> enumValues = new ArrayList<>();
-    // private CppHeaderClass superClass;
-    // private List<CppHeaderClass> superClasses = new ArrayList<>();
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
     private final Map<String, Set<Modifier>> memberModifiers = new HashMap<>();
