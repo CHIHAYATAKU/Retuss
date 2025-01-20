@@ -377,20 +377,17 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                         extractedTypeName = extractedTypeName + "*";
                         relation.setElement(
                                 attributeName,
-                                ElementType.ATTRIBUTE,
                                 "0..1",
                                 convertVisibility(currentVisibility));
                     } else if (isRef) {
                         extractedTypeName = extractedTypeName + "&";
                         relation.setElement(
                                 attributeName,
-                                ElementType.ATTRIBUTE,
                                 "1",
                                 convertVisibility(currentVisibility));
                     } else {
                         relation.setElement(
                                 attributeName,
-                                ElementType.ATTRIBUTE,
                                 "1",
                                 convertVisibility(currentVisibility));
                     }

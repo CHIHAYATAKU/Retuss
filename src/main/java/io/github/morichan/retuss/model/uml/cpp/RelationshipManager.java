@@ -5,11 +5,11 @@ import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CppRelationshipManager {
-    private final Map<String, Set<RelationshipInfo>> targetClassNameRelationshipInfoMap = new HashMap<>();
+public class RelationshipManager {
+    private final Set<RelationshipInfo> relationshipInfoSet = new HashSet<>();
     private final String sourceClassName; // 関係元のクラス名
 
-    public CppRelationshipManager(String sourceClassName) {
+    public RelationshipManager(String sourceClassName) {
         this.sourceClassName = sourceClassName;
     }
 
@@ -19,13 +19,7 @@ public class CppRelationshipManager {
 
     // 関係の追加
     public void addRelationship(RelationshipInfo relationship) {
-        targetClassNameRelationshipInfoMap.computeIfAbsent(relationship.getTargetClass(), k -> new HashSet<>())
-                .add(relationship);
-    }
-
-    public void addRealization(String interfaceName) {
-        RelationshipInfo relation = new RelationshipInfo(interfaceName, RelationType.REALIZATION);
-        addRelationship(relation);
+        relationshipInfoSet.add(relationship);
     }
 
     // 継承関係の追加
@@ -37,51 +31,26 @@ public class CppRelationshipManager {
     // コンポジション関係の追加
     public void addComposition(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.COMPOSITION);
-        relation.setElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
+        relation.setElement(memberName, multiplicity, visibility);
         addRelationship(relation);
     }
 
     // 集約関係の追加
     public void addAggregation(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.AGGREGATION);
-        relation.setElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
+        relation.setElement(memberName, multiplicity, visibility);
         addRelationship(relation);
     }
 
     public void addAssociation(String targetClass, String memberName, String multiplicity, Visibility visibility) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.ASSOCIATION);
-        relation.setElement(memberName, ElementType.ATTRIBUTE, multiplicity, visibility);
+        relation.setElement(memberName, multiplicity, visibility);
         addRelationship(relation);
-    }
-
-    // public void addReturnTypeDependency(String targetClass, String memberName,
-    // Visibility visibility) {
-    // RelationshipInfo relation = new RelationshipInfo(targetClass,
-    // RelationType.DEPENDENCY);
-    // relation.setElement(
-    // memberName,
-    // ElementType.OPERATION,
-    // "1",
-    // Visibility visibility,
-    // String type,
-    // String returnType,
-    // String defaultValue,
-    // boolean isPureVirtual,
-    // Set<Modifier> modifiers);
-    // addRelationship(relation);
-    // }
-
-    // 指定したターゲットクラスとの関係を取得
-    public Set<RelationshipInfo> getRelationshipsWith(String targetClass) {
-        return Collections.unmodifiableSet(
-                targetClassNameRelationshipInfoMap.getOrDefault(targetClass, new HashSet<>()));
     }
 
     // 全ての関係を取得
     public Set<RelationshipInfo> getAllRelationships() {
-        return targetClassNameRelationshipInfoMap.values().stream()
-                .flatMap(Set::stream)
-                .collect(Collectors.toSet());
+        return new HashSet<>(relationshipInfoSet);
     }
 
     // 特定の種類の関係のみを取得
@@ -176,17 +145,6 @@ public class CppRelationshipManager {
                     .append(relation.getTargetClass())
                     .append("\n");
         }
-    }
-
-    // 特定のターゲットクラスとの関係を削除
-    public void removeRelationshipsWith(String targetClass) {
-        targetClassNameRelationshipInfoMap.remove(targetClass);
-    }
-
-    // 特定の種類の関係を全て削除
-    public void removeRelationshipsOfType(RelationType type) {
-        targetClassNameRelationshipInfoMap.values()
-                .removeIf(relations -> relations.removeIf(relation -> relation.getType() == type));
     }
 
     // 関係の検証（例：循環参照のチェックなど）

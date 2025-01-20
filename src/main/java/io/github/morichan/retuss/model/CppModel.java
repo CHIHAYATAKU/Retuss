@@ -155,7 +155,7 @@ public class CppModel {
             CppFile headerFile = headerFileOpt.get();
             CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
 
-            String newCode = translator.addOperation(headerFile.getCode(), targetClass, operation);
+            String newCode = translator.addOperation(headerFile.getCode(), operation);
             headerFile.updateCode(newCode);
             notifyFileUpdated(headerFile);
         } catch (Exception e) {
@@ -372,14 +372,14 @@ public class CppModel {
         }
     }
 
-    public void removeInheritance(String className, String baseClassName) {
+    public void removeGeberalization(String className, String baseClassName) {
         Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
         if (headerFileOpt.isEmpty())
             return;
 
         try {
             CppFile headerFile = headerFileOpt.get();
-            String newCode = translator.removeInheritance(headerFile.getCode(), baseClassName);
+            String newCode = translator.removeGeberalization(headerFile.getCode(), baseClassName);
             headerFile.updateCode(newCode);
             notifyFileUpdated(headerFile);
         } catch (Exception e) {

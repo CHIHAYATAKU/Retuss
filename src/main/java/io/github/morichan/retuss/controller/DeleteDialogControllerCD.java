@@ -394,7 +394,7 @@ public class DeleteDialogControllerCD {
 
         switch (relation.getType()) {
             case INHERITANCE:
-                cppModel.removeInheritance(className, relation.getTargetClass());
+                cppModel.removeGeberalization(className, relation.getTargetClass());
                 break;
             case REALIZATION:
                 cppModel.removeRealization(className, relation.getTargetClass());

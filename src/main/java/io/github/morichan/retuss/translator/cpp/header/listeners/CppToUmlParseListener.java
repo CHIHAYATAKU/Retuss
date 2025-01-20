@@ -14,30 +14,19 @@ public class CppToUmlParseListener extends CPP14ParserBaseListener {
     private final List<IAnalyzer> analyzers;
     private final AnalyzerContext context;
     private final List<CppHeaderClass> extractedHeaderClasses;
-    private final boolean isHeaderFile;
 
-    public CppToUmlParseListener(boolean isHeaderFile) {
-        this.isHeaderFile = isHeaderFile;
-        this.context = new AnalyzerContext(isHeaderFile);
+    public CppToUmlParseListener() {
+        this.context = new AnalyzerContext();
         this.extractedHeaderClasses = new ArrayList<>();
 
-        if (isHeaderFile()) {
-            this.analyzers = Arrays.asList(
-                    // new NamespaceAnalyzer(),
-                    new ClassAnalyzer(),
-                    new InheritanceAnalyzer(),
-                    new VisibilityAnalyzer(),
-                    new AttributeAnalyzer(),
-                    new OperationAnalyzer()
-            // new ConstructorAndDestructorAnalyzer());
-            );
-        } else {
-            this.analyzers = Arrays.asList(new OperationAnalyzer());
-        }
-    }
+        this.analyzers = Arrays.asList(
+                // new NamespaceAnalyzer(),
+                new ClassAnalyzer(),
+                new InheritanceAnalyzer(),
+                new VisibilityAnalyzer(),
+                new AttributeAnalyzer(),
+                new OperationAnalyzer());
 
-    public boolean isHeaderFile() {
-        return isHeaderFile;
     }
 
     // @Override

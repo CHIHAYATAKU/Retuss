@@ -92,8 +92,8 @@ public class CppTranslator {
         return umlToCppTranslator.addAttribute(existingCode, attribute);
     }
 
-    public String addOperation(String existingCode, CppHeaderClass cls, Operation operation) {
-        return umlToCppTranslator.addOperation(existingCode, cls, operation);
+    public String addOperation(String existingCode, Operation operation) {
+        return umlToCppTranslator.addOperation(existingCode, operation);
     }
 
     public String addGeneralization(String existingCode, String derivedClassName, String baseClassName) {
@@ -104,8 +104,8 @@ public class CppTranslator {
         return umlToCppTranslator.addRealization(code, className, interfaceName);
     }
 
-    public String removeInheritance(String code, String baseClassName) {
-        return umlToCppTranslator.removeInheritance(code, baseClassName);
+    public String removeGeberalization(String code, String baseClassName) {
+        return umlToCppTranslator.removeGeberalization(code, baseClassName);
     }
 
     public String removeRealization(String code, String interfaceName) {

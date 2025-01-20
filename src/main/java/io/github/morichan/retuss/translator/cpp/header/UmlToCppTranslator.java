@@ -150,7 +150,7 @@ public class UmlToCppTranslator {
                 lowerType.equals("weak_ptr");
     }
 
-    public String addOperation(String existingCode, CppHeaderClass cls, Operation operation) {
+    public String addOperation(String existingCode, Operation operation) {
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
             Visibility targetVisibility = operation.getVisibility();
@@ -164,7 +164,7 @@ public class UmlToCppTranslator {
                 insertPosition++;
             }
 
-            String operationDeclaration = "  " + translateOperation(operation, cls) + ";";
+            String operationDeclaration = "  " + translateOperation(operation) + ";";
             lines.add(insertPosition + 1, operationDeclaration);
 
             // デバッグ出力
@@ -179,17 +179,13 @@ public class UmlToCppTranslator {
         }
     }
 
-    private String translateOperation(Operation operation, CppHeaderClass cls) {
+    private String translateOperation(Operation operation) {
         StringBuilder builder = new StringBuilder();
         System.out.println("Translating operation: " + operation.toString());
 
-        // メソッド名とパラメータを処理
-        if (!operation.getName().getNameText().contains("~") &&
-                !operation.getName().getNameText().equals(cls.getName())) {
-            // 戻り値の型
-            String returnType = processType(operation.getReturnType().toString());
-            builder.append(returnType).append(" ");
-        }
+        // 戻り値の型
+        String returnType = processType(operation.getReturnType().toString());
+        builder.append(returnType).append(" ");
 
         // メソッド名
         builder.append(operation.getName().getNameText());
@@ -225,18 +221,6 @@ public class UmlToCppTranslator {
 
         builder.append(String.join(", ", params));
         builder.append(")");
-
-        // 修飾子の処理
-        Set<Modifier> modifiers = cls.getModifiers(operation);
-        if (modifiers.contains(Modifier.QUERY)) {
-            builder.append(" const");
-        }
-        if (modifiers.contains(Modifier.OVERRIDE)) {
-            builder.append(" override");
-        }
-        if (modifiers.contains(Modifier.ABSTRACT)) {
-            builder.append(" = 0");
-        }
 
         System.out.println("Translated operation: " + builder.toString());
         return builder.toString();
@@ -449,10 +433,10 @@ public class UmlToCppTranslator {
     }
 
     public String removeRealization(String existingCode, String interfaceName) {
-        return removeInheritance(existingCode, interfaceName);
+        return removeGeberalization(existingCode, interfaceName);
     }
 
-    public String removeInheritance(String existingCode, String baseClassName) {
+    public String removeGeberalization(String existingCode, String baseClassName) {
         System.out.println("Removing inheritance/realization for base class: " + baseClassName);
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));

@@ -5,17 +5,14 @@ import java.util.*;
 
 public class RelationshipElement {
     private final String name; // 要素の名前
-    private final ElementType elemType; // 要素の種類
     private String multiplicity; // 多重度
     private final Visibility visibility; // 可視性
 
     public RelationshipElement(
             String name,
-            ElementType elemType,
             String multiplicity,
             Visibility visibility) {
         this.name = name;
-        this.elemType = elemType;
         this.multiplicity = multiplicity;
         this.visibility = visibility;
     }
@@ -23,10 +20,6 @@ public class RelationshipElement {
     // Getters
     public String getName() {
         return name;
-    }
-
-    public ElementType getElemType() {
-        return elemType;
     }
 
     public String getMultiplicity() {

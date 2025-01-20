@@ -72,78 +72,85 @@ public class CppClassDiagramDrawer {
         System.out.println("CppClassDiagramDrawer initialized");
     }
 
-    private void drawClass(StringBuilder pumlBuilder, CppHeaderClass cls, String selectedClassName) {
-        try {
-            // String namespace = cls.getNamespace();
-            // if (!namespace.isEmpty()) {
-            // pumlBuilder.append("namespace ").append(namespace).append(" {\n");
-            // }
-            // enumの場合の処理を分離
-            if (cls.getEnum()) {
-                pumlBuilder.append("enum ");
-                pumlBuilder.append(cls.getName());
+    // private void drawClass(StringBuilder pumlBuilder, CppHeaderClass cls, String
+    // selectedClassName) {
+    // try {
+    // // String namespace = cls.getNamespace();
+    // // if (!namespace.isEmpty()) {
+    // // pumlBuilder.append("namespace ").append(namespace).append(" {\n");
+    // // }
+    // // enumの場合の処理を分離
+    // if (cls.getEnum()) {
+    // pumlBuilder.append("enum ");
+    // pumlBuilder.append(cls.getName());
 
-                // ハイライト処理
-                if (cls.getName().equals(selectedClassName)) {
-                    pumlBuilder.append(" #90EE90");
-                } else if (!cls.getRelationshipManager().getRelationshipsWith(selectedClassName).isEmpty()) {
-                    pumlBuilder.append(" #ADD8E6");
-                }
+    // // ハイライト処理
+    // if (cls.getName().equals(selectedClassName)) {
+    // pumlBuilder.append(" #90EE90");
+    // } else if
+    // (!cls.getRelationshipManager().getRelationshipsWith(selectedClassName).isEmpty())
+    // {
+    // pumlBuilder.append(" #ADD8E6");
+    // }
 
-                pumlBuilder.append(" {\n");
+    // pumlBuilder.append(" {\n");
 
-                // enum値の表示
-                for (CppHeaderClass.EnumValue value : cls.getEnumValues()) {
-                    pumlBuilder.append("  ").append(value.getName());
-                    value.getValue().ifPresent(v -> pumlBuilder.append(" = ").append(v));
-                    pumlBuilder.append("\n");
-                }
+    // // enum値の表示
+    // for (CppHeaderClass.EnumValue value : cls.getEnumValues()) {
+    // pumlBuilder.append(" ").append(value.getName());
+    // value.getValue().ifPresent(v -> pumlBuilder.append(" = ").append(v));
+    // pumlBuilder.append("\n");
+    // }
 
-                pumlBuilder.append("}\n\n");
-                // 関係の描画
-                pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
-                return;
-            }
+    // pumlBuilder.append("}\n\n");
+    // // 関係の描画
+    // pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
+    // return;
+    // }
 
-            if (cls.getInterface() && cls.getAbstruct() && cls.getAttributeList().isEmpty()) {
-                pumlBuilder.append("interface ");
-                pumlBuilder.append(cls.getName());
-            } else {
-                if (cls.getAbstruct() && !cls.getInterface()) {
-                    pumlBuilder.append("abstract ");
-                }
-                pumlBuilder.append("class ").append(cls.getName());
-            }
+    // if (cls.getInterface() && cls.getAbstruct() &&
+    // cls.getAttributeList().isEmpty()) {
+    // pumlBuilder.append("interface ");
+    // pumlBuilder.append(cls.getName());
+    // } else {
+    // if (cls.getAbstruct() && !cls.getInterface()) {
+    // pumlBuilder.append("abstract ");
+    // }
+    // pumlBuilder.append("class ").append(cls.getName());
+    // }
 
-            if (!cls.getRelationshipManager().getRelationshipsWith(selectedClassName).isEmpty()) {
-                pumlBuilder.append(" #ADD8E6");
-            } else if (cls.getName().equals(selectedClassName)) {
-                pumlBuilder.append(" #90EE90");
-            }
+    // if
+    // (!cls.getRelationshipManager().getRelationshipsWith(selectedClassName).isEmpty())
+    // {
+    // pumlBuilder.append(" #ADD8E6");
+    // } else if (cls.getName().equals(selectedClassName)) {
+    // pumlBuilder.append(" #90EE90");
+    // }
 
-            pumlBuilder.append(" {\n");
+    // pumlBuilder.append(" {\n");
 
-            // 属性
-            for (Attribute attr : cls.getAttributeList()) {
-                appendAttribute(pumlBuilder, attr, cls);
-            }
+    // // 属性
+    // for (Attribute attr : cls.getAttributeList()) {
+    // appendAttribute(pumlBuilder, attr, cls);
+    // }
 
-            // メソッド
-            for (Operation op : cls.getOperationList()) {
-                appendOperation(pumlBuilder, op, cls);
-            }
-            pumlBuilder.append("}\n\n");
+    // // メソッド
+    // for (Operation op : cls.getOperationList()) {
+    // appendOperation(pumlBuilder, op, cls);
+    // }
+    // pumlBuilder.append("}\n\n");
 
-            // 関係の描画
-            pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
-            // if (!namespace.isEmpty()) {
-            // pumlBuilder.append("}\n");
-            // }
-        } catch (Exception e) {
-            System.err.println("Error drawing class " + cls.getName() + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    // // 関係の描画
+    // pumlBuilder.append(cls.getRelationshipManager().generatePlantUmlRelationships());
+    // // if (!namespace.isEmpty()) {
+    // // pumlBuilder.append("}\n");
+    // // }
+    // } catch (Exception e) {
+    // System.err.println("Error drawing class " + cls.getName() + ": " +
+    // e.getMessage());
+    // e.printStackTrace();
+    // }
+    // }
 
     private void drawSimpleClass(StringBuilder pumlBuilder, CppHeaderClass cls) {
         try {
@@ -373,26 +380,26 @@ public class CppClassDiagramDrawer {
                 List<CppHeaderClass> classes = model.getHeaderClasses();
                 System.out.println("DEBUG: CppClassDiagramDrawer - Number of classes: " + classes.size());
 
-                StringBuilder pumlBuilder = new StringBuilder("@startuml\n");
-                // pumlBuilder.append("skinparam style strictuml\n");
-                pumlBuilder.append(" skinparam linetype ortho\n");
-                // pumlBuilder.append("skinparam linetype polyline\n");
-                pumlBuilder.append("skinparam classAttributeIconSize 0\n");
-                pumlBuilder.append("skinparam LineThickness 1.5\n");
-                pumlBuilder.append("hide empty members\n"); // 空のメンバーを非表示
-                pumlBuilder.append("skinparam enumBackgroundColor White\n"); // enum背景色
-                pumlBuilder.append("skinparam enumBorderColor Black\n");
-                pumlBuilder.append("scale ").append("1.0").append("\n");
+                // StringBuilder pumlBuilder = new StringBuilder("@startuml\n");
+                // // pumlBuilder.append("skinparam style strictuml\n");
+                // pumlBuilder.append(" skinparam linetype ortho\n");
+                // // pumlBuilder.append("skinparam linetype polyline\n");
+                // pumlBuilder.append("skinparam classAttributeIconSize 0\n");
+                // pumlBuilder.append("skinparam LineThickness 1.5\n");
+                // pumlBuilder.append("hide empty members\n"); // 空のメンバーを非表示
+                // pumlBuilder.append("skinparam enumBackgroundColor White\n"); // enum背景色
+                // pumlBuilder.append("skinparam enumBorderColor Black\n");
+                // pumlBuilder.append("scale ").append("1.0").append("\n");
 
-                if (!classes.isEmpty() && classes != null) {
-                    for (CppHeaderClass cls : classes) {
-                        drawClass(pumlBuilder, cls, selectedClassName);
-                    }
-                }
+                // if (!classes.isEmpty() && classes != null) {
+                // for (CppHeaderClass cls : classes) {
+                // drawClass(pumlBuilder, cls, selectedClassName);
+                // }
+                // }
 
-                pumlBuilder.append("@enduml\n");
-                String puml = pumlBuilder.toString();
-                System.out.println("Generated PlantUML:\n" + puml);
+                // pumlBuilder.append("@enduml\n");
+                // String puml = pumlBuilder.toString();
+                // System.out.println("Generated PlantUML:\n" + puml);
 
                 // UMLModelの更新
                 StringBuilder simplePumlBuilder = new StringBuilder("@startuml\n");
@@ -418,11 +425,11 @@ public class CppClassDiagramDrawer {
 
                 // SVG生成と表示, キャッシュと比較して変更がなければスキップ
                 String currentSvg = lastSvg.get();
-                if (currentSvg != null && puml.equals(currentSvg)) {
+                if (currentSvg != null && simplePuml.equals(currentSvg)) {
                     return null;
                 }
 
-                SourceStringReader reader = new SourceStringReader(puml);
+                SourceStringReader reader = new SourceStringReader(simplePuml);
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
                 reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
                 String svg = new String(os.toByteArray(), StandardCharsets.UTF_8);

@@ -16,7 +16,7 @@ public class CppHeaderClass {
     private List<Attribute> attributeList = new ArrayList<>();
     private List<Operation> operationList = new ArrayList<>();
     private final Map<Object, Set<Modifier>> memberModifiers = new HashMap<>();
-    private final CppRelationshipManager relationshipManager;
+    private final RelationshipManager relationshipManager;
 
     public static class EnumValue {
         private final String name;
@@ -72,18 +72,18 @@ public class CppHeaderClass {
         return relationshipManager.getAllRelationships();
     }
 
-    public CppRelationshipManager getRelationshipManager() {
+    public RelationshipManager getRelationshipManager() {
         return relationshipManager;
     }
 
     public CppHeaderClass(String name) {
         this.name = name;
-        this.relationshipManager = new CppRelationshipManager(name);
+        this.relationshipManager = new RelationshipManager(name);
     }
 
     public CppHeaderClass(String name, Boolean isActive) {
         this.name = name;
-        this.relationshipManager = new CppRelationshipManager(name);
+        this.relationshipManager = new RelationshipManager(name);
     }
 
     public String getName() {

@@ -19,7 +19,7 @@ public class CppFile {
     private final Object updateLock = new Object(); // 同期処理用ロック
     private String fileName = "";
     private String sourceCode;
-    private final List<CppHeaderClass> headerClasses = new ArrayList<>();
+    private final List<CppHeaderClass> headerClassList = new ArrayList<>();
     private CppImplClass implClass;
     private final boolean isHeader;
 
@@ -29,7 +29,7 @@ public class CppFile {
         if (isHeader) {
             // 初期のヘッダークラスを追加
             CppHeaderClass headerClass = new CppHeaderClass(getBaseName());
-            headerClasses.add(headerClass);
+            headerClassList.add(headerClass);
         }
         initializeFile();
     }
@@ -44,8 +44,8 @@ public class CppFile {
 
         // 初期化後にUMLクラスリストを更新（ヘッダーファイルのみ）
         if (isHeader && sourceCode != null) {
-            headerClasses.clear();
-            headerClasses.addAll(translator.translateHeaderCodeToUml(sourceCode));
+            headerClassList.clear();
+            headerClassList.addAll(translator.translateHeaderCodeToUml(sourceCode));
         }
     }
 
@@ -89,7 +89,7 @@ public class CppFile {
     }
 
     public List<CppHeaderClass> getHeaderClasses() {
-        return isHeader ? Collections.unmodifiableList(headerClasses) : Collections.emptyList();
+        return isHeader ? Collections.unmodifiableList(headerClassList) : Collections.emptyList();
     }
 
     public void updateFileName(String newName) {
@@ -131,15 +131,15 @@ public class CppFile {
         CppTranslator translator = new CppTranslator();
         List<CppHeaderClass> newUmlClassList = translator.translateHeaderCodeToUml(code);
         if (!newUmlClassList.isEmpty()) {
-            headerClasses.clear();
-            headerClasses.addAll(newUmlClassList);
-            this.fileName = headerClasses.get(0).getName() + ".h";
+            headerClassList.clear();
+            headerClassList.addAll(newUmlClassList);
+            this.fileName = headerClassList.get(0).getName() + ".h";
             updateClassProperties();
         }
     }
 
     private void updateClassProperties() {
-        for (CppHeaderClass cls : headerClasses) {
+        for (CppHeaderClass cls : headerClassList) {
             if (cls.getAbstruct() && !cls.getOperationList().isEmpty()) {
                 boolean allAbstract = true;
                 for (Operation op : cls.getOperationList()) {
@@ -173,6 +173,6 @@ public class CppFile {
     }
 
     public void removeClass(CppHeaderClass cls) {
-        headerClasses.clear();
+        headerClassList.clear();
     }
 }

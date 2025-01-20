@@ -225,7 +225,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                                                 RelationType.DEPENDENCY_PARAMETER);
                                         relation.setElement(
                                                 operation.getName().getNameText(),
-                                                ElementType.OPERATION,
                                                 "", // パラメータなので多重度なし
                                                 null);
                                         currentHeaderClass.addRelationship(relation);
@@ -333,7 +332,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                         RelationType.DEPENDENCY_USE);
                 relation.setElement(
                         operation.getName().getNameText(),
-                        ElementType.OPERATION,
                         "",
                         null);
                 currentClass.addRelationship(relation);

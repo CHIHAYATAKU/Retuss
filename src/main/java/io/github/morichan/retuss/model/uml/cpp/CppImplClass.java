@@ -9,14 +9,14 @@ public class CppImplClass {
     private final Map<String, List<LocalVariable>> methodLocals;
     private final Set<String> includes;
     private final Set<String> usingDirectives;
-    private final CppRelationshipManager relationshipManager;
+    private final RelationshipManager relationshipManager;
 
     public CppImplClass(CppHeaderClass headerClass) {
         this.headerClass = headerClass;
         this.methodLocals = new HashMap<>();
         this.includes = new LinkedHashSet<>();
         this.usingDirectives = new LinkedHashSet<>();
-        this.relationshipManager = new CppRelationshipManager(headerClass.getName());
+        this.relationshipManager = new RelationshipManager(headerClass.getName());
 
         // ヘッダーファイルのインクルードを自動追加
         addInclude("\"" + headerClass.getName() + ".h\"");
@@ -65,7 +65,6 @@ public class CppImplClass {
 
             relation.setElement(
                     variable.getName(), // name
-                    ElementType.LOCAL_VARIABLE, // elemType
                     "1", // multiplicity
                     Visibility.Private // visibility
             );
@@ -111,7 +110,6 @@ public class CppImplClass {
 
         relation.setElement(
                 methodName, // name
-                ElementType.METHOD_CALL, // elemType
                 "1", // multiplicity
                 Visibility.Public // visibility
         );
@@ -127,7 +125,6 @@ public class CppImplClass {
 
         relation.setElement(
                 "temp_" + context, // name
-                ElementType.TEMPORARY, // elemType
                 "1", // multiplicity
                 Visibility.Private // visibility
         );
@@ -142,7 +139,6 @@ public class CppImplClass {
 
         relation.setElement(
                 paramName, // name
-                ElementType.PARAMETER, // elemType
                 "1", // multiplicity
                 Visibility.Private // visibility
         );
@@ -153,7 +149,7 @@ public class CppImplClass {
         addInclude("\"" + targetClass + ".h\"");
     }
 
-    public CppRelationshipManager getRelationshipManager() {
+    public RelationshipManager getRelationshipManager() {
         return relationshipManager;
     }
 

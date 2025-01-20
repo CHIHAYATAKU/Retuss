@@ -28,7 +28,7 @@ public class CppToUmlTranslator {
             ParseTreeWalker walker = new ParseTreeWalker();
 
             // ヘッダファイルとして解析（true）
-            CppToUmlParseListener cppToUmlParseListener = new CppToUmlParseListener(true);
+            CppToUmlParseListener cppToUmlParseListener = new CppToUmlParseListener();
             walker.walk(cppToUmlParseListener, parser.translationUnit());
 
             return cppToUmlParseListener.getExtractedClasses();

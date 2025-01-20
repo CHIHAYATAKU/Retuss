@@ -10,10 +10,9 @@ public class AnalyzerContext {
     private CppHeaderClass currentHeaderClass;
     // private String currentNamespace = "";
     private String currentVisibility = "private";
-    private final boolean isHeaderFile;
 
-    public AnalyzerContext(boolean isHeaderFile) {
-        this.isHeaderFile = isHeaderFile;
+    public AnalyzerContext() {
+
     }
 
     // public void setCurrentNamespace(String namespace) {
@@ -53,9 +52,5 @@ public class AnalyzerContext {
 
     public void setCurrentVisibility(String visibility) {
         this.currentVisibility = visibility;
-    }
-
-    public boolean isHeaderFile() {
-        return isHeaderFile;
     }
 }

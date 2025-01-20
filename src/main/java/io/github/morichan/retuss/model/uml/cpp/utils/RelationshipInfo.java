@@ -15,10 +15,9 @@ public class RelationshipInfo {
     // 完全版
     public void setElement(
             String name,
-            ElementType elemType,
             String multiplicity,
             Visibility visibility) {
-        this.element = new RelationshipElement(name, elemType, multiplicity, visibility);
+        this.element = new RelationshipElement(name, multiplicity, visibility);
     }
 
     // ゲッターメソッド
