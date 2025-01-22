@@ -105,26 +105,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 }
 
                 // 操作名の取得
-                if (noPtrDec.declaratorid() != null &&
-                        noPtrDec.declaratorid().idExpression() != null &&
-                        noPtrDec.declaratorid().idExpression().unqualifiedId() != null) {
-
-                    operationName = noPtrDec.declaratorid()
-                            .idExpression().unqualifiedId().getText();
-                    System.err.println("DEBUG: Found operation name directly: " + operationName);
-                } else if (noPtrDec.getChildCount() > 0 &&
-                        noPtrDec.getChild(0) instanceof CPP14Parser.NoPointerDeclaratorContext) {
-                    // 子ノードから取得を試みる
-                    var firstChild = (CPP14Parser.NoPointerDeclaratorContext) noPtrDec.getChild(0);
-                    if (firstChild.declaratorid() != null &&
-                            firstChild.declaratorid().idExpression() != null &&
-                            firstChild.declaratorid().idExpression().unqualifiedId() != null) {
-
-                        operationName = firstChild.declaratorid()
-                                .idExpression().unqualifiedId().getText();
-                        System.err.println("DEBUG: Found operation name from child: " + operationName);
-                    }
-                }
+                operationName = extractOperationName(noPtrDec);
 
                 // nullチェック
                 if (operationName == null) {
@@ -141,10 +122,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 String operationType = null;
                 if (ctx.declSpecifierSeq() != null) {
                     for (CPP14Parser.DeclSpecifierContext declSpec : ctx.declSpecifierSeq().declSpecifier()) {
-                        String returnType = extractReturnType(declSpec, operation, currentHeaderClass);
-                        if (returnType != null) {
-                            operationType = returnType;
-                        }
+                        operationType = extractReturnTypeAndRelationship(declSpec, currentHeaderClass);
                     }
                 }
 
@@ -184,82 +162,84 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                             continue;
                         }
 
-                        Boolean isPointer = false;
-                        Boolean isRef = false;
-                        String paramType = "";
+                        processParams(paramDec, operation, currentHeaderClass);
+                        // Boolean isPointer = false;
+                        // Boolean isRef = false;
+                        // String paramType = "";
 
-                        // パラメータの型を取得
-                        for (CPP14Parser.DeclSpecifierContext declSpec : paramDec.declSpecifierSeq().declSpecifier()) {
-                            if (declSpec.typeSpecifier() != null &&
-                                    declSpec.typeSpecifier().trailingTypeSpecifier() != null) {
+                        // // パラメータの型を取得
+                        // for (CPP14Parser.DeclSpecifierContext declSpec :
+                        // paramDec.declSpecifierSeq().declSpecifier()) {
+                        // if (declSpec.typeSpecifier() != null &&
+                        // declSpec.typeSpecifier().trailingTypeSpecifier() != null) {
 
-                                // constの場合はスキップする条件を追加
-                                if (declSpec.typeSpecifier().trailingTypeSpecifier().cvQualifier() != null) {
-                                    continue; // const修飾子の場合はスキップ
-                                }
+                        // // constの場合はスキップする条件を追加
+                        // if (declSpec.typeSpecifier().trailingTypeSpecifier().cvQualifier() != null) {
+                        // continue; // const修飾子の場合はスキップ
+                        // }
 
-                                CPP14Parser.SimpleTypeSpecifierContext simple = declSpec.typeSpecifier()
-                                        .trailingTypeSpecifier().simpleTypeSpecifier();
+                        // CPP14Parser.SimpleTypeSpecifierContext simple = declSpec.typeSpecifier()
+                        // .trailingTypeSpecifier().simpleTypeSpecifier();
 
-                                // ユーザ定義型（std含む）
-                                if (simple.theTypeName() != null) {
-                                    if (simple.theTypeName().className() != null) {
-                                        paramType = simple.theTypeName().className().getText();
-                                    } else {
-                                        paramType = simple.theTypeName().getText();
-                                    }
+                        // // ユーザ定義型（std含む）
+                        // if (simple.theTypeName() != null) {
+                        // if (simple.theTypeName().className() != null) {
+                        // paramType = simple.theTypeName().className().getText();
+                        // } else {
+                        // paramType = simple.theTypeName().getText();
+                        // }
 
-                                    // ユーザ定義型であれば依存関係を追加
-                                    if (isUserDefinedType(paramType)) {
-                                        RelationshipInfo relation = new RelationshipInfo(
-                                                paramType,
-                                                RelationType.DEPENDENCY_PARAMETER);
+                        // // ユーザ定義型であれば依存関係を追加
+                        // if (isUserDefinedType(paramType)) {
+                        // RelationshipInfo relation = new RelationshipInfo(
+                        // paramType,
+                        // RelationType.DEPENDENCY_PARAMETER);
 
-                                        currentHeaderClass.addRelationship(relation);
-                                    }
-                                } else {
-                                    // 基本型
-                                    paramType = simple.getText();
-                                }
-                            }
-                        }
+                        // currentHeaderClass.addRelationship(relation);
+                        // }
+                        // } else {
+                        // // 基本型
+                        // paramType = simple.getText();
+                        // }
+                        // }
+                        // }
 
-                        // パラメータの宣言子を処理
-                        if (paramDec.declarator() != null &&
-                                paramDec.declarator().pointerDeclarator() != null) {
+                        // // パラメータの宣言子を処理
+                        // if (paramDec.declarator() != null &&
+                        // paramDec.declarator().pointerDeclarator() != null) {
 
-                            var ptrDec = paramDec.declarator().pointerDeclarator();
-                            // ポインタ演算子の処理
-                            if (ptrDec.pointerOperator() != null) {
-                                for (var op : ptrDec.pointerOperator()) {
-                                    String opText = op.getText().trim();
-                                    if (opText.equals("*")) {
-                                        isPointer = true;
-                                        break;
-                                    } else if (opText.equals("&")) {
-                                        isRef = true;
-                                        break;
-                                    }
-                                }
-                            }
+                        // var ptrDec = paramDec.declarator().pointerDeclarator();
+                        // // ポインタ演算子の処理
+                        // if (ptrDec.pointerOperator() != null) {
+                        // for (var op : ptrDec.pointerOperator()) {
+                        // String opText = op.getText().trim();
+                        // if (opText.equals("*")) {
+                        // isPointer = true;
+                        // break;
+                        // } else if (opText.equals("&")) {
+                        // isRef = true;
+                        // break;
+                        // }
+                        // }
+                        // }
 
-                            // パラメータ名の取得
-                            if (ptrDec.noPointerDeclarator() != null &&
-                                    ptrDec.noPointerDeclarator().declaratorid() != null) {
+                        // // パラメータ名の取得
+                        // if (ptrDec.noPointerDeclarator() != null &&
+                        // ptrDec.noPointerDeclarator().declaratorid() != null) {
 
-                                String paramName = ptrDec.noPointerDeclarator()
-                                        .declaratorid().getText();
+                        // String paramName = ptrDec.noPointerDeclarator()
+                        // .declaratorid().getText();
 
-                                // パラメータオブジェクトの作成
-                                Parameter parameter = new Parameter(new Name(paramName));
-                                if (isPointer)
-                                    paramType += "*";
-                                if (isRef)
-                                    paramType += "&";
-                                parameter.setType(new Type(paramType));
-                                operation.addParameter(parameter);
-                            }
-                        }
+                        // // パラメータオブジェクトの作成
+                        // Parameter parameter = new Parameter(new Name(paramName));
+                        // if (isPointer)
+                        // paramType += "*";
+                        // if (isRef)
+                        // paramType += "&";
+                        // parameter.setType(new Type(paramType));
+                        // operation.addParameter(parameter);
+                        // }
+                        // }
                     }
                 }
 
@@ -287,8 +267,109 @@ public class OperationAnalyzer extends AbstractAnalyzer {
         }
     }
 
-    private String extractReturnType(CPP14Parser.DeclSpecifierContext declSpec,
-            Operation operation,
+    private void processParams(CPP14Parser.ParameterDeclarationContext paramDec, Operation operation,
+            CppHeaderClass currentHeaderClass) {
+        Boolean isPointer = false;
+        Boolean isRef = false;
+        String paramType = "";
+
+        // パラメータの型を取得
+        for (CPP14Parser.DeclSpecifierContext declSpec : paramDec.declSpecifierSeq().declSpecifier()) {
+            if (declSpec.typeSpecifier() != null &&
+                    declSpec.typeSpecifier().trailingTypeSpecifier() != null) {
+
+                // constの場合はスキップする条件を追加
+                if (declSpec.typeSpecifier().trailingTypeSpecifier().cvQualifier() != null) {
+                    continue; // const修飾子の場合はスキップ
+                }
+
+                CPP14Parser.SimpleTypeSpecifierContext simple = declSpec.typeSpecifier()
+                        .trailingTypeSpecifier().simpleTypeSpecifier();
+
+                // ユーザ定義型（std含む）
+                if (simple.theTypeName() != null) {
+                    if (simple.theTypeName().className() != null) {
+                        paramType = simple.theTypeName().className().getText();
+                    } else {
+                        paramType = simple.theTypeName().getText();
+                    }
+
+                    // ユーザ定義型であれば依存関係を追加
+                    if (isUserDefinedType(paramType)) {
+                        RelationshipInfo relation = new RelationshipInfo(
+                                paramType,
+                                RelationType.DEPENDENCY_PARAMETER);
+
+                        currentHeaderClass.addRelationship(relation);
+                    }
+                } else {
+                    // 基本型
+                    paramType = simple.getText();
+                }
+            }
+        }
+
+        // パラメータの宣言子を処理
+        if (paramDec.declarator() != null &&
+                paramDec.declarator().pointerDeclarator() != null) {
+
+            var ptrDec = paramDec.declarator().pointerDeclarator();
+            // ポインタ演算子の処理
+            if (ptrDec.pointerOperator() != null) {
+                for (var op : ptrDec.pointerOperator()) {
+                    String opText = op.getText().trim();
+                    if (opText.equals("*")) {
+                        isPointer = true;
+                        break;
+                    } else if (opText.equals("&")) {
+                        isRef = true;
+                        break;
+                    }
+                }
+            }
+
+            // パラメータ名の取得
+            if (ptrDec.noPointerDeclarator() != null &&
+                    ptrDec.noPointerDeclarator().declaratorid() != null) {
+
+                String paramName = ptrDec.noPointerDeclarator()
+                        .declaratorid().getText();
+
+                // パラメータオブジェクトの作成
+                Parameter parameter = new Parameter(new Name(paramName));
+                if (isPointer)
+                    paramType += "*";
+                if (isRef)
+                    paramType += "&";
+                parameter.setType(new Type(paramType));
+                operation.addParameter(parameter);
+            }
+        }
+    }
+
+    private String extractOperationName(CPP14Parser.NoPointerDeclaratorContext noPtrDec) {
+        if (noPtrDec.declaratorid() != null &&
+                noPtrDec.declaratorid().idExpression() != null &&
+                noPtrDec.declaratorid().idExpression().unqualifiedId() != null) {
+
+            return noPtrDec.declaratorid()
+                    .idExpression().unqualifiedId().getText();
+        } else if (noPtrDec.getChildCount() > 0 &&
+                noPtrDec.getChild(0) instanceof CPP14Parser.NoPointerDeclaratorContext) {
+            // 子ノードから取得を試みる
+            var firstChild = (CPP14Parser.NoPointerDeclaratorContext) noPtrDec.getChild(0);
+            if (firstChild.declaratorid() != null &&
+                    firstChild.declaratorid().idExpression() != null &&
+                    firstChild.declaratorid().idExpression().unqualifiedId() != null) {
+
+                return firstChild.declaratorid()
+                        .idExpression().unqualifiedId().getText();
+            }
+        }
+        return null;
+    }
+
+    private String extractReturnTypeAndRelationship(CPP14Parser.DeclSpecifierContext declSpec,
             CppHeaderClass currentClass) {
         if (declSpec.typeSpecifier() == null ||
                 declSpec.typeSpecifier().trailingTypeSpecifier() == null) {
@@ -385,7 +466,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 "shared_ptr", "unique_ptr", "weak_ptr",
                 "pair", "tuple", "function");
 
-        return !stdTypes.contains(typeName) && !typeName.contains("<");
+        return !typeName.contains("<");
     }
 
     private Visibility convertVisibility(String visibility) {

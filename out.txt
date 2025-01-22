@@ -1,0 +1,3800 @@
+JavaClassDiagramDrawer initialized
+CppClassDiagramDrawer initialized
+CodeController set in UmlController
+CodeController set in UmlController
+Selected language: C++
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaMaster
+DEBUG: Added new class to extracted classes: AreaMaster
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: AreaMaster
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: Area
+DEBUG: Added new class to extracted classes: Area
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaMaster
+DEBUG: Added new class to extracted classes: AreaMaster
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: Area
+Attributes: 0
+Operations: 0
+
+Class: AreaMaster
+Attributes: 5
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Calibrator
+DEBUG: Added new class to extracted classes: Calibrator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Calibrator
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Calibrator
+DEBUG: Added new class to extracted classes: Calibrator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int targetBrightness;  // 目標輝度
+
+DEBUG: Processing member declaration
+Found comment line:   Timer timer;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Calibrator
+Attributes: 4
+Operations: 7
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: EtRobocon2024
+DEBUG: Added new class to extracted classes: EtRobocon2024
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: EtRobocon2024
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: EtRobocon2024
+DEBUG: Added new class to extracted classes: EtRobocon2024
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: EtRobocon2024
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: MotionParser
+DEBUG: Added new class to extracted classes: MotionParser
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: MotionParser
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: COMMAND
+DEBUG: Added new class to extracted classes: COMMAND
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: MotionParser
+DEBUG: Added new class to extracted classes: MotionParser
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: COMMAND
+Attributes: 0
+Operations: 0
+
+Class: MotionParser
+Attributes: 0
+Operations: 5
+DEBUG: Processing C++ file: Area.h
+DEBUG: Processing C++ file: Calibrator.h
+DEBUG: Processing C++ file: EtRobocon2024.h
+DEBUG: Processing C++ file: COMMAND.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Controller
+DEBUG: Added new class to extracted classes: Controller
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Controller
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Controller
+DEBUG: Added new class to extracted classes: Controller
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor rightWheel;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor leftWheel;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Controller
+Attributes: 8
+Operations: 13
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Measurer
+DEBUG: Added new class to extracted classes: Measurer
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Measurer
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Measurer
+DEBUG: Added new class to extracted classes: Measurer
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::ColorSensor colorSensor;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::SonarSensor sonarSensor;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor leftWheel;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor rightWheel;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Measurer
+Attributes: 5
+Operations: 11
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Timer
+DEBUG: Added new class to extracted classes: Timer
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Timer
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Timer
+DEBUG: Added new class to extracted classes: Timer
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Timer
+Attributes: 1
+Operations: 3
+DEBUG: selectedClassName = AreaMaster
+CppModel classes: 9
+  Class: Calibrator
+  Attributes: [- isLeftCourse : bool, - targetBrightness : int, - timer : Timer, - measurer : Measurer*]
+  Operations: [+ Calibrator(), + run() : void, + waitForStart() : void, + getIsLeftCourse() : bool, + getTargetBrightness() : int, - selectAndSetCourse() : void, - measureAndSetTargetBrightness() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Measurer (ASSOCIATION)
+      - measurer [0..1]
+  Class: COMMAND
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: MotionParser
+  Attributes: []
+  Operations: [+ createMotions(filePath : char*, targetBrightness : int, isLeftEdge : bool&) : vector<Motion*>, - MotionParser(), - convertCommand(str : char*) : COMMAND, - convertBool(command : char*, stringParameter : char*) : bool, - convertSubject(stringParameter : char*) : Subject]
+  Relations: 
+    Subject (DEPENDENCY_USE)
+    COMMAND (DEPENDENCY_USE)
+  Class: Timer
+  Attributes: [- clock : Clock]
+  Operations: [+ Timer(), + sleep(milliSec : int) : void, + now() : int]
+  Relations: 
+    Clock (COMPOSITION)
+      - clock [1]
+  Class: Measurer
+  Attributes: [- colorSensor : ColorSensor, - sonarSensor : SonarSensor, - leftWheel : Motor, - rightWheel : Motor, - armMotor : Motor]
+  Operations: [+ Measurer(), + getBrightness() : int, + getRawColor() : rgb_raw_t, + getLeftCount() : int, + getRightCount() : int, + getArmMotorCount() : int, + getLeftButton() : bool, + getRightButton() : bool, + getEnterButton() : bool, + getForwardDistance() : int, + getVoltage() : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - armMotor [1]
+    rgb_raw_t (DEPENDENCY_USE)
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+    ColorSensor (COMPOSITION)
+      - colorSensor [1]
+    SonarSensor (COMPOSITION)
+      - sonarSensor [1]
+  Class: Area
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: Processing C++ file: Controller.h
+  Class: AreaMaster
+  Attributes: [- isLeftCourse : bool, - isLeftEdge : bool, - targetBrightness : int, - basePath : char* = "etrobocon2024/datafiles/", - commandFileNames : char*[4] = {"LineTrace","DoubleLoop","DebrisRemoval","SmartCarry"}]
+  Operations: [+ AreaMaster(area : Area, isLeftCourse : bool, isLeftEdge : bool&, targetBrightness : int), + run() : void]
+  Relations: 
+    Area (DEPENDENCY_PARAMETER)
+  Class: Controller
+  Attributes: [+ MOTOR_PWM_MAX : double = 100.0, + MOTOR_PWM_MIN : double = -100.0, - rightWheel : Motor, - leftWheel : Motor, - armMotor : Motor, - pwmOfRightWheel : double, - pwmOfLeftWheel : double, - pwmOfArm : double]
+  Operations: [+ Controller(), + setRightMotorPwm(pwm : double) : void, + setLeftMotorPwm(pwm : double) : void, + resetRightMotorPwm() : void, + resetLeftMotorPwm() : void, + resetWheelsMotorPwm() : void, + stopWheelsMotor() : void, + setArmMotorPwm(pwm : double) : void, + resetArmMotorPwm() : void, + stopArmMotor() : void, + getRightMotorPwm() : double, + getLeftMotorPwm() : double, - limitPwmValue(inputPwm : double) : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    Motor (COMPOSITION)
+      - armMotor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: EtRobocon2024
+  Attributes: []
+  Operations: [+ start() : void, - sigint(_ : int) : void]
+  Relations: 
+DEBUG: Processing C++ file: Measurer.h
+DEBUG: CppClassDiagramDrawer - Number of classes: 9
+DEBUG: Processing C++ file: Timer.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorJudge
+DEBUG: Added new class to extracted classes: ColorJudge
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorJudge
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: COLOR with base type: int
+DEBUG: Added new class to extracted classes: COLOR
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: Hsv
+DEBUG: Added new class to extracted classes: Hsv
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorJudge
+DEBUG: Added new class to extracted classes: ColorJudge
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   static constexpr int BLUE_BORDER = 300;         // 青の色相の境界
+
+DEBUG: Processing member declaration
+Found comment line:   static constexpr rgb_raw_t MAX_RGB = { 244, 245, 252 };  // コースが白の時（最大）のRGB値
+
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 3 classes
+
+Class: COLOR
+Attributes: 0
+Operations: 0
+
+Class: Hsv
+Attributes: 3
+Operations: 0
+
+Class: ColorJudge
+Attributes: 10
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Mileage
+DEBUG: Added new class to extracted classes: Mileage
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Mileage
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Mileage
+DEBUG: Added new class to extracted classes: Mileage
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Mileage
+Attributes: 0
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Pid
+DEBUG: Added new class to extracted classes: Pid
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Pid
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: PidGain
+DEBUG: Added new class to extracted classes: PidGain
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: Pid
+DEBUG: Added new class to extracted classes: Pid
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: PidGain
+Attributes: 3
+Operations: 1
+
+Class: Pid
+Attributes: 5
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: SpeedCalculator
+DEBUG: Added new class to extracted classes: SpeedCalculator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: SpeedCalculator
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: SpeedCalculator
+DEBUG: Added new class to extracted classes: SpeedCalculator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   const double leftTargetSpeed;
+
+DEBUG: Processing member declaration
+Found comment line:   Pid rightPid;
+
+DEBUG: Processing member declaration
+Found comment line:   Pid leftPid;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: SpeedCalculator
+Attributes: 17
+Operations: 5
+DEBUG: Processing C++ file: COLOR.h
+DEBUG: Processing C++ file: Mileage.h
+DEBUG: Processing C++ file: PidGain.h
+DEBUG: Processing C++ file: SpeedCalculator.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Logger
+DEBUG: Added new class to extracted classes: Logger
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Logger
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Logger
+DEBUG: Added new class to extracted classes: Logger
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Logger
+Attributes: 1
+Operations: 7
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: RunLogger
+DEBUG: Added new class to extracted classes: RunLogger
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: RunLogger
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: RunLogger
+DEBUG: Added new class to extracted classes: RunLogger
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: RunLogger
+Attributes: 2
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: StringOperator
+DEBUG: Added new class to extracted classes: StringOperator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: StringOperator
+Attributes: 0
+Operations: 2
+DEBUG: CppClassDiagramDrawer draw completed
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: StringOperator
+DEBUG: Added new class to extracted classes: StringOperator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: StringOperator
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: SystemInfo
+DEBUG: Added new class to extracted classes: SystemInfo
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: SystemInfo
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: Logger.h
+DEBUG: Processing C++ file: RunLogger.h
+DEBUG: Processing C++ file: StringOperator.h
+Saving scroll position - X: 0.0, Y: 0.0
+DEBUG: Processing C++ file: SystemInfo.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaACameraAction
+DEBUG: Added new class to extracted classes: AreaACameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: AreaACameraAction
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaACameraAction
+DEBUG: Added new class to extracted classes: AreaACameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int flag;  // 撮影を行うかどうかを確認するフラグ
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: AreaACameraAction
+Attributes: 9
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaBCameraAction
+DEBUG: Added new class to extracted classes: AreaBCameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: AreaBCameraAction
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaBCameraAction
+DEBUG: Added new class to extracted classes: AreaBCameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int correctionTolerance = 10;   // 角度補正回頭の補正許容角度
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: AreaBCameraAction
+Attributes: 8
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CameraAction
+DEBUG: Added new class to extracted classes: CameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: CameraAction
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CameraAction
+DEBUG: Added new class to extracted classes: CameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: Subject
+DEBUG: Added new class to extracted classes: Subject
+DEBUG: Exiting class specifier
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: CameraAction
+Attributes: 2
+Operations: 3
+
+Class: Subject
+Attributes: 0
+Operations: 0
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorDistanceLineTracing
+DEBUG: Added new class to extracted classes: ColorDistanceLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorDistanceLineTracing
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorDistanceLineTracing
+DEBUG: Added new class to extracted classes: ColorDistanceLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int colorCount = 0;
+
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorDistanceLineTracing
+Attributes: 4
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorLineTracing
+DEBUG: Added new class to extracted classes: ColorLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorLineTracing
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorLineTracing
+DEBUG: Added new class to extracted classes: ColorLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int colorCount = 0;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorLineTracing
+Attributes: 3
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorStraight
+DEBUG: Added new class to extracted classes: ColorStraight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorStraight
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorStraight
+DEBUG: Added new class to extracted classes: ColorStraight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int colorCount = 0;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorStraight
+Attributes: 3
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CompositeMotion
+DEBUG: Added new class to extracted classes: CompositeMotion
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: CompositeMotion
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CompositeMotion
+DEBUG: Added new class to extracted classes: CompositeMotion
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: CompositeMotion
+Attributes: 0
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CorrectingRotation
+DEBUG: Added new class to extracted classes: CorrectingRotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: CorrectingRotation
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CorrectingRotation
+DEBUG: Added new class to extracted classes: CorrectingRotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int correctionAngle = 0;  // 補正角度 0~360
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: CorrectingRotation
+Attributes: 5
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: DistanceLineTracing
+DEBUG: Added new class to extracted classes: DistanceLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: DistanceLineTracing
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: DistanceLineTracing
+DEBUG: Added new class to extracted classes: DistanceLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: DistanceLineTracing
+Attributes: 1
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: DistanceStraight
+DEBUG: Added new class to extracted classes: DistanceStraight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: DistanceStraight
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: DistanceStraight
+DEBUG: Added new class to extracted classes: DistanceStraight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: DistanceStraight
+Attributes: 1
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: EdgeChanging
+DEBUG: Added new class to extracted classes: EdgeChanging
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: EdgeChanging
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: EdgeChanging
+DEBUG: Added new class to extracted classes: EdgeChanging
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: EdgeChanging
+Attributes: 2
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: LineTracing
+DEBUG: Added new class to extracted classes: LineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: LineTracing
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: LineTracing
+DEBUG: Added new class to extracted classes: LineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int targetBrightness;  // 目標輝度 0~
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   double initDistance;      // 実行前の走行距離
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: LineTracing
+Attributes: 8
+Operations: 5
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Motion
+DEBUG: Added new class to extracted classes: Motion
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Motion
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Motion
+DEBUG: Added new class to extracted classes: Motion
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+Found comment line:  protected:
+
+DEBUG: Processing member declaration
+Found comment line:   Logger logger;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Motion
+Attributes: 2
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: PwmRotation
+DEBUG: Added new class to extracted classes: PwmRotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: PwmRotation
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: PwmRotation
+DEBUG: Added new class to extracted classes: PwmRotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: PwmRotation
+Attributes: 0
+Operations: 4
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ResetWheelsMotorPwm
+DEBUG: Added new class to extracted classes: ResetWheelsMotorPwm
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ResetWheelsMotorPwm
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ResetWheelsMotorPwm
+DEBUG: Added new class to extracted classes: ResetWheelsMotorPwm
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ResetWheelsMotorPwm
+Attributes: 0
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Rotation
+DEBUG: Added new class to extracted classes: Rotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Rotation
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Rotation
+DEBUG: Added new class to extracted classes: Rotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   bool isClockwise;  // 回頭方向 true:時計回り, false:反時計回り
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Rotation
+Attributes: 4
+Operations: 5
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Sleeping
+DEBUG: Added new class to extracted classes: Sleeping
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Sleeping
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Sleeping
+DEBUG: Added new class to extracted classes: Sleeping
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int milliSec;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Sleeping
+Attributes: 2
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: StopWheelsMotor
+DEBUG: Added new class to extracted classes: StopWheelsMotor
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: StopWheelsMotor
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: StopWheelsMotor
+DEBUG: Added new class to extracted classes: StopWheelsMotor
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: StopWheelsMotor
+Attributes: 1
+Operations: 3
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Straight
+DEBUG: Added new class to extracted classes: Straight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Straight
+Attributes: 0
+Operations: 2
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Straight
+DEBUG: Added new class to extracted classes: Straight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   double initialDistance;  // 初期走行距離
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Straight
+Attributes: 3
+Operations: 5
+DEBUG: Starting Reload
+DEBUG: Found 34 header files
+DEBUG: Processing SystemInfo.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing ColorLineTracing.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorLineTracing
+DEBUG: Added new class to extracted classes: ColorLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int colorCount = 0;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorLineTracing
+Attributes: 3
+Operations: 4
+DEBUG: Processing COMMAND.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: COMMAND
+DEBUG: Added new class to extracted classes: COMMAND
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: MotionParser
+DEBUG: Added new class to extracted classes: MotionParser
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: COMMAND
+Attributes: 0
+Operations: 0
+
+Class: MotionParser
+Attributes: 0
+Operations: 5
+DEBUG: Processing StopWheelsMotor.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: StopWheelsMotor
+DEBUG: Added new class to extracted classes: StopWheelsMotor
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: StopWheelsMotor
+Attributes: 1
+Operations: 3
+DEBUG: Processing Area.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: Area
+DEBUG: Added new class to extracted classes: Area
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaMaster
+DEBUG: Added new class to extracted classes: AreaMaster
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: Area
+Attributes: 0
+Operations: 0
+
+Class: AreaMaster
+Attributes: 5
+Operations: 2
+DEBUG: Processing Logger.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Logger
+DEBUG: Added new class to extracted classes: Logger
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Logger
+Attributes: 1
+Operations: 7
+DEBUG: Processing LineTracing.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: LineTracing
+DEBUG: Added new class to extracted classes: LineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int targetBrightness;  // 目標輝度 0~
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   double initDistance;      // 実行前の走行距離
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: LineTracing
+Attributes: 8
+Operations: 5
+DEBUG: Processing Measurer.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Measurer
+DEBUG: Added new class to extracted classes: Measurer
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::ColorSensor colorSensor;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::SonarSensor sonarSensor;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor leftWheel;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor rightWheel;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Measurer
+Attributes: 5
+Operations: 11
+DEBUG: Processing DistanceLineTracing.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: DistanceLineTracing
+DEBUG: Added new class to extracted classes: DistanceLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: DistanceLineTracing
+Attributes: 1
+Operations: 4
+DEBUG: Processing EdgeChanging.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: EdgeChanging
+DEBUG: Added new class to extracted classes: EdgeChanging
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: EdgeChanging
+Attributes: 2
+Operations: 3
+DEBUG: Processing CameraAction.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CameraAction
+DEBUG: Added new class to extracted classes: CameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: Subject
+DEBUG: Added new class to extracted classes: Subject
+DEBUG: Exiting class specifier
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: CameraAction
+Attributes: 2
+Operations: 3
+
+Class: Subject
+Attributes: 0
+Operations: 0
+DEBUG: Processing CompositeMotion.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CompositeMotion
+DEBUG: Added new class to extracted classes: CompositeMotion
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: CompositeMotion
+Attributes: 0
+Operations: 3
+DEBUG: Processing COLOR.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering enum specifier
+DEBUG: Created enum class: COLOR with base type: int
+DEBUG: Added new class to extracted classes: COLOR
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: Hsv
+DEBUG: Added new class to extracted classes: Hsv
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorJudge
+DEBUG: Added new class to extracted classes: ColorJudge
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   static constexpr int BLUE_BORDER = 300;         // 青の色相の境界
+
+DEBUG: Processing member declaration
+Found comment line:   static constexpr rgb_raw_t MAX_RGB = { 244, 245, 252 };  // コースが白の時（最大）のRGB値
+
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 3 classes
+
+Class: COLOR
+Attributes: 0
+Operations: 0
+
+Class: Hsv
+Attributes: 3
+Operations: 0
+
+Class: ColorJudge
+Attributes: 10
+Operations: 4
+DEBUG: Processing ColorStraight.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorStraight
+DEBUG: Added new class to extracted classes: ColorStraight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int colorCount = 0;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorStraight
+Attributes: 3
+Operations: 4
+DEBUG: Processing Motion.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Motion
+DEBUG: Added new class to extracted classes: Motion
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+Found comment line:  protected:
+
+DEBUG: Processing member declaration
+Found comment line:   Logger logger;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Motion
+Attributes: 2
+Operations: 3
+DEBUG: Processing Calibrator.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Calibrator
+DEBUG: Added new class to extracted classes: Calibrator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int targetBrightness;  // 目標輝度
+
+DEBUG: Processing member declaration
+Found comment line:   Timer timer;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Calibrator
+Attributes: 4
+Operations: 7
+DEBUG: Processing RunLogger.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: RunLogger
+DEBUG: Added new class to extracted classes: RunLogger
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: RunLogger
+Attributes: 2
+Operations: 4
+DEBUG: Processing Mileage.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Mileage
+DEBUG: Added new class to extracted classes: Mileage
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Mileage
+Attributes: 0
+Operations: 3
+DEBUG: Processing ResetWheelsMotorPwm.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ResetWheelsMotorPwm
+DEBUG: Added new class to extracted classes: ResetWheelsMotorPwm
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ResetWheelsMotorPwm
+Attributes: 0
+Operations: 3
+DEBUG: Processing AreaBCameraAction.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaBCameraAction
+DEBUG: Added new class to extracted classes: AreaBCameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int correctionTolerance = 10;   // 角度補正回頭の補正許容角度
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: AreaBCameraAction
+Attributes: 8
+Operations: 4
+DEBUG: Processing PidGain.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: PidGain
+DEBUG: Added new class to extracted classes: PidGain
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Entering class specifier
+DEBUG: Created class: Pid
+DEBUG: Added new class to extracted classes: Pid
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 2 classes
+
+Class: PidGain
+Attributes: 3
+Operations: 1
+
+Class: Pid
+Attributes: 5
+Operations: 3
+DEBUG: Processing Controller.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Controller
+DEBUG: Added new class to extracted classes: Controller
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor rightWheel;
+
+DEBUG: Processing member declaration
+Found comment line:   ev3api::Motor leftWheel;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Controller
+Attributes: 8
+Operations: 13
+DEBUG: Processing Rotation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Rotation
+DEBUG: Added new class to extracted classes: Rotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   bool isClockwise;  // 回頭方向 true:時計回り, false:反時計回り
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Rotation
+Attributes: 4
+Operations: 5
+DEBUG: Processing DistanceStraight.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: DistanceStraight
+DEBUG: Added new class to extracted classes: DistanceStraight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: DistanceStraight
+Attributes: 1
+Operations: 4
+DEBUG: Processing ColorDistanceLineTracing.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ColorDistanceLineTracing
+DEBUG: Added new class to extracted classes: ColorDistanceLineTracing
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int colorCount = 0;
+
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ColorDistanceLineTracing
+Attributes: 4
+Operations: 4
+DEBUG: Processing Timer.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Timer
+DEBUG: Added new class to extracted classes: Timer
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+Found comment line:  private:
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Timer
+Attributes: 1
+Operations: 3
+DEBUG: Processing CorrectingRotation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: CorrectingRotation
+DEBUG: Added new class to extracted classes: CorrectingRotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int correctionAngle = 0;  // 補正角度 0~360
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: CorrectingRotation
+Attributes: 5
+Operations: 4
+DEBUG: Processing Sleeping.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Sleeping
+DEBUG: Added new class to extracted classes: Sleeping
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int milliSec;
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Sleeping
+Attributes: 2
+Operations: 3
+DEBUG: Processing PwmRotation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: PwmRotation
+DEBUG: Added new class to extracted classes: PwmRotation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: PwmRotation
+Attributes: 0
+Operations: 4
+DEBUG: Processing SpeedCalculator.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: SpeedCalculator
+DEBUG: Added new class to extracted classes: SpeedCalculator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   const double leftTargetSpeed;
+
+DEBUG: Processing member declaration
+Found comment line:   Pid rightPid;
+
+DEBUG: Processing member declaration
+Found comment line:   Pid leftPid;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: SpeedCalculator
+Attributes: 17
+Operations: 5
+DEBUG: Processing StringOperator.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: StringOperator
+DEBUG: Added new class to extracted classes: StringOperator
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: StringOperator
+Attributes: 0
+Operations: 2
+DEBUG: Processing AreaACameraAction.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: AreaACameraAction
+DEBUG: Added new class to extracted classes: AreaACameraAction
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   int flag;  // 撮影を行うかどうかを確認するフラグ
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: AreaACameraAction
+Attributes: 9
+Operations: 4
+DEBUG: Processing EtRobocon2024.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: EtRobocon2024
+DEBUG: Added new class to extracted classes: EtRobocon2024
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: EtRobocon2024
+Attributes: 0
+Operations: 2
+DEBUG: Processing Straight.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Straight
+DEBUG: Added new class to extracted classes: Straight
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:   double initialDistance;  // 初期走行距離
+
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Straight
+Attributes: 3
+Operations: 5
+DEBUG: Updating diagram
+DEBUG: Refresh completed
+DEBUG: selectedClassName = AreaMaster
+CppModel classes: 40
+  Class: SystemInfo
+  Attributes: []
+  Operations: [+ SystemInfo(), + ~SystemInfo()]
+  Relations: 
+  Class: ColorLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorLineTracing(_targetColor : COLOR, _targetSpeed : double, _targetBrightness : int, _gain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: COMMAND
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: MotionParser
+  Attributes: []
+  Operations: [+ createMotions(filePath : char*, targetBrightness : int, isLeftEdge : bool&) : vector<Motion*>, - MotionParser(), - convertCommand(str : char*) : COMMAND, - convertBool(command : char*, stringParameter : char*) : bool, - convertSubject(stringParameter : char*) : Subject]
+  Relations: 
+    Subject (DEPENDENCY_USE)
+    COMMAND (DEPENDENCY_USE)
+  Class: StopWheelsMotor
+  Attributes: [- controller : Controller]
+  Operations: [+ StopWheelsMotor(), + run() : void, + logRunning() : void]
+  Relations: 
+    Controller (COMPOSITION)
+      - controller [1]
+    Motion (INHERITANCE)
+  Class: Area
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: AreaMaster
+  Attributes: [- isLeftCourse : bool, - isLeftEdge : bool, - targetBrightness : int, - basePath : char* = "etrobocon2024/datafiles/", - commandFileNames : char*[4] = {"LineTrace","DoubleLoop","DebrisRemoval","SmartCarry"}]
+  Operations: [+ AreaMaster(area : Area, isLeftCourse : bool, isLeftEdge : bool&, targetBrightness : int), + run() : void]
+  Relations: 
+    Area (DEPENDENCY_PARAMETER)
+  Class: Logger
+  Attributes: [- logs : char[65536]]
+  Operations: [+ Logger(), + log(logMessage : char*) : void, + logWarning(warningMessage : char*) : void, + logError(errorMessage : char*) : void, + logHighlight(highlightLog : char*) : void, + outputToFile() : void, + initLogs() : void]
+  Relations: 
+  Class: LineTracing
+  Attributes: [# targetSpeed : double, # targetBrightness : int, # pidGain : PidGain, # isLeftEdge : bool&, # initLeftMileage : double, # initRightMileage : double, # initDistance : double, # timer : Timer]
+  Operations: [+ LineTracing(_targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), + run() : void, # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+    PidGain (COMPOSITION)
+      - pidGain [1]
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: Measurer
+  Attributes: [- colorSensor : ColorSensor, - sonarSensor : SonarSensor, - leftWheel : Motor, - rightWheel : Motor, - armMotor : Motor]
+  Operations: [+ Measurer(), + getBrightness() : int, + getRawColor() : rgb_raw_t, + getLeftCount() : int, + getRightCount() : int, + getArmMotorCount() : int, + getLeftButton() : bool, + getRightButton() : bool, + getEnterButton() : bool, + getForwardDistance() : int, + getVoltage() : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - armMotor [1]
+    rgb_raw_t (DEPENDENCY_USE)
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    ColorSensor (COMPOSITION)
+      - colorSensor [1]
+    SonarSensor (COMPOSITION)
+      - sonarSensor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: DistanceLineTracing
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceLineTracing(_targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    LineTracing (INHERITANCE)
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: EdgeChanging
+  Attributes: [- isLeftEdge : bool&, - nextEdge : bool]
+  Operations: [+ EdgeChanging(_isLeftEdge : bool&, _nextEdge : bool), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: CameraAction
+  Attributes: [- subject : Subject, - countShootFigure : int]
+  Operations: [+ CameraAction(_subject : Subject), + run() : void, + logRunning() : void]
+  Relations: 
+    Subject (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+    Subject (COMPOSITION)
+      - subject [1]
+  Class: Subject
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: CompositeMotion
+  Attributes: []
+  Operations: [+ CompositeMotion(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: COLOR
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Hsv
+  Attributes: [- hue : int, - saturation : int, - value : int]
+  Operations: []
+  Relations: 
+  Class: ColorJudge
+  Attributes: [- SATURATION_BORDER : int = 27, - BLACK_LIMIT_BORDER : int = 10, - WHITE_LIMIT_BORDER : int = 250, - BLACK_BORDER : int = 110, - RED_BORDER : int = 25, - YELLOW_BORDER : int = 50, - GREEN_BORDER : int = 170, - BLUE_BORDER : int = 300, - MAX_RGB : rgb_raw_t = {244,245,252}, - MIN_RGB : rgb_raw_t = {9,10,10}]
+  Operations: [+ getColor(rgb : rgb_raw_t&) : COLOR, + stringToColor(str : char*) : COLOR, + colorToString(color : COLOR) : char, - convertRgbToHsv(rgb : rgb_raw_t&) : Hsv]
+  Relations: 
+    rgb_raw_t (COMPOSITION)
+      - MAX_RGB [1]
+    Hsv (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_PARAMETER)
+    rgb_raw_t (COMPOSITION)
+      - MIN_RGB [1]
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+    COLOR (DEPENDENCY_USE)
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+  Class: ColorStraight
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorStraight(_targetColor : COLOR, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Motion
+  Attributes: [# logger : Logger, # runLogger : RunLogger]
+  Operations: [+ Motion(), + run() : void, + logRunning() : void]
+  Relations: 
+    RunLogger (COMPOSITION)
+      - runLogger [1]
+    Logger (COMPOSITION)
+      - logger [1]
+  Class: Calibrator
+  Attributes: [- isLeftCourse : bool, - targetBrightness : int, - timer : Timer, - measurer : Measurer*]
+  Operations: [+ Calibrator(), + run() : void, + waitForStart() : void, + getIsLeftCourse() : bool, + getTargetBrightness() : int, - selectAndSetCourse() : void, - measureAndSetTargetBrightness() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Measurer (ASSOCIATION)
+      - measurer [0..1]
+  Class: RunLogger
+  Attributes: [+ csvFileName : char[64], - RunLogs : char[65536]]
+  Operations: [+ RunLogger(), + addToLogs(_Brightness : int, _RightPwm : int, _LeftPwm : int, _r : int, _g : int, _b : int) : void, + outputToFile() : void, + initRunLogs() : void]
+  Relations: 
+  Class: Mileage
+  Attributes: []
+  Operations: [+ calculateWheelMileage(angle : int) : double, + calculateMileage(rightAngle : int, leftAngle : int) : double, - Mileage()]
+  Relations: 
+  Class: ResetWheelsMotorPwm
+  Attributes: []
+  Operations: [+ ResetWheelsMotorPwm(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: AreaBCameraAction
+  Attributes: [- preTargetAngle : int, - prePwm : int, - isClockwise : bool, - pwmXr : int, - postTargetAngle : int, - postPwm : int, - correctionTolerance : int = 10, - colorXr : COLOR = COLOR::YELLOW]
+  Operations: [+ AreaBCameraAction(_preTargetAngle : int, _prePwm : int, _isClockwise : bool, _pwmXr : int, _postTargetAngle : int, _postPwm : int), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    CompositeMotion (REALIZATION)
+    COLOR (COMPOSITION)
+      - colorXr [1]
+  Class: PidGain
+  Attributes: [+ kp : double, + ki : double, + kd : double]
+  Operations: [+ PidGain(_kp : double, _ki : double, _kd : double)]
+  Relations: 
+  Class: Pid
+  Attributes: [- pidGain : PidGain, - prevDeviation : double, - integral : double, - filteredDerivative : double = 0, - targetValue : double]
+  Operations: [+ Pid(_kp : double, _ki : double, _kd : double, _targetValue : double), + setPidGain(_kp : double, _ki : double, _kd : double) : void, + calculatePid(currentValue : double, delta : double) : double]
+  Relations: 
+    PidGain (COMPOSITION)
+      - pidGain [1]
+  Class: Controller
+  Attributes: [+ MOTOR_PWM_MAX : double = 100.0, + MOTOR_PWM_MIN : double = -100.0, - rightWheel : Motor, - leftWheel : Motor, - armMotor : Motor, - pwmOfRightWheel : double, - pwmOfLeftWheel : double, - pwmOfArm : double]
+  Operations: [+ Controller(), + setRightMotorPwm(pwm : double) : void, + setLeftMotorPwm(pwm : double) : void, + resetRightMotorPwm() : void, + resetLeftMotorPwm() : void, + resetWheelsMotorPwm() : void, + stopWheelsMotor() : void, + setArmMotorPwm(pwm : double) : void, + resetArmMotorPwm() : void, + stopArmMotor() : void, + getRightMotorPwm() : double, + getLeftMotorPwm() : double, - limitPwmValue(inputPwm : double) : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    Motor (COMPOSITION)
+      - armMotor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: Rotation
+  Attributes: [# targetAngle : int, # pwm : int, # isClockwise : bool, # timer : Timer]
+  Operations: [+ Rotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + run() : void, + isMetPreCondition() : bool, + isMetContCondition(targetLeftDistance : double, targetRightDistance : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: DistanceStraight
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceStraight(_targetDiatance : double, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+  Class: ColorDistanceLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR, - targetDistance : double]
+  Operations: [+ ColorDistanceLineTracing(_targetColor : COLOR, _targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    COLOR (DEPENDENCY_PARAMETER)
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Timer
+  Attributes: [- clock : Clock]
+  Operations: [+ Timer(), + sleep(milliSec : int) : void, + now() : int]
+  Relations: 
+    Clock (COMPOSITION)
+      - clock [1]
+  Class: CorrectingRotation
+  Attributes: [- pwm : int, - correctionAngle : int = 0, - color : COLOR, - isClockwise : bool, - correctionTolerance : int]
+  Operations: [+ CorrectingRotation(_pwm : int, _correctionTolerance : int, _color : COLOR), + run() : void, + getCorrectionAngle() : int, + logRunning() : void]
+  Relations: 
+    COLOR (COMPOSITION)
+      - color [1]
+    COLOR (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+  Class: Sleeping
+  Attributes: [- milliSec : int, - timer : Timer]
+  Operations: [+ Sleeping(milliSec : int), + run() : void, + logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+  Class: PwmRotation
+  Attributes: []
+  Operations: [+ PwmRotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + isMetPreCondition() : bool, + isMetContCondition(initLeftMileage : double, initRightMileage : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Rotation (INHERITANCE)
+  Class: SpeedCalculator
+  Attributes: [- rightTargetSpeed : double, - leftTargetSpeed : double, - rightPid : Pid, - leftPid : Pid, - timer : Timer, - rightMotorPwm : double, - leftMotorPwm : double, - prevRightMileage : double, - prevLeftMileage : double, - prevRightTime : int, - prevLeftTime : int, - K_P : double = 0.004, - K_I : double = 0.0000005, - K_D : double = 0.0007, - R_K_P : double = 0.004, - R_K_I : double = 0.0000005, - R_K_D : double = 0.0007]
+  Operations: [+ SpeedCalculator(_targetSpeed : double), + SpeedCalculator(_rightTargetSpeed : double, _leftTargetSpeed : double), + calculateRightMotorPwmFromTargetSpeed() : double, + calculateLeftMotorPwmFromTargetSpeed() : double, - calculateSpeed(diffMileage : double, diffTime : double) : double]
+  Relations: 
+    Pid (COMPOSITION)
+      - leftPid [1]
+    Pid (COMPOSITION)
+      - rightPid [1]
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: StringOperator
+  Attributes: []
+  Operations: [+ removeEOL(string : char*) : char, - StringOperator()]
+  Relations: 
+  Class: AreaACameraAction
+  Attributes: [- flag : int, - subject : Subject = CameraAction::Subject::FIGURE, - isClockwise : bool, - preTargetAngle : int, - postTargetAngle : int, - rotationPwm : int, - targetDistance : double, - targetSpeed : double, - ETROBO_PATH : char* = "./etrobocon2024/"]
+  Operations: [+ AreaACameraAction(_position : int, _isClockwise : bool, _preTargetAngle : int, _postTargetAngle : int, _rotationPwm : int, _targetDistance : double, _speed : double), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    Subject (COMPOSITION)
+      - subject [1]
+    CompositeMotion (REALIZATION)
+  Class: EtRobocon2024
+  Attributes: []
+  Operations: [+ start() : void, - sigint(_ : int) : void]
+  Relations: 
+  Class: Straight
+  Attributes: [# targetSpeed : double, # initialDistance : double, # timer : Timer]
+  Operations: [+ Straight(_speed : double), + run() : void, # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+DEBUG: CppClassDiagramDrawer - Number of classes: 40
+DEBUG: CppClassDiagramDrawer draw completed
+CppModel classes: 40
+  Class: SystemInfo
+  Attributes: []
+  Operations: [+ SystemInfo(), + ~SystemInfo()]
+  Relations: 
+  Class: ColorLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorLineTracing(_targetColor : COLOR, _targetSpeed : double, _targetBrightness : int, _gain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: COMMAND
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: MotionParser
+  Attributes: []
+  Operations: [+ createMotions(filePath : char*, targetBrightness : int, isLeftEdge : bool&) : vector<Motion*>, - MotionParser(), - convertCommand(str : char*) : COMMAND, - convertBool(command : char*, stringParameter : char*) : bool, - convertSubject(stringParameter : char*) : Subject]
+  Relations: 
+    Subject (DEPENDENCY_USE)
+    COMMAND (DEPENDENCY_USE)
+  Class: StopWheelsMotor
+  Attributes: [- controller : Controller]
+  Operations: [+ StopWheelsMotor(), + run() : void, + logRunning() : void]
+  Relations: 
+    Controller (COMPOSITION)
+      - controller [1]
+    Motion (INHERITANCE)
+  Class: Area
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: AreaMaster
+  Attributes: [- isLeftCourse : bool, - isLeftEdge : bool, - targetBrightness : int, - basePath : char* = "etrobocon2024/datafiles/", - commandFileNames : char*[4] = {"LineTrace","DoubleLoop","DebrisRemoval","SmartCarry"}]
+  Operations: [+ AreaMaster(area : Area, isLeftCourse : bool, isLeftEdge : bool&, targetBrightness : int), + run() : void]
+  Relations: 
+    Area (DEPENDENCY_PARAMETER)
+  Class: Logger
+  Attributes: [- logs : char[65536]]
+  Operations: [+ Logger(), + log(logMessage : char*) : void, + logWarning(warningMessage : char*) : void, + logError(errorMessage : char*) : void, + logHighlight(highlightLog : char*) : void, + outputToFile() : void, + initLogs() : void]
+  Relations: 
+  Class: LineTracing
+  Attributes: [# targetSpeed : double, # targetBrightness : int, # pidGain : PidGain, # isLeftEdge : bool&, # initLeftMileage : double, # initRightMileage : double, # initDistance : double, # timer : Timer]
+  Operations: [+ LineTracing(_targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), + run() : void, # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+    PidGain (COMPOSITION)
+      - pidGain [1]
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: Measurer
+  Attributes: [- colorSensor : ColorSensor, - sonarSensor : SonarSensor, - leftWheel : Motor, - rightWheel : Motor, - armMotor : Motor]
+  Operations: [+ Measurer(), + getBrightness() : int, + getRawColor() : rgb_raw_t, + getLeftCount() : int, + getRightCount() : int, + getArmMotorCount() : int, + getLeftButton() : bool, + getRightButton() : bool, + getEnterButton() : bool, + getForwardDistance() : int, + getVoltage() : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - armMotor [1]
+    rgb_raw_t (DEPENDENCY_USE)
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    ColorSensor (COMPOSITION)
+      - colorSensor [1]
+    SonarSensor (COMPOSITION)
+      - sonarSensor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: DistanceLineTracing
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceLineTracing(_targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    LineTracing (INHERITANCE)
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: EdgeChanging
+  Attributes: [- isLeftEdge : bool&, - nextEdge : bool]
+  Operations: [+ EdgeChanging(_isLeftEdge : bool&, _nextEdge : bool), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: CameraAction
+  Attributes: [- subject : Subject, - countShootFigure : int]
+  Operations: [+ CameraAction(_subject : Subject), + run() : void, + logRunning() : void]
+  Relations: 
+    Subject (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+    Subject (COMPOSITION)
+      - subject [1]
+  Class: Subject
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: CompositeMotion
+  Attributes: []
+  Operations: [+ CompositeMotion(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: COLOR
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Hsv
+  Attributes: [- hue : int, - saturation : int, - value : int]
+  Operations: []
+  Relations: 
+  Class: ColorJudge
+  Attributes: [- SATURATION_BORDER : int = 27, - BLACK_LIMIT_BORDER : int = 10, - WHITE_LIMIT_BORDER : int = 250, - BLACK_BORDER : int = 110, - RED_BORDER : int = 25, - YELLOW_BORDER : int = 50, - GREEN_BORDER : int = 170, - BLUE_BORDER : int = 300, - MAX_RGB : rgb_raw_t = {244,245,252}, - MIN_RGB : rgb_raw_t = {9,10,10}]
+  Operations: [+ getColor(rgb : rgb_raw_t&) : COLOR, + stringToColor(str : char*) : COLOR, + colorToString(color : COLOR) : char, - convertRgbToHsv(rgb : rgb_raw_t&) : Hsv]
+  Relations: 
+Restored scroll position - X: 0.0, Y: 0.0
+    rgb_raw_t (COMPOSITION)
+      - MAX_RGB [1]
+    Hsv (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_PARAMETER)
+    rgb_raw_t (COMPOSITION)
+      - MIN_RGB [1]
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+    COLOR (DEPENDENCY_USE)
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+  Class: ColorStraight
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorStraight(_targetColor : COLOR, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Motion
+  Attributes: [# logger : Logger, # runLogger : RunLogger]
+  Operations: [+ Motion(), + run() : void, + logRunning() : void]
+  Relations: 
+    RunLogger (COMPOSITION)
+      - runLogger [1]
+    Logger (COMPOSITION)
+      - logger [1]
+  Class: Calibrator
+  Attributes: [- isLeftCourse : bool, - targetBrightness : int, - timer : Timer, - measurer : Measurer*]
+  Operations: [+ Calibrator(), + run() : void, + waitForStart() : void, + getIsLeftCourse() : bool, + getTargetBrightness() : int, - selectAndSetCourse() : void, - measureAndSetTargetBrightness() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Measurer (ASSOCIATION)
+      - measurer [0..1]
+  Class: RunLogger
+  Attributes: [+ csvFileName : char[64], - RunLogs : char[65536]]
+  Operations: [+ RunLogger(), + addToLogs(_Brightness : int, _RightPwm : int, _LeftPwm : int, _r : int, _g : int, _b : int) : void, + outputToFile() : void, + initRunLogs() : void]
+  Relations: 
+  Class: Mileage
+  Attributes: []
+  Operations: [+ calculateWheelMileage(angle : int) : double, + calculateMileage(rightAngle : int, leftAngle : int) : double, - Mileage()]
+  Relations: 
+  Class: ResetWheelsMotorPwm
+  Attributes: []
+  Operations: [+ ResetWheelsMotorPwm(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: AreaBCameraAction
+  Attributes: [- preTargetAngle : int, - prePwm : int, - isClockwise : bool, - pwmXr : int, - postTargetAngle : int, - postPwm : int, - correctionTolerance : int = 10, - colorXr : COLOR = COLOR::YELLOW]
+  Operations: [+ AreaBCameraAction(_preTargetAngle : int, _prePwm : int, _isClockwise : bool, _pwmXr : int, _postTargetAngle : int, _postPwm : int), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    CompositeMotion (REALIZATION)
+    COLOR (COMPOSITION)
+      - colorXr [1]
+  Class: PidGain
+  Attributes: [+ kp : double, + ki : double, + kd : double]
+  Operations: [+ PidGain(_kp : double, _ki : double, _kd : double)]
+  Relations: 
+  Class: Pid
+  Attributes: [- pidGain : PidGain, - prevDeviation : double, - integral : double, - filteredDerivative : double = 0, - targetValue : double]
+  Operations: [+ Pid(_kp : double, _ki : double, _kd : double, _targetValue : double), + setPidGain(_kp : double, _ki : double, _kd : double) : void, + calculatePid(currentValue : double, delta : double) : double]
+  Relations: 
+    PidGain (COMPOSITION)
+      - pidGain [1]
+  Class: Controller
+  Attributes: [+ MOTOR_PWM_MAX : double = 100.0, + MOTOR_PWM_MIN : double = -100.0, - rightWheel : Motor, - leftWheel : Motor, - armMotor : Motor, - pwmOfRightWheel : double, - pwmOfLeftWheel : double, - pwmOfArm : double]
+  Operations: [+ Controller(), + setRightMotorPwm(pwm : double) : void, + setLeftMotorPwm(pwm : double) : void, + resetRightMotorPwm() : void, + resetLeftMotorPwm() : void, + resetWheelsMotorPwm() : void, + stopWheelsMotor() : void, + setArmMotorPwm(pwm : double) : void, + resetArmMotorPwm() : void, + stopArmMotor() : void, + getRightMotorPwm() : double, + getLeftMotorPwm() : double, - limitPwmValue(inputPwm : double) : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    Motor (COMPOSITION)
+      - armMotor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: Rotation
+  Attributes: [# targetAngle : int, # pwm : int, # isClockwise : bool, # timer : Timer]
+  Operations: [+ Rotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + run() : void, + isMetPreCondition() : bool, + isMetContCondition(targetLeftDistance : double, targetRightDistance : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: DistanceStraight
+DEBUG: Processing C++ file: AreaACameraAction.h
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceStraight(_targetDiatance : double, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+  Class: ColorDistanceLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR, - targetDistance : double]
+  Operations: [+ ColorDistanceLineTracing(_targetColor : COLOR, _targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    COLOR (DEPENDENCY_PARAMETER)
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Timer
+  Attributes: [- clock : Clock]
+  Operations: [+ Timer(), + sleep(milliSec : int) : void, + now() : int]
+  Relations: 
+    Clock (COMPOSITION)
+      - clock [1]
+  Class: CorrectingRotation
+  Attributes: [- pwm : int, - correctionAngle : int = 0, - color : COLOR, - isClockwise : bool, - correctionTolerance : int]
+  Operations: [+ CorrectingRotation(_pwm : int, _correctionTolerance : int, _color : COLOR), + run() : void, + getCorrectionAngle() : int, + logRunning() : void]
+  Relations: 
+    COLOR (COMPOSITION)
+      - color [1]
+    COLOR (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+  Class: Sleeping
+  Attributes: [- milliSec : int, - timer : Timer]
+  Operations: [+ Sleeping(milliSec : int), + run() : void, + logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+  Class: PwmRotation
+  Attributes: []
+  Operations: [+ PwmRotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + isMetPreCondition() : bool, + isMetContCondition(initLeftMileage : double, initRightMileage : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Rotation (INHERITANCE)
+  Class: SpeedCalculator
+  Attributes: [- rightTargetSpeed : double, - leftTargetSpeed : double, - rightPid : Pid, - leftPid : Pid, - timer : Timer, - rightMotorPwm : double, - leftMotorPwm : double, - prevRightMileage : double, - prevLeftMileage : double, - prevRightTime : int, - prevLeftTime : int, - K_P : double = 0.004, - K_I : double = 0.0000005, - K_D : double = 0.0007, - R_K_P : double = 0.004, - R_K_I : double = 0.0000005, - R_K_D : double = 0.0007]
+  Operations: [+ SpeedCalculator(_targetSpeed : double), + SpeedCalculator(_rightTargetSpeed : double, _leftTargetSpeed : double), + calculateRightMotorPwmFromTargetSpeed() : double, + calculateLeftMotorPwmFromTargetSpeed() : double, - calculateSpeed(diffMileage : double, diffTime : double) : double]
+  Relations: 
+    Pid (COMPOSITION)
+      - leftPid [1]
+    Pid (COMPOSITION)
+      - rightPid [1]
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: StringOperator
+  Attributes: []
+  Operations: [+ removeEOL(string : char*) : char, - StringOperator()]
+  Relations: 
+  Class: AreaACameraAction
+  Attributes: [- flag : int, - subject : Subject = CameraAction::Subject::FIGURE, - isClockwise : bool, - preTargetAngle : int, - postTargetAngle : int, - rotationPwm : int, - targetDistance : double, - targetSpeed : double, - ETROBO_PATH : char* = "./etrobocon2024/"]
+  Operations: [+ AreaACameraAction(_position : int, _isClockwise : bool, _preTargetAngle : int, _postTargetAngle : int, _rotationPwm : int, _targetDistance : double, _speed : double), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    Subject (COMPOSITION)
+      - subject [1]
+    CompositeMotion (REALIZATION)
+  Class: EtRobocon2024
+  Attributes: []
+  Operations: [+ start() : void, - sigint(_ : int) : void]
+  Relations: 
+  Class: Straight
+  Attributes: [# targetSpeed : double, # initialDistance : double, # timer : Timer]
+  Operations: [+ Straight(_speed : double), + run() : void, # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+DEBUG: CppClassDiagramDrawer - Number of classes: 40
+DEBUG: Processing C++ file: AreaBCameraAction.h
+DEBUG: Processing C++ file: CameraAction.h
+DEBUG: Processing C++ file: ColorDistanceLineTracing.h
+DEBUG: Processing C++ file: ColorLineTracing.h
+DEBUG: Processing C++ file: ColorStraight.h
+DEBUG: Processing C++ file: CompositeMotion.h
+DEBUG: Processing C++ file: CorrectingRotation.h
+DEBUG: Processing C++ file: DistanceLineTracing.h
+DEBUG: Processing C++ file: DistanceStraight.h
+DEBUG: Processing C++ file: EdgeChanging.h
+DEBUG: Processing C++ file: LineTracing.h
+DEBUG: Processing C++ file: Motion.h
+DEBUG: Processing C++ file: PwmRotation.h
+DEBUG: Processing C++ file: ResetWheelsMotorPwm.h
+DEBUG: Processing C++ file: Rotation.h
+DEBUG: Processing C++ file: Sleeping.h
+DEBUG: Processing C++ file: StopWheelsMotor.h
+DEBUG: Processing C++ file: Straight.h
+DEBUG: Processing C++ file: SystemInfo.h
+DEBUG: Processing C++ file: ColorLineTracing.h
+DEBUG: Processing C++ file: COMMAND.h
+DEBUG: Processing C++ file: StopWheelsMotor.h
+DEBUG: Processing C++ file: Area.h
+DEBUG: Processing C++ file: Logger.h
+DEBUG: Processing C++ file: LineTracing.h
+DEBUG: Processing C++ file: Measurer.h
+DEBUG: Processing C++ file: DistanceLineTracing.h
+DEBUG: Processing C++ file: EdgeChanging.h
+DEBUG: Processing C++ file: CameraAction.h
+DEBUG: Processing C++ file: CompositeMotion.h
+DEBUG: Processing C++ file: COLOR.h
+DEBUG: Processing C++ file: ColorStraight.h
+DEBUG: Processing C++ file: Motion.h
+DEBUG: Processing C++ file: Calibrator.h
+DEBUG: Processing C++ file: RunLogger.h
+DEBUG: Processing C++ file: Mileage.h
+DEBUG: Processing C++ file: ResetWheelsMotorPwm.h
+DEBUG: Processing C++ file: AreaBCameraAction.h
+DEBUG: Processing C++ file: PidGain.h
+DEBUG: Processing C++ file: Controller.h
+DEBUG: Processing C++ file: Rotation.h
+DEBUG: Processing C++ file: DistanceStraight.h
+DEBUG: Processing C++ file: ColorDistanceLineTracing.h
+DEBUG: Processing C++ file: Timer.h
+DEBUG: Processing C++ file: CorrectingRotation.h
+DEBUG: Processing C++ file: Sleeping.h
+DEBUG: Processing C++ file: PwmRotation.h
+DEBUG: Processing C++ file: SpeedCalculator.h
+DEBUG: Processing C++ file: StringOperator.h
+DEBUG: Processing C++ file: AreaACameraAction.h
+DEBUG: Processing C++ file: EtRobocon2024.h
+DEBUG: Processing C++ file: Straight.h
+Saving scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+DEBUG: selectedClassName = Straight
+CppModel classes: 40
+  Class: SystemInfo
+  Attributes: []
+  Operations: [+ SystemInfo(), + ~SystemInfo()]
+  Relations: 
+  Class: ColorLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorLineTracing(_targetColor : COLOR, _targetSpeed : double, _targetBrightness : int, _gain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: COMMAND
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: MotionParser
+  Attributes: []
+  Operations: [+ createMotions(filePath : char*, targetBrightness : int, isLeftEdge : bool&) : vector<Motion*>, - MotionParser(), - convertCommand(str : char*) : COMMAND, - convertBool(command : char*, stringParameter : char*) : bool, - convertSubject(stringParameter : char*) : Subject]
+  Relations: 
+    Subject (DEPENDENCY_USE)
+    COMMAND (DEPENDENCY_USE)
+  Class: StopWheelsMotor
+  Attributes: [- controller : Controller]
+  Operations: [+ StopWheelsMotor(), + run() : void, + logRunning() : void]
+  Relations: 
+    Controller (COMPOSITION)
+      - controller [1]
+    Motion (INHERITANCE)
+  Class: Area
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: AreaMaster
+  Attributes: [- isLeftCourse : bool, - isLeftEdge : bool, - targetBrightness : int, - basePath : char* = "etrobocon2024/datafiles/", - commandFileNames : char*[4] = {"LineTrace","DoubleLoop","DebrisRemoval","SmartCarry"}]
+  Operations: [+ AreaMaster(area : Area, isLeftCourse : bool, isLeftEdge : bool&, targetBrightness : int), + run() : void]
+  Relations: 
+    Area (DEPENDENCY_PARAMETER)
+  Class: Logger
+  Attributes: [- logs : char[65536]]
+  Operations: [+ Logger(), + log(logMessage : char*) : void, + logWarning(warningMessage : char*) : void, + logError(errorMessage : char*) : void, + logHighlight(highlightLog : char*) : void, + outputToFile() : void, + initLogs() : void]
+  Relations: 
+  Class: LineTracing
+  Attributes: [# targetSpeed : double, # targetBrightness : int, # pidGain : PidGain, # isLeftEdge : bool&, # initLeftMileage : double, # initRightMileage : double, # initDistance : double, # timer : Timer]
+  Operations: [+ LineTracing(_targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), + run() : void, # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+    PidGain (COMPOSITION)
+      - pidGain [1]
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: Measurer
+  Attributes: [- colorSensor : ColorSensor, - sonarSensor : SonarSensor, - leftWheel : Motor, - rightWheel : Motor, - armMotor : Motor]
+  Operations: [+ Measurer(), + getBrightness() : int, + getRawColor() : rgb_raw_t, + getLeftCount() : int, + getRightCount() : int, + getArmMotorCount() : int, + getLeftButton() : bool, + getRightButton() : bool, + getEnterButton() : bool, + getForwardDistance() : int, + getVoltage() : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - armMotor [1]
+    rgb_raw_t (DEPENDENCY_USE)
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    ColorSensor (COMPOSITION)
+      - colorSensor [1]
+    SonarSensor (COMPOSITION)
+      - sonarSensor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: DistanceLineTracing
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceLineTracing(_targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    LineTracing (INHERITANCE)
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: EdgeChanging
+  Attributes: [- isLeftEdge : bool&, - nextEdge : bool]
+  Operations: [+ EdgeChanging(_isLeftEdge : bool&, _nextEdge : bool), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: CameraAction
+  Attributes: [- subject : Subject, - countShootFigure : int]
+  Operations: [+ CameraAction(_subject : Subject), + run() : void, + logRunning() : void]
+  Relations: 
+    Subject (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+    Subject (COMPOSITION)
+      - subject [1]
+  Class: Subject
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: CompositeMotion
+  Attributes: []
+  Operations: [+ CompositeMotion(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: COLOR
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Hsv
+  Attributes: [- hue : int, - saturation : int, - value : int]
+  Operations: []
+  Relations: 
+  Class: ColorJudge
+  Attributes: [- SATURATION_BORDER : int = 27, - BLACK_LIMIT_BORDER : int = 10, - WHITE_LIMIT_BORDER : int = 250, - BLACK_BORDER : int = 110, - RED_BORDER : int = 25, - YELLOW_BORDER : int = 50, - GREEN_BORDER : int = 170, - BLUE_BORDER : int = 300, - MAX_RGB : rgb_raw_t = {244,245,252}, - MIN_RGB : rgb_raw_t = {9,10,10}]
+  Operations: [+ getColor(rgb : rgb_raw_t&) : COLOR, + stringToColor(str : char*) : COLOR, + colorToString(color : COLOR) : char, - convertRgbToHsv(rgb : rgb_raw_t&) : Hsv]
+  Relations: 
+    rgb_raw_t (COMPOSITION)
+      - MAX_RGB [1]
+    Hsv (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_PARAMETER)
+    rgb_raw_t (COMPOSITION)
+      - MIN_RGB [1]
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+    COLOR (DEPENDENCY_USE)
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+  Class: ColorStraight
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorStraight(_targetColor : COLOR, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Motion
+  Attributes: [# logger : Logger, # runLogger : RunLogger]
+  Operations: [+ Motion(), + run() : void, + logRunning() : void]
+  Relations: 
+    RunLogger (COMPOSITION)
+      - runLogger [1]
+    Logger (COMPOSITION)
+      - logger [1]
+  Class: Calibrator
+  Attributes: [- isLeftCourse : bool, - targetBrightness : int, - timer : Timer, - measurer : Measurer*]
+  Operations: [+ Calibrator(), + run() : void, + waitForStart() : void, + getIsLeftCourse() : bool, + getTargetBrightness() : int, - selectAndSetCourse() : void, - measureAndSetTargetBrightness() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Measurer (ASSOCIATION)
+      - measurer [0..1]
+  Class: RunLogger
+  Attributes: [+ csvFileName : char[64], - RunLogs : char[65536]]
+  Operations: [+ RunLogger(), + addToLogs(_Brightness : int, _RightPwm : int, _LeftPwm : int, _r : int, _g : int, _b : int) : void, + outputToFile() : void, + initRunLogs() : void]
+  Relations: 
+  Class: Mileage
+  Attributes: []
+  Operations: [+ calculateWheelMileage(angle : int) : double, + calculateMileage(rightAngle : int, leftAngle : int) : double, - Mileage()]
+  Relations: 
+  Class: ResetWheelsMotorPwm
+  Attributes: []
+  Operations: [+ ResetWheelsMotorPwm(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: AreaBCameraAction
+  Attributes: [- preTargetAngle : int, - prePwm : int, - isClockwise : bool, - pwmXr : int, - postTargetAngle : int, - postPwm : int, - correctionTolerance : int = 10, - colorXr : COLOR = COLOR::YELLOW]
+  Operations: [+ AreaBCameraAction(_preTargetAngle : int, _prePwm : int, _isClockwise : bool, _pwmXr : int, _postTargetAngle : int, _postPwm : int), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    CompositeMotion (REALIZATION)
+    COLOR (COMPOSITION)
+      - colorXr [1]
+  Class: PidGain
+  Attributes: [+ kp : double, + ki : double, + kd : double]
+  Operations: [+ PidGain(_kp : double, _ki : double, _kd : double)]
+  Relations: 
+  Class: Pid
+  Attributes: [- pidGain : PidGain, - prevDeviation : double, - integral : double, - filteredDerivative : double = 0, - targetValue : double]
+  Operations: [+ Pid(_kp : double, _ki : double, _kd : double, _targetValue : double), + setPidGain(_kp : double, _ki : double, _kd : double) : void, + calculatePid(currentValue : double, delta : double) : double]
+  Relations: 
+    PidGain (COMPOSITION)
+      - pidGain [1]
+  Class: Controller
+  Attributes: [+ MOTOR_PWM_MAX : double = 100.0, + MOTOR_PWM_MIN : double = -100.0, - rightWheel : Motor, - leftWheel : Motor, - armMotor : Motor, - pwmOfRightWheel : double, - pwmOfLeftWheel : double, - pwmOfArm : double]
+  Operations: [+ Controller(), + setRightMotorPwm(pwm : double) : void, + setLeftMotorPwm(pwm : double) : void, + resetRightMotorPwm() : void, + resetLeftMotorPwm() : void, + resetWheelsMotorPwm() : void, + stopWheelsMotor() : void, + setArmMotorPwm(pwm : double) : void, + resetArmMotorPwm() : void, + stopArmMotor() : void, + getRightMotorPwm() : double, + getLeftMotorPwm() : double, - limitPwmValue(inputPwm : double) : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    Motor (COMPOSITION)
+      - armMotor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: Rotation
+  Attributes: [# targetAngle : int, # pwm : int, # isClockwise : bool, # timer : Timer]
+  Operations: [+ Rotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + run() : void, + isMetPreCondition() : bool, + isMetContCondition(targetLeftDistance : double, targetRightDistance : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: DistanceStraight
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceStraight(_targetDiatance : double, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+  Class: ColorDistanceLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR, - targetDistance : double]
+  Operations: [+ ColorDistanceLineTracing(_targetColor : COLOR, _targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    COLOR (DEPENDENCY_PARAMETER)
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Timer
+  Attributes: [- clock : Clock]
+  Operations: [+ Timer(), + sleep(milliSec : int) : void, + now() : int]
+  Relations: 
+    Clock (COMPOSITION)
+      - clock [1]
+  Class: CorrectingRotation
+  Attributes: [- pwm : int, - correctionAngle : int = 0, - color : COLOR, - isClockwise : bool, - correctionTolerance : int]
+  Operations: [+ CorrectingRotation(_pwm : int, _correctionTolerance : int, _color : COLOR), + run() : void, + getCorrectionAngle() : int, + logRunning() : void]
+  Relations: 
+    COLOR (COMPOSITION)
+      - color [1]
+    COLOR (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+  Class: Sleeping
+  Attributes: [- milliSec : int, - timer : Timer]
+  Operations: [+ Sleeping(milliSec : int), + run() : void, + logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+  Class: PwmRotation
+  Attributes: []
+  Operations: [+ PwmRotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + isMetPreCondition() : bool, + isMetContCondition(initLeftMileage : double, initRightMileage : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Rotation (INHERITANCE)
+  Class: SpeedCalculator
+  Attributes: [- rightTargetSpeed : double, - leftTargetSpeed : double, - rightPid : Pid, - leftPid : Pid, - timer : Timer, - rightMotorPwm : double, - leftMotorPwm : double, - prevRightMileage : double, - prevLeftMileage : double, - prevRightTime : int, - prevLeftTime : int, - K_P : double = 0.004, - K_I : double = 0.0000005, - K_D : double = 0.0007, - R_K_P : double = 0.004, - R_K_I : double = 0.0000005, - R_K_D : double = 0.0007]
+  Operations: [+ SpeedCalculator(_targetSpeed : double), + SpeedCalculator(_rightTargetSpeed : double, _leftTargetSpeed : double), + calculateRightMotorPwmFromTargetSpeed() : double, + calculateLeftMotorPwmFromTargetSpeed() : double, - calculateSpeed(diffMileage : double, diffTime : double) : double]
+  Relations: 
+    Pid (COMPOSITION)
+      - leftPid [1]
+    Pid (COMPOSITION)
+      - rightPid [1]
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: StringOperator
+  Attributes: []
+  Operations: [+ removeEOL(string : char*) : char, - StringOperator()]
+  Relations: 
+  Class: AreaACameraAction
+  Attributes: [- flag : int, - subject : Subject = CameraAction::Subject::FIGURE, - isClockwise : bool, - preTargetAngle : int, - postTargetAngle : int, - rotationPwm : int, - targetDistance : double, - targetSpeed : double, - ETROBO_PATH : char* = "./etrobocon2024/"]
+  Operations: [+ AreaACameraAction(_position : int, _isClockwise : bool, _preTargetAngle : int, _postTargetAngle : int, _rotationPwm : int, _targetDistance : double, _speed : double), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    Subject (COMPOSITION)
+      - subject [1]
+    CompositeMotion (REALIZATION)
+  Class: EtRobocon2024
+  Attributes: []
+  Operations: [+ start() : void, - sigint(_ : int) : void]
+  Relations: 
+  Class: Straight
+  Attributes: [# targetSpeed : double, # initialDistance : double, # timer : Timer]
+  Operations: [+ Straight(_speed : double), + run() : void, # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+DEBUG: CppClassDiagramDrawer - Number of classes: 40
+Restored scroll position - X: 0.0, Y: 0.0
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+CppModel classes: 40
+  Class: SystemInfo
+  Attributes: []
+  Operations: [+ SystemInfo(), + ~SystemInfo()]
+  Relations: 
+  Class: ColorLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorLineTracing(_targetColor : COLOR, _targetSpeed : double, _targetBrightness : int, _gain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: COMMAND
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: MotionParser
+  Attributes: []
+  Operations: [+ createMotions(filePath : char*, targetBrightness : int, isLeftEdge : bool&) : vector<Motion*>, - MotionParser(), - convertCommand(str : char*) : COMMAND, - convertBool(command : char*, stringParameter : char*) : bool, - convertSubject(stringParameter : char*) : Subject]
+  Relations: 
+    Subject (DEPENDENCY_USE)
+    COMMAND (DEPENDENCY_USE)
+  Class: StopWheelsMotor
+  Attributes: [- controller : Controller]
+  Operations: [+ StopWheelsMotor(), + run() : void, + logRunning() : void]
+  Relations: 
+    Controller (COMPOSITION)
+      - controller [1]
+    Motion (INHERITANCE)
+  Class: Area
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: AreaMaster
+  Attributes: [- isLeftCourse : bool, - isLeftEdge : bool, - targetBrightness : int, - basePath : char* = "etrobocon2024/datafiles/", - commandFileNames : char*[4] = {"LineTrace","DoubleLoop","DebrisRemoval","SmartCarry"}]
+  Operations: [+ AreaMaster(area : Area, isLeftCourse : bool, isLeftEdge : bool&, targetBrightness : int), + run() : void]
+  Relations: 
+    Area (DEPENDENCY_PARAMETER)
+  Class: Logger
+  Attributes: [- logs : char[65536]]
+  Operations: [+ Logger(), + log(logMessage : char*) : void, + logWarning(warningMessage : char*) : void, + logError(errorMessage : char*) : void, + logHighlight(highlightLog : char*) : void, + outputToFile() : void, + initLogs() : void]
+  Relations: 
+  Class: LineTracing
+  Attributes: [# targetSpeed : double, # targetBrightness : int, # pidGain : PidGain, # isLeftEdge : bool&, # initLeftMileage : double, # initRightMileage : double, # initDistance : double, # timer : Timer]
+  Operations: [+ LineTracing(_targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), + run() : void, # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+    PidGain (COMPOSITION)
+      - pidGain [1]
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: Measurer
+  Attributes: [- colorSensor : ColorSensor, - sonarSensor : SonarSensor, - leftWheel : Motor, - rightWheel : Motor, - armMotor : Motor]
+  Operations: [+ Measurer(), + getBrightness() : int, + getRawColor() : rgb_raw_t, + getLeftCount() : int, + getRightCount() : int, + getArmMotorCount() : int, + getLeftButton() : bool, + getRightButton() : bool, + getEnterButton() : bool, + getForwardDistance() : int, + getVoltage() : double]
+  Relations: 
+    Motor (COMPOSITION)
+      - armMotor [1]
+    rgb_raw_t (DEPENDENCY_USE)
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    ColorSensor (COMPOSITION)
+      - colorSensor [1]
+    SonarSensor (COMPOSITION)
+      - sonarSensor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: DistanceLineTracing
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceLineTracing(_targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    LineTracing (INHERITANCE)
+    PidGain (DEPENDENCY_PARAMETER)
+  Class: EdgeChanging
+  Attributes: [- isLeftEdge : bool&, - nextEdge : bool]
+  Operations: [+ EdgeChanging(_isLeftEdge : bool&, _nextEdge : bool), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: CameraAction
+  Attributes: [- subject : Subject, - countShootFigure : int]
+  Operations: [+ CameraAction(_subject : Subject), + run() : void, + logRunning() : void]
+  Relations: 
+    Subject (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+    Subject (COMPOSITION)
+      - subject [1]
+  Class: Subject
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: CompositeMotion
+  Attributes: []
+  Operations: [+ CompositeMotion(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: COLOR
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Hsv
+  Attributes: [- hue : int, - saturation : int, - value : int]
+  Operations: []
+  Relations: 
+  Class: ColorJudge
+  Attributes: [- SATURATION_BORDER : int = 27, - BLACK_LIMIT_BORDER : int = 10, - WHITE_LIMIT_BORDER : int = 250, - BLACK_BORDER : int = 110, - RED_BORDER : int = 25, - YELLOW_BORDER : int = 50, - GREEN_BORDER : int = 170, - BLUE_BORDER : int = 300, - MAX_RGB : rgb_raw_t = {244,245,252}, - MIN_RGB : rgb_raw_t = {9,10,10}]
+  Operations: [+ getColor(rgb : rgb_raw_t&) : COLOR, + stringToColor(str : char*) : COLOR, + colorToString(color : COLOR) : char, - convertRgbToHsv(rgb : rgb_raw_t&) : Hsv]
+  Relations: 
+    rgb_raw_t (COMPOSITION)
+      - MAX_RGB [1]
+    Hsv (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_USE)
+    COLOR (DEPENDENCY_PARAMETER)
+    rgb_raw_t (COMPOSITION)
+      - MIN_RGB [1]
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+    COLOR (DEPENDENCY_USE)
+    rgb_raw_t (DEPENDENCY_PARAMETER)
+  Class: ColorStraight
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR]
+  Operations: [+ ColorStraight(_targetColor : COLOR, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+    COLOR (DEPENDENCY_PARAMETER)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Motion
+  Attributes: [# logger : Logger, # runLogger : RunLogger]
+  Operations: [+ Motion(), + run() : void, + logRunning() : void]
+  Relations: 
+    RunLogger (COMPOSITION)
+      - runLogger [1]
+    Logger (COMPOSITION)
+      - logger [1]
+  Class: Calibrator
+  Attributes: [- isLeftCourse : bool, - targetBrightness : int, - timer : Timer, - measurer : Measurer*]
+  Operations: [+ Calibrator(), + run() : void, + waitForStart() : void, + getIsLeftCourse() : bool, + getTargetBrightness() : int, - selectAndSetCourse() : void, - measureAndSetTargetBrightness() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Measurer (ASSOCIATION)
+      - measurer [0..1]
+  Class: RunLogger
+  Attributes: [+ csvFileName : char[64], - RunLogs : char[65536]]
+  Operations: [+ RunLogger(), + addToLogs(_Brightness : int, _RightPwm : int, _LeftPwm : int, _r : int, _g : int, _b : int) : void, + outputToFile() : void, + initRunLogs() : void]
+  Relations: 
+  Class: Mileage
+  Attributes: []
+  Operations: [+ calculateWheelMileage(angle : int) : double, + calculateMileage(rightAngle : int, leftAngle : int) : double, - Mileage()]
+  Relations: 
+  Class: ResetWheelsMotorPwm
+  Attributes: []
+  Operations: [+ ResetWheelsMotorPwm(), + run() : void, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+  Class: AreaBCameraAction
+  Attributes: [- preTargetAngle : int, - prePwm : int, - isClockwise : bool, - pwmXr : int, - postTargetAngle : int, - postPwm : int, - correctionTolerance : int = 10, - colorXr : COLOR = COLOR::YELLOW]
+  Operations: [+ AreaBCameraAction(_preTargetAngle : int, _prePwm : int, _isClockwise : bool, _pwmXr : int, _postTargetAngle : int, _postPwm : int), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    CompositeMotion (REALIZATION)
+    COLOR (COMPOSITION)
+      - colorXr [1]
+  Class: PidGain
+  Attributes: [+ kp : double, + ki : double, + kd : double]
+  Operations: [+ PidGain(_kp : double, _ki : double, _kd : double)]
+  Relations: 
+  Class: Pid
+  Attributes: [- pidGain : PidGain, - prevDeviation : double, - integral : double, - filteredDerivative : double = 0, - targetValue : double]
+  Operations: [+ Pid(_kp : double, _ki : double, _kd : double, _targetValue : double), + setPidGain(_kp : double, _ki : double, _kd : double) : void, + calculatePid(currentValue : double, delta : double) : double]
+  Relations: 
+    PidGain (COMPOSITION)
+      - pidGain [1]
+  Class: Controller
+  Attributes: [+ MOTOR_PWM_MAX : double = 100.0, + MOTOR_PWM_MIN : double = -100.0, - rightWheel : Motor, - leftWheel : Motor, - armMotor : Motor, - pwmOfRightWheel : double, - pwmOfLeftWheel : double, - pwmOfArm : double]
+  Operations: [+ Controller(), + setRightMotorPwm(pwm : double) : void, + setLeftMotorPwm(pwm : double) : void, + resetRightMotorPwm() : void, + resetLeftMotorPwm() : void, + resetWheelsMotorPwm() : void, + stopWheelsMotor() : void, + setArmMotorPwm(pwm : double) : void, + resetArmMotorPwm() : void, + stopArmMotor() : void, + getRightMotorPwm() : double, + getLeftMotorPwm() : double, - limitPwmValue(inputPwm : double) : double]
+  Relations: 
+Saving scroll position - X: 0.0, Y: 0.0
+    Motor (COMPOSITION)
+      - rightWheel [1]
+    Motor (COMPOSITION)
+      - armMotor [1]
+    Motor (COMPOSITION)
+      - leftWheel [1]
+  Class: Rotation
+  Attributes: [# targetAngle : int, # pwm : int, # isClockwise : bool, # timer : Timer]
+  Operations: [+ Rotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + run() : void, + isMetPreCondition() : bool, + isMetContCondition(targetLeftDistance : double, targetRightDistance : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Motion (INHERITANCE)
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: DistanceStraight
+  Attributes: [- targetDistance : double]
+  Operations: [+ DistanceStraight(_targetDiatance : double, _speed : double), # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Straight (INHERITANCE)
+  Class: ColorDistanceLineTracing
+  Attributes: [- JUDGE_COUNT : int = 3, - colorCount : int = 0, - targetColor : COLOR, - targetDistance : double]
+  Operations: [+ ColorDistanceLineTracing(_targetColor : COLOR, _targetDistance : double, _targetSpeed : double, _targetBrightness : int, _pidGain : PidGain&, _isLeftEdge : bool&), # isMetPreCondition(targetSpeed : double) : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    COLOR (DEPENDENCY_PARAMETER)
+    PidGain (DEPENDENCY_PARAMETER)
+    LineTracing (INHERITANCE)
+    COLOR (COMPOSITION)
+      - targetColor [1]
+  Class: Timer
+  Attributes: [- clock : Clock]
+  Operations: [+ Timer(), + sleep(milliSec : int) : void, + now() : int]
+  Relations: 
+    Clock (COMPOSITION)
+      - clock [1]
+  Class: CorrectingRotation
+  Attributes: [- pwm : int, - correctionAngle : int = 0, - color : COLOR, - isClockwise : bool, - correctionTolerance : int]
+  Operations: [+ CorrectingRotation(_pwm : int, _correctionTolerance : int, _color : COLOR), + run() : void, + getCorrectionAngle() : int, + logRunning() : void]
+  Relations: 
+    COLOR (COMPOSITION)
+      - color [1]
+    COLOR (DEPENDENCY_PARAMETER)
+    CompositeMotion (REALIZATION)
+  Class: Sleeping
+  Attributes: [- milliSec : int, - timer : Timer]
+  Operations: [+ Sleeping(milliSec : int), + run() : void, + logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+  Class: PwmRotation
+  Attributes: []
+  Operations: [+ PwmRotation(_targetAngle : int, _pwm : int, _isClockwise : bool), + isMetPreCondition() : bool, + isMetContCondition(initLeftMileage : double, initRightMileage : double, leftSign : int, rightSign : int) : bool, + logRunning() : void]
+  Relations: 
+    Rotation (INHERITANCE)
+  Class: SpeedCalculator
+  Attributes: [- rightTargetSpeed : double, - leftTargetSpeed : double, - rightPid : Pid, - leftPid : Pid, - timer : Timer, - rightMotorPwm : double, - leftMotorPwm : double, - prevRightMileage : double, - prevLeftMileage : double, - prevRightTime : int, - prevLeftTime : int, - K_P : double = 0.004, - K_I : double = 0.0000005, - K_D : double = 0.0007, - R_K_P : double = 0.004, - R_K_I : double = 0.0000005, - R_K_D : double = 0.0007]
+  Operations: [+ SpeedCalculator(_targetSpeed : double), + SpeedCalculator(_rightTargetSpeed : double, _leftTargetSpeed : double), + calculateRightMotorPwmFromTargetSpeed() : double, + calculateLeftMotorPwmFromTargetSpeed() : double, - calculateSpeed(diffMileage : double, diffTime : double) : double]
+  Relations: 
+    Pid (COMPOSITION)
+      - leftPid [1]
+    Pid (COMPOSITION)
+      - rightPid [1]
+    Timer (COMPOSITION)
+      - timer [1]
+  Class: StringOperator
+  Attributes: []
+  Operations: [+ removeEOL(string : char*) : char, - StringOperator()]
+  Relations: 
+  Class: AreaACameraAction
+  Attributes: [- flag : int, - subject : Subject = CameraAction::Subject::FIGURE, - isClockwise : bool, - preTargetAngle : int, - postTargetAngle : int, - rotationPwm : int, - targetDistance : double, - targetSpeed : double, - ETROBO_PATH : char* = "./etrobocon2024/"]
+  Operations: [+ AreaACameraAction(_position : int, _isClockwise : bool, _preTargetAngle : int, _postTargetAngle : int, _rotationPwm : int, _targetDistance : double, _speed : double), + run() : void, + isMetPreCondition() : bool, + logRunning() : void]
+  Relations: 
+    Subject (COMPOSITION)
+      - subject [1]
+    CompositeMotion (REALIZATION)
+  Class: EtRobocon2024
+  Attributes: []
+  Operations: [+ start() : void, - sigint(_ : int) : void]
+  Relations: 
+  Class: Straight
+  Attributes: [# targetSpeed : double, # initialDistance : double, # timer : Timer]
+  Operations: [+ Straight(_speed : double), + run() : void, # isMetPreCondition() : bool, # isMetContinuationCondition() : bool, # logRunning() : void]
+  Relations: 
+    Timer (COMPOSITION)
+      - timer [1]
+    Motion (INHERITANCE)
+DEBUG: CppClassDiagramDrawer - Number of classes: 40
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+Zoom set to: 0.9860294117647059
+Zoom set to: 0.9720588235294118
+Zoom set to: 0.9580882352941177
+Zoom set to: 0.9441176470588235
+Zoom set to: 0.9301470588235294
+Zoom set to: 0.9161764705882353
+Zoom set to: 0.9022058823529412
+Zoom set to: 0.888235294117647
+Zoom set to: 0.8742647058823529
+Zoom set to: 0.8602941176470588
+Zoom set to: 0.8463235294117647
+Zoom set to: 0.8183823529411764
+Zoom set to: 0.7904411764705882
+Zoom set to: 0.776470588235294
+Zoom set to: 0.7485294117647059
+Zoom set to: 0.7345588235294117
+Zoom set to: 0.7066176470588236
+Zoom set to: 0.6926470588235295
+Zoom set to: 0.6786764705882353
+Zoom set to: 0.6647058823529411
+Zoom set to: 0.6507352941176471
+Zoom set to: 0.636764705882353
+Zoom set to: 0.6227941176470589
+Zoom set to: 0.5529411764705883
+Zoom set to: 0.5389705882352942
+Zoom set to: 0.511029411764706
+Zoom set to: 0.4970588235294118
+Zoom set to: 0.46911764705882353
+Zoom set to: 0.4411764705882353
+Zoom set to: 0.4272058823529412
+Zoom set to: 0.41323529411764703
+Zoom set to: 0.39926470588235297
+Zoom set to: 0.3852941176470588
+Zoom set to: 0.3713235294117647
+Zoom set to: 0.35735294117647065
+Zoom set to: 0.3433823529411765
+Zoom set to: 0.32941176470588235
+Zoom set to: 0.3154411764705883
+Zoom set to: 0.30147058823529416
+Zoom set to: 0.2875000000000001
+Zoom set to: 0.273529411764706
+Zoom set to: 0.2875000000000001
+Zoom set to: 0.3154411764705883
+Zoom set to: 0.32941176470588235
+Zoom set to: 0.3433823529411765
+Zoom set to: 0.35735294117647065
+Zoom set to: 0.3713235294117647
