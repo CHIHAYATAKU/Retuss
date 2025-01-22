@@ -78,50 +78,10 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 }
 
                 // 現在のノードの配列サイズをチェック
-                String size = null;
-                if (noPtrDec.constantExpression() != null) {
-                    size = noPtrDec.constantExpression().getText();
-                    System.err.println("DEBUG: Found size in current node: " + size);
-                }
+                String size = extractAnalyzeSize(noPtrDec.constantExpression());
 
                 // 一時変数を使用して値を設定
-                String attributeName = null;
-                // 配列変数の場合、最初の子ノードに変数名が含まれている
-                if (noPtrDec.getChildCount() > 0 &&
-                        noPtrDec.getChild(0) instanceof CPP14Parser.NoPointerDeclaratorContext) {
-                    var firstChild = (CPP14Parser.NoPointerDeclaratorContext) noPtrDec.getChild(0);
-                    System.err.println("DEBUG: First child content: " + firstChild.getText());
-
-                    // declaratoridから変数名を取得
-                    if (firstChild.declaratorid() != null &&
-                            firstChild.declaratorid().idExpression() != null &&
-                            firstChild.declaratorid().idExpression().unqualifiedId() != null) {
-                        attributeName = firstChild.declaratorid().idExpression().unqualifiedId().getText();
-                        System.err.println("DEBUG: Found attribute name from first child: " + attributeName);
-                    }
-                } else {
-                    // 通常の変数の場合（配列でない場合）
-                    if (noPtrDec.declaratorid() != null &&
-                            noPtrDec.declaratorid().idExpression() != null &&
-                            noPtrDec.declaratorid().idExpression().unqualifiedId() != null) {
-                        attributeName = noPtrDec.declaratorid().idExpression().unqualifiedId().getText();
-                        System.err.println("DEBUG: Found attribute name directly: " + attributeName);
-                    }
-                }
-
-                // 変数名が取得できなかった場合は処理を中断
-                if (attributeName == null) {
-                    System.err.println("DEBUG: Could not extract attribute name");
-                    continue;
-                }
-
-                // 属性名の重複チェック
-                for (Attribute attr : currentHeaderClass.getAttributeList()) {
-                    if (attr.getName().getNameText().equals(attributeName)) {
-                        System.err.println("DEBUG: Duplicate attribute name found: " + attributeName);
-                        continue;
-                    }
-                }
+                String attributeName = extractAttributeName(noPtrDec);
 
                 // ポインタか参照の抽出
                 if (memberDec.declarator() != null &&
@@ -147,14 +107,13 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 }
 
                 // 初期値の抽出
-                String defaultValue = extractInitialValue(memberDec);
+                String defaultValue = extractDefaultValue(memberDec);
 
                 // 修飾子の抽出
                 Set<Modifier> modifiers = extractModifiers(ctx.declSpecifierSeq());
 
                 // 型と関係性抽出
-                System.err.println("DEBUG before type processing:");
-                Object[] result = processTypeAndRelationship(ctx.declSpecifierSeq(), isPointer, isRef,
+                Object[] result = extractTypeNameAndRelationship(ctx.declSpecifierSeq(), isPointer, isRef,
                         currentHeaderClass, attributeName,
                         this.context.getCurrentVisibility());
 
@@ -224,7 +183,38 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         }
     }
 
-    private String extractInitialValue(CPP14Parser.MemberDeclaratorContext memberDec) {
+    private String extractAttributeName(CPP14Parser.NoPointerDeclaratorContext noPtrDec) {
+        // 配列変数の場合、最初の子ノードに変数名が含まれている
+        if (noPtrDec.getChildCount() > 0 &&
+                noPtrDec.getChild(0) instanceof CPP14Parser.NoPointerDeclaratorContext) {
+            var firstChild = (CPP14Parser.NoPointerDeclaratorContext) noPtrDec.getChild(0);
+            System.err.println("DEBUG: First child content: " + firstChild.getText());
+
+            // declaratoridから変数名を取得
+            if (firstChild.declaratorid() != null &&
+                    firstChild.declaratorid().idExpression() != null &&
+                    firstChild.declaratorid().idExpression().unqualifiedId() != null) {
+                return firstChild.declaratorid().idExpression().unqualifiedId().getText();
+            }
+        } else {
+            // 通常の変数の場合（配列でない場合）
+            if (noPtrDec.declaratorid() != null &&
+                    noPtrDec.declaratorid().idExpression() != null &&
+                    noPtrDec.declaratorid().idExpression().unqualifiedId() != null) {
+                return noPtrDec.declaratorid().idExpression().unqualifiedId().getText();
+            }
+        }
+        return null;
+    }
+
+    private String extractAnalyzeSize(CPP14Parser.ConstantExpressionContext ctx) {
+        if (ctx == null) {
+            return null;
+        }
+        return ctx.getText();
+    }
+
+    private String extractDefaultValue(CPP14Parser.MemberDeclaratorContext memberDec) {
         try {
             if (memberDec.braceOrEqualInitializer() != null) {
                 CPP14Parser.InitializerClauseContext initClause = memberDec.braceOrEqualInitializer()
@@ -334,7 +324,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         return modifiers;
     }
 
-    private Object[] processTypeAndRelationship(
+    private Object[] extractTypeNameAndRelationship(
             CPP14Parser.DeclSpecifierSeqContext ctx,
             Boolean isPointer,
             Boolean isRef,
@@ -359,12 +349,10 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
 
             var simple = trailing.simpleTypeSpecifier();
 
-            if (simple.theTypeName() != null && simple.theTypeName().className() != null) { // 普通のユーザ宣言の場合（stdも含む）
+            if (simple.theTypeName() != null && simple.theTypeName().className() != null) { // プリミティブ型以外
                 // ユーザ定義型名
                 String extractedTypeName = simple.theTypeName().className().getText();
-                if (isUserDefinedType(extractedTypeName)) {
-
-                    // 関係性の判定（ポインタ/参照の要素の場合はASSOCIATION）
+                if (isUserDefinedType(extractedTypeName)) { // 関係性の判定（ポインタ/参照の要素の場合はASSOCIATION）
                     RelationType relationType = isPointer || isRef
                             ? RelationType.ASSOCIATION
                             : RelationType.COMPOSITION;
@@ -392,13 +380,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                     }
 
                     return new Object[] { extractedTypeName, relation };
-                } else {
-                    if (isPointer) {
-                        extractedTypeName = extractedTypeName + "*";
-                    } else if (isRef) {
-                        extractedTypeName = extractedTypeName + "&";
-                    }
-                    return new Object[] { extractedTypeName, null };
                 }
             } else {
                 String extractedTypeName = simple.getText();
@@ -418,12 +399,19 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
 
         // stdライブラリの型のセット
         Set<String> stdTypes = Set.of(
-                "string", "vector", "list", "map", "set",
-                "queue", "deque", "array", "stack",
-                "shared_ptr", "unique_ptr", "weak_ptr",
-                "pair", "tuple", "function");
+                "string",
+                "queue",
+                "deque",
+                "array",
+                "stack",
+                "shared_ptr",
+                "unique_ptr",
+                "weak_ptr",
+                "pair",
+                "tuple",
+                "function");
 
-        return !stdTypes.contains(typeName) && !typeName.contains("<");
+        return !typeName.contains("<");
     }
 
     private boolean isMethodDeclaration(CPP14Parser.MemberDeclaratorListContext memberDecList) {
