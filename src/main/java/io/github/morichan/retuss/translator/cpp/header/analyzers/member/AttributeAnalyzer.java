@@ -25,6 +25,14 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             return false;
         }
         CPP14Parser.MemberdeclarationContext ctx = (CPP14Parser.MemberdeclarationContext) context;
+
+        // memberDeclaratorListのnullチェック
+        if (ctx.memberDeclaratorList() == null ||
+                ctx.memberDeclaratorList().memberDeclarator() == null ||
+                ctx.memberDeclaratorList().memberDeclarator().isEmpty()) {
+            return false;
+        }
+
         return ctx.declSpecifierSeq() != null &&
                 !isMethodDeclaration(ctx.memberDeclaratorList());
     }
@@ -34,19 +42,13 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
         CPP14Parser.MemberdeclarationContext ctx = (CPP14Parser.MemberdeclarationContext) context;
         CppHeaderClass currentHeaderClass = this.context.getCurrentHeaderClass();
 
-        if (currentHeaderClass == null || ctx.declSpecifierSeq() == null) {
+        if (currentHeaderClass == null) {
             return;
         }
 
         try {
             Boolean isPointer = false;
             Boolean isRef = false;
-            // memberDeclaratorListのnullチェック
-            if (ctx.memberDeclaratorList() == null ||
-                    ctx.memberDeclaratorList().memberDeclarator() == null ||
-                    ctx.memberDeclaratorList().memberDeclarator().isEmpty()) {
-                return;
-            }
 
             for (CPP14Parser.MemberDeclaratorContext memberDec : ctx.memberDeclaratorList().memberDeclarator()) {
                 // declaratorのnullチェック
@@ -309,9 +311,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                     case "static":
                         modifiers.add(Modifier.STATIC);
                         break;
-                    case "mutable":
-                        modifiers.add(Modifier.MUTABLE);
-                        break;
                     default:
                         break;
                 }
@@ -428,9 +427,6 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
     }
 
     private boolean isMethodDeclaration(CPP14Parser.MemberDeclaratorListContext memberDecList) {
-        if (memberDecList == null)
-            return false;
-
         for (CPP14Parser.MemberDeclaratorContext memberDec : memberDecList.memberDeclarator()) {
             if (memberDec.declarator() == null)
                 continue;

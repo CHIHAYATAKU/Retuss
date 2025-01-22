@@ -141,13 +141,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 String operationType = null;
                 if (ctx.declSpecifierSeq() != null) {
                     for (CPP14Parser.DeclSpecifierContext declSpec : ctx.declSpecifierSeq().declSpecifier()) {
-                        // cvQualifierの場合はスキップ（これは修飾子として別途処理）
-                        if (declSpec.typeSpecifier() != null &&
-                                declSpec.typeSpecifier().trailingTypeSpecifier() != null &&
-                                declSpec.typeSpecifier().trailingTypeSpecifier().cvQualifier() != null) {
-                            continue;
-                        }
-
                         String returnType = extractReturnType(declSpec, operation, currentHeaderClass);
                         if (returnType != null) {
                             operationType = returnType;
@@ -160,8 +153,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                     operation.setReturnType(new Type(operationType));
                     System.err.println("DEBUG: Found return type: " + operationType);
                 }
-
-                currentHeaderClass.addOperation(operation);
 
                 // queryの抽出
                 if (noPtrDec.parametersAndQualifiers() != null &&
@@ -223,10 +214,7 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                                         RelationshipInfo relation = new RelationshipInfo(
                                                 paramType,
                                                 RelationType.DEPENDENCY_PARAMETER);
-                                        relation.setElement(
-                                                operation.getName().getNameText(),
-                                                "", // パラメータなので多重度なし
-                                                null);
+
                                         currentHeaderClass.addRelationship(relation);
                                     }
                                 } else {
@@ -274,10 +262,13 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                         }
                     }
                 }
+
                 // 修飾子の追加
                 for (Modifier modifier : modifiers) {
                     currentHeaderClass.addMemberModifier(operation, modifier);
                 }
+
+                currentHeaderClass.addOperation(operation);
             }
             // String processedType = cleanType(rawType);
             // System.err.println("DEBUG: " + processedType);
@@ -330,10 +321,6 @@ public class OperationAnalyzer extends AbstractAnalyzer {
                 RelationshipInfo relation = new RelationshipInfo(
                         returnType,
                         RelationType.DEPENDENCY_USE);
-                relation.setElement(
-                        operation.getName().getNameText(),
-                        "",
-                        null);
                 currentClass.addRelationship(relation);
             }
         } else {
