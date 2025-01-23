@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DeleteDialogControllerCD {
+public class DeleteCDDialogController {
     @FXML
     private TreeView cdTreeView;
     @FXML
@@ -43,7 +43,7 @@ public class DeleteDialogControllerCD {
     }
 
     public void initialize() {
-        System.out.println("DEBUG: Initializing DeleteDialogControllerCD");
+        System.out.println("DEBUG: Initializing DeleteCDDialogController");
         TreeItem<String> root = new TreeItem<>("Class List");
         root.setExpanded(true);
         cdTreeItemList.clear();
@@ -180,45 +180,77 @@ public class DeleteDialogControllerCD {
     @FXML
     private void delete() {
         try {
-            TreeItem<String> selectedItem = (TreeItem<String>) cdTreeView.getSelectionModel().getSelectedItem();
-            if (selectedItem == null || selectedItem.getValue().equals("Class List")) {
-                System.err.println("DEBUG: No valid selection for deletion");
-                messageLabel.setText("Please select an item to delete");
-                return;
-            }
-
-            // 選択されたアイテムのパスを取得
-            List<String> path = new ArrayList<>();
-            TreeItem<String> current = selectedItem;
-            while (current != null && !current.getValue().equals("Class List")) {
-                path.add(0, current.getValue());
-                current = current.getParent();
-            }
-
-            System.err.println("DEBUG: Selected path: " + String.join(" -> ", path));
-
-            // 選択されたアイテムに対応するオブジェクトを特定
-            int selectedIndex = findSelectedObjectIndex(path);
-            System.err.println("DEBUG: Selected index in cdTreeItemList: " + selectedIndex);
-
-            if (selectedIndex >= 0) {
-                Object selectedObject = cdTreeItemList.get(selectedIndex);
-                System.out.println("DEBUG: Selected object type: " + selectedObject.getClass().getName());
-                System.out.println("DEBUG: Selected object toString: " + selectedObject.toString());
-
-                // 言語に応じた削除処理
-                if (umlController.isJavaSelected()) {
-                    deleteJavaElement(selectedObject, path);
-                } else if (umlController.isCppSelected()) {
-                    deleteCppElement(selectedObject, path);
+            if (umlController.isJavaSelected()) {
+                ObservableList<Integer> selectedIndices = cdTreeView.getSelectionModel().getSelectedIndices();
+                // 未選択または"Class List"を選択している場合
+                if (selectedIndices.size() == 0 || selectedIndices.get(0) == 0) {
+                    return;
                 }
 
-                // ツリーを再構築
-                initialize();
-                messageLabel.setText("Item deleted successfully");
-            } else {
-                System.out.println("DEBUG: Could not find corresponding object for selection");
-                messageLabel.setText("Could not find item to delete");
+                // 削除対象クラス名の探索
+                String className = "";
+                if (cdTreeItemList.get(selectedIndices.get(0)) instanceof Class) {
+                    // クラスを削除する場合
+                    className = ((Class) cdTreeItemList.get(selectedIndices.get(0))).getName();
+                    javaModel.delete(className);
+                } else {
+                    // 属性・操作を削除する場合
+                    // 対象のクラスを探索
+                    for (int i = selectedIndices.get(0) - 1; i > 0; i--) {
+                        if (cdTreeItemList.get(i) instanceof Class) {
+                            className = ((Class) cdTreeItemList.get(i)).getName();
+                            break;
+                        }
+                    }
+                    // 削除
+                    if (cdTreeItemList.get(selectedIndices.get(0)) instanceof Attribute) {
+                        // 属性またはコンポジション関係の削除
+                        javaModel.delete(className, (Attribute) cdTreeItemList.get(selectedIndices.get(0)));
+                    } else if (cdTreeItemList.get(selectedIndices.get(0)) instanceof Operation) {
+                        // 操作の削除
+                        javaModel.delete(className, (Operation) cdTreeItemList.get(selectedIndices.get(0)));
+                    } else if (cdTreeItemList.get(selectedIndices.get(0)).equals("Generalization")) {
+                        // 汎化関係の削除
+                        javaModel.deleteSuperClass(className);
+                    }
+                }
+            } else if (umlController.isCppSelected()) {
+
+                TreeItem<String> selectedItem = (TreeItem<String>) cdTreeView.getSelectionModel().getSelectedItem();
+                if (selectedItem == null || selectedItem.getValue().equals("Class List")) {
+                    System.err.println("DEBUG: No valid selection for deletion");
+                    messageLabel.setText("Please select an item to delete");
+                    return;
+                }
+
+                // 選択されたアイテムのパスを取得
+                List<String> path = new ArrayList<>();
+                TreeItem<String> current = selectedItem;
+                while (current != null && !current.getValue().equals("Class List")) {
+                    path.add(0, current.getValue());
+                    current = current.getParent();
+                }
+
+                System.err.println("DEBUG: Selected path: " + String.join(" -> ", path));
+
+                // 選択されたアイテムに対応するオブジェクトを特定
+                int selectedIndex = findSelectedObjectIndex(path);
+                System.err.println("DEBUG: Selected index in cdTreeItemList: " + selectedIndex);
+
+                if (selectedIndex >= 0) {
+                    Object selectedObject = cdTreeItemList.get(selectedIndex);
+                    System.out.println("DEBUG: Selected object type: " + selectedObject.getClass().getName());
+                    System.out.println("DEBUG: Selected object toString: " + selectedObject.toString());
+
+                    deleteCppElement(selectedObject, path);
+
+                    // ツリーを再構築
+                    initialize();
+                    messageLabel.setText("Item deleted successfully");
+                } else {
+                    System.out.println("DEBUG: Could not find corresponding object for selection");
+                    messageLabel.setText("Could not find item to delete");
+                }
             }
 
         } catch (Exception e) {

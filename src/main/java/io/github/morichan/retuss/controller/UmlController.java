@@ -474,7 +474,7 @@ public class UmlController implements CppModel.ModelChangeListener {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/deleteDialogCD.fxml"));
             Parent parent = fxmlLoader.load();
-            DeleteDialogControllerCD dialogController = fxmlLoader.getController();
+            DeleteCDDialogController dialogController = fxmlLoader.getController();
             // UmlControllerの参照を設定
             dialogController.setUmlController(this);
             Scene scene = new Scene(parent);
@@ -506,8 +506,7 @@ public class UmlController implements CppModel.ModelChangeListener {
     }
 
     public void createCppClass(String className) {
-        CppHeaderClass headerClass = new CppHeaderClass(className);
-        cppModel.addNewFileFromUml(headerClass);
+        cppModel.addNewFileFromUml(className);
     }
 
     public void updateDiagram(CppFile cppFile) {

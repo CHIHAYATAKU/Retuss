@@ -59,14 +59,9 @@ public class ClassDialogController {
 
                 if (umlController.isCppSelected()) {
                     System.out.println("Creating C++ class: " + className);
-                    CppHeaderClass headerClass = new CppHeaderClass(className);
-                    cppModel.addNewFileFromUml(headerClass);
-
+                    cppModel.addNewFileFromUml(className);
                 }
 
-                // ダイアログを閉じる
-                Stage stage = (Stage) createBtn.getScene().getWindow();
-                stage.close();
             } catch (Exception e) {
                 messageLabel.setText("Failed to create class: " + e.getMessage());
                 e.printStackTrace(); // デバッグ用にスタックトレースを出力

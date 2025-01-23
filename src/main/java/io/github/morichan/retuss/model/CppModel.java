@@ -34,15 +34,15 @@ public class CppModel {
     public void addNewFile(String fileName) {
         String baseName = fileName.replaceAll("\\.(h|hpp|cpp)$", "");
         if (!headerFiles.containsKey(baseName)) {
-            createCppFiles(baseName, Optional.empty());
+            createCppFiles(baseName);
         }
     }
 
-    public void addNewFileFromUml(CppHeaderClass headerClass) {
-        createCppFiles(headerClass.getName(), Optional.of(headerClass));
+    public void addNewFileFromUml(String className) {
+        createCppFiles(className);
     }
 
-    private void createCppFiles(String baseName, Optional<CppHeaderClass> headerClass) {
+    private void createCppFiles(String baseName) {
         if (headerFiles.containsKey(baseName)) {
             System.out.println("Files already exist for baseName: " + baseName);
             return;
@@ -314,7 +314,7 @@ public class CppModel {
         try {
             CppFile ownerFile = ownerFileOpt.get();
 
-            String memberName = componentClassName.toLowerCase() + "compositionPtr";
+            String memberName = componentClassName.toLowerCase() + "CompositionPtr";
             String newCode = translator.addCompositionWithAnnotation(
                     ownerFile.getCode(),
                     componentClassName,
@@ -336,7 +336,7 @@ public class CppModel {
         try {
             CppFile ownerFile = ownerFileOpt.get();
 
-            String memberName = componentClassName.toLowerCase() + "aggregationPtr";
+            String memberName = componentClassName.toLowerCase() + "AggregationPtr";
             String newCode = translator.addAggregationWithAnnotation(
                     ownerFile.getCode(),
                     componentClassName,
@@ -358,7 +358,7 @@ public class CppModel {
         try {
             CppFile sourceFile = sourceFileOpt.get();
 
-            String memberName = targetClassName.toLowerCase() + "associationPtr";
+            String memberName = targetClassName.toLowerCase() + "AssociationPtr";
             String newCode = translator.addAssociation(
                     sourceFile.getCode(),
                     targetClassName,
