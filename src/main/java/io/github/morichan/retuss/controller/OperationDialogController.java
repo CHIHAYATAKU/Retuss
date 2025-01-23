@@ -70,15 +70,13 @@ public class OperationDialogController {
                 javaModel.addOperation(className, operation);
             } else if (umlController.isCppSelected()) {
                 // C++の場合は新しいパーサーを使用
-                Operation operation = parseOperationString(operationText);
-                Set<Modifier> modifiers = extractModifiers(operationText);
-                CppHeaderClass cls = cppModel.findClass(className).get();
-                modifiers.forEach(mod -> cls.addMemberModifier(operation, mod));
+                OperationSculptor sculptor = new OperationSculptor();
+                sculptor.parse(operationText);
+                Operation operation = sculptor.carve();
                 cppModel.addOperation(className, operation);
             }
 
-            Stage stage = (Stage) createBtn.getScene().getWindow();
-            stage.close();
+            initializeClassList();
         } catch (Exception e) {
             messageLabel.setText("Invalid syntax: " + e.getMessage());
             e.printStackTrace(); // デバッグ用
@@ -168,22 +166,5 @@ public class OperationDialogController {
             e.printStackTrace();
             throw new IllegalArgumentException("Failed to parse operation: " + e.getMessage());
         }
-    }
-
-    private Set<Modifier> extractModifiers(String opText) {
-        Set<Modifier> modifiers = EnumSet.noneOf(Modifier.class);
-        if (opText.contains("virtual"))
-            modifiers.add(Modifier.VIRTUAL);
-        if (opText.contains("static"))
-            modifiers.add(Modifier.STATIC);
-        if (opText.contains("const"))
-            modifiers.add(Modifier.READONLY);
-        if (opText.contains("override"))
-            modifiers.add(Modifier.OVERRIDE);
-        if (opText.contains("= 0")) {
-            modifiers.add(Modifier.ABSTRACT);
-            modifiers.add(Modifier.VIRTUAL);
-        }
-        return modifiers;
     }
 }

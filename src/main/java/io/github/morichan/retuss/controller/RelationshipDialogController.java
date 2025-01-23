@@ -171,8 +171,7 @@ public class RelationshipDialogController {
                 addCppRelationship(sourceClass, targetClass, relationType, visibility);
             }
 
-            Stage stage = (Stage) createBtn.getScene().getWindow();
-            stage.close();
+            initializeClassList();
         } catch (Exception e) {
             messageLabel.setText("Failed to create relationship: " + e.getMessage());
         }

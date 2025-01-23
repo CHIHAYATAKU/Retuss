@@ -72,15 +72,17 @@ public class AttributeDialogController {
                 javaModel.addAttribute(className, attribute);
             } else if (umlController.isCppSelected()) {
                 // C++の場合は新しいパーサーを使用
-                Attribute attribute = parseAttributeString(attributeText);
-                Set<Modifier> modifiers = extractModifiers(attributeText);
-                CppHeaderClass cls = cppModel.findClass(className).get();
-                modifiers.forEach(mod -> cls.addMemberModifier(attribute, mod));
+                AttributeSculptor sculptor = new AttributeSculptor();
+                sculptor.parse(attributeText);
+                Attribute attribute = sculptor.carve();
+                // Attribute attribute = parseAttributeString(attributeText);
+                // Set<Modifier> modifiers = extractModifiers(attributeText);
+                // CppHeaderClass cls = cppModel.findClass(className).get();
+                // modifiers.forEach(mod -> cls.addMemberModifier(attribute, mod));
                 cppModel.addAttribute(className, attribute);
             }
 
-            Stage stage = (Stage) createBtn.getScene().getWindow();
-            stage.close();
+            initializeClassList();
         } catch (Exception e) {
             messageLabel.setText("Invalid syntax: " + e.getMessage());
         }

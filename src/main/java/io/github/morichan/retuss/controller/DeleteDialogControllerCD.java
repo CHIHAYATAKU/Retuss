@@ -182,7 +182,7 @@ public class DeleteDialogControllerCD {
         try {
             TreeItem<String> selectedItem = (TreeItem<String>) cdTreeView.getSelectionModel().getSelectedItem();
             if (selectedItem == null || selectedItem.getValue().equals("Class List")) {
-                System.out.println("DEBUG: No valid selection for deletion");
+                System.err.println("DEBUG: No valid selection for deletion");
                 messageLabel.setText("Please select an item to delete");
                 return;
             }
@@ -195,11 +195,11 @@ public class DeleteDialogControllerCD {
                 current = current.getParent();
             }
 
-            System.out.println("DEBUG: Selected path: " + String.join(" -> ", path));
+            System.err.println("DEBUG: Selected path: " + String.join(" -> ", path));
 
             // 選択されたアイテムに対応するオブジェクトを特定
             int selectedIndex = findSelectedObjectIndex(path);
-            System.out.println("DEBUG: Selected index in cdTreeItemList: " + selectedIndex);
+            System.err.println("DEBUG: Selected index in cdTreeItemList: " + selectedIndex);
 
             if (selectedIndex >= 0) {
                 Object selectedObject = cdTreeItemList.get(selectedIndex);
