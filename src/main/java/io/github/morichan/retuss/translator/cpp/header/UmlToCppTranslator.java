@@ -43,22 +43,16 @@ public class UmlToCppTranslator {
     }
 
     private String translateAttribute(Attribute attribute) {
+        System.err.println("Attributetype :" + attribute.getType().toString());
+        System.err.println("Attributename :" + attribute.getName().toString());
+        // System.err.println("Attributevalue :" +
+        // attribute.getDefaultValue().toString());
         StringBuilder builder = new StringBuilder();
         // 型の処理
-        String type = attribute.getType().toString();
-        String processedType = processType(type);
-        builder.append(processedType);
+        builder.append(attribute.getType().toString());
 
         // 名前の処理
-        String name = attribute.getName().getNameText();
-        builder.append(" ").append(name);
-
-        // 配列サイズの処理
-        if (type.contains("[")) {
-            String arraySize = type.substring(type.indexOf("["));
-            arraySize = arraySize.replaceAll("\\s+", "");
-            builder.append(arraySize);
-        }
+        builder.append(" ").append(attribute.getName().getNameText());
 
         // デフォルト値の処理
         try {
@@ -70,84 +64,6 @@ public class UmlToCppTranslator {
         }
 
         return builder.toString();
-    }
-
-    private String processType(String fullType) {
-        System.out.println("=== Start Type Processing ===");
-        System.out.println("Input full type: " + fullType);
-
-        String result;
-
-        // 基本型の変換
-        switch (fullType.trim()) {
-            case "String":
-                result = "std::string";
-                break;
-            case "Integer":
-                result = "int";
-                break;
-            case "Boolean":
-                result = "bool";
-                break;
-            case "Float":
-                result = "float";
-                break;
-            case "Double":
-                result = "double";
-                break;
-            case "Byte":
-                result = "char";
-                break;
-            case "Character":
-                result = "char";
-                break;
-            default:
-                // テンプレート型の処理
-                if (fullType.contains("<") && fullType.contains(">")) {
-                    String baseType = fullType.substring(0, fullType.indexOf("<")).trim().toLowerCase();
-                    String templatePart = fullType.substring(
-                            fullType.indexOf("<"),
-                            fullType.lastIndexOf(">") + 1);
-                    System.out.println("Base type: " + baseType);
-                    System.out.println("Template part: " + templatePart);
-
-                    if (isStlContainer(baseType)) {
-                        result = "std::" + baseType + templatePart;
-                    } else {
-                        result = baseType + templatePart;
-                    }
-                }
-                // 配列型の処理
-                else if (fullType.contains("[")) {
-                    int bracketIndex = fullType.indexOf("[");
-                    result = fullType.substring(0, bracketIndex).trim();
-                    System.out.println("Array type detected. Base type: " + result);
-                }
-                // その他の型
-                else {
-                    result = fullType;
-                }
-                break;
-        }
-
-        System.out.println("Final processed type: " + result);
-        System.out.println("=== End Type Processing ===");
-        return result;
-    }
-
-    private boolean isStlContainer(String type) {
-        String lowerType = type.toLowerCase();
-        return lowerType.equals("vector") ||
-                lowerType.equals("set") ||
-                lowerType.equals("map") ||
-                lowerType.equals("array") ||
-                lowerType.equals("deque") ||
-                lowerType.equals("list") ||
-                lowerType.equals("stack") ||
-                lowerType.equals("queue") ||
-                lowerType.equals("shared_ptr") ||
-                lowerType.equals("unique_ptr") ||
-                lowerType.equals("weak_ptr");
     }
 
     public String addOperation(String existingCode, Operation operation) {
@@ -184,8 +100,7 @@ public class UmlToCppTranslator {
         System.out.println("Translating operation: " + operation.toString());
 
         // 戻り値の型
-        String returnType = processType(operation.getReturnType().toString());
-        builder.append(returnType).append(" ");
+        builder.append(operation.getReturnType().toString()).append(" ");
 
         // メソッド名
         builder.append(operation.getName().getNameText());
@@ -198,20 +113,11 @@ public class UmlToCppTranslator {
                 for (Parameter param : operation.getParameters()) {
                     StringBuilder paramBuilder = new StringBuilder();
                     String paramType = param.getType().toString();
-                    String baseType = processType(paramType);
-
                     // 配列の処理
-                    if (paramType.contains("[")) {
-                        String arraySize = paramType.substring(paramType.indexOf("["));
-                        paramBuilder.append(baseType)
-                                .append(" ")
-                                .append(param.getName().getNameText())
-                                .append(arraySize);
-                    } else {
-                        paramBuilder.append(baseType)
-                                .append(" ")
-                                .append(param.getName().getNameText());
-                    }
+                    paramBuilder.append(paramType)
+                            .append(" ")
+                            .append(param.getName().getNameText());
+
                     params.add(paramBuilder.toString());
                 }
             }

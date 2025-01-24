@@ -158,12 +158,16 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                                 case "aggregation":
                                     RelationType aggregation = RelationType.AGGREGATION;
                                     relationshipInfo.setType(aggregation);
+                                    break;
                                 case "composition":
                                     RelationType composition = RelationType.COMPOSITION;
                                     relationshipInfo.setType(composition);
+                                    break;
                                 case "association":
                                     RelationType association = RelationType.ASSOCIATION;
                                     relationshipInfo.setType(association);
+                                    break;
+                                default:
                             }
                         }
 
