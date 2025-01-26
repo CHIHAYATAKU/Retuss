@@ -404,13 +404,11 @@ public class CppClassDiagramDrawer {
                 // UMLModelの更新
                 StringBuilder simplePumlBuilder = new StringBuilder("@startuml\n");
                 // simplePumlBuilder.append("skinparam style strictuml\n");
-                simplePumlBuilder.append(" skinparam linetype ortho\n");
+                simplePumlBuilder.append("skinparam linetype ortho\n");
                 simplePumlBuilder.append("skinparam classAttributeIconSize 0\n");
                 simplePumlBuilder.append("skinparam LineThickness 1.5\n");
                 // enum用のスキンパラメータを追加
                 // simplePumlBuilder.append("hide empty members\n");
-                simplePumlBuilder.append("skinparam enumBackgroundColor White\n");
-                simplePumlBuilder.append("skinparam enumBorderColor Black\n");
 
                 simplePumlBuilder.append("scale ").append("1.0").append("\n");
                 if (!classes.isEmpty() && classes != null) {

@@ -40,62 +40,864 @@ DEBUG: CppClassDiagramDrawer - Number of classes: 1
 DEBUG: CppClassDiagramDrawer draw completed
 Saving scroll position - X: 0.0, Y: 0.0
 Restored scroll position - X: 0.0, Y: 0.0
-Selected language: Java
-DEBUG: Starting to draw Java class diagram
-DEBUG: Found 0 classes to draw
-Generated PlantUML:
-@startuml
-skinparam style strictuml
- skinparam linetype ortho
-skinparam classAttributeIconSize 0
-skinparam LineThickness 1.5
-scale 1.0
-@enduml
+Opening Attribute Dialog
+Java checkbox state: false
+C++ checkbox state: true
+CppModel classes: 1
+  Class: A
+  Attributes: []
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
 
+Class: A
+Attributes: 1
+Operations: 2
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: Updating code for file: A.h
+DEBUG: Processing C++ file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: Processing C++ file: A.h
 DEBUG: CppClassDiagramDrawer draw completed
-DEBUG: Updating WebView with new SVG
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 2
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+Opening Operation Dialog
+Java checkbox state: false
+C++ checkbox state: true
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A()]
+  Relations: 
+Translating operation: + eat() : void
+No parameters for method: eat
+Translated operation: void eat()
+Generated operation declaration:   void eat();
+Inserting at position: 6
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: Updating code for file: A.h
+DEBUG: Processing C++ file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 1
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 0 classes
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [- a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: A.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: A
+DEBUG: Added new class to extracted classes: A
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: protected
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: A
+Attributes: 2
+Operations: 3
+DEBUG: Processing C++ file: A.h
+DEBUG: selectedClassName = A
+CppModel classes: 1
+  Class: A
+  Attributes: [+ g : int, - a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Initializing DeleteCDDialogController
+DEBUG: Tree item: Class List
+DEBUG: Initializing DeleteCDDialogController
+DEBUG: Initializing C++ tree
+CppModel classes: 1
+  Class: A
+  Attributes: [+ g : int, - a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+C++ classes found: 1
+Processing class: A
+Attributes found in A: 2
+Adding attribute: g
+Adding attribute: a
+Operations found in A: 3
+Adding operation: A
+Adding operation: ~A
+Adding operation: eat
+Finished processing class: A
+DEBUG: Tree item: Class List
+DEBUG: Tree item:   A
+DEBUG: Tree item:     Attributes
+DEBUG: Tree item:       + g : int
+DEBUG: Tree item:       - a : int
+DEBUG: Tree item:     Operations
+DEBUG: Tree item:       + eat() : void
+DEBUG: Tree item:     Relations
+DEBUG: Looking for object with name: A
+CppModel classes: 1
+  Class: A
+  Attributes: [+ g : int, - a : int]
+  Operations: [+ A(), + ~A(), + eat() : void]
+  Relations: 
+DEBUG: Comparing class: A with A
+DEBUG: Selected object type: io.github.morichan.retuss.model.uml.cpp.CppHeaderClass
+DEBUG: Selected object toString: A
+DEBUG: Deleting C++ element of type: io.github.morichan.retuss.model.uml.cpp.CppHeaderClass
+DEBUG: Deleting C++ class: A
+DEBUG: Attempting to delete class: A
+Found header file, proceeding with deletion
+Header classes count: 1
+Removing class from header file
+DEBUG: Initializing DeleteCDDialogController
+DEBUG: Initializing C++ tree
+CppModel classes: 0
+C++ classes found: 0
+DEBUG: Tree item: Class List
+DEBUG: Starting Reload
+DEBUG: Found 0 header files
+DEBUG: Updating diagram
+DEBUG: Refresh completed
+DEBUG: Starting Reload
+DEBUG: Found 0 header files
+DEBUG: Updating diagram
+DEBUG: Refresh completed
+DEBUG: Initializing DeleteCDDialogController
+DEBUG: Tree item: Class List
+DEBUG: Initializing DeleteCDDialogController
+DEBUG: Initializing C++ tree
+CppModel classes: 0
+C++ classes found: 0
+DEBUG: Tree item: Class List
 UmlController set in ClassDialogController
 Opening Class Dialog
-Java checkbox state: true
-C++ checkbox state: false
-Java selected: true
-C++ selected: false
-Creating Java class: A
-
-=== Starting UML to Code Translation ===
-Number of classes to process: 2
-
-Processing class: A
-Adding 0 operations
-Skipping duplicate class: A
-
-=== Completed UML to Code Translation ===
-DEBUG: Updating diagram for file: A.java
-DEBUG: Updating Java diagrams
-DEBUG: Java diagrams update completed
-DEBUG: get Java code:
-public class A {
-}
-
-DEBUG: Starting to draw Java class diagram
-DEBUG: Found 2 classes to draw
-DEBUG: Updating Java sequence diagram for A.java
-Generated PlantUML:
-@startuml
-skinparam style strictuml
- skinparam linetype ortho
-skinparam classAttributeIconSize 0
-skinparam LineThickness 1.5
-scale 1.0
-class A { 
-}
-class A { 
-}
-@enduml
-
-DEBUG: Created new tab for A.java
-DEBUG: Processing class: A
-DEBUG: Found 0 operations
-DEBUG: Java sequence diagram update completed
-DEBUG: CppClassDiagramDrawer draw completed
-DEBUG: Updating WebView with new SVG
+Java checkbox state: false
+C++ checkbox state: true

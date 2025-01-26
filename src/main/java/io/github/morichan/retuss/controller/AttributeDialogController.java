@@ -167,9 +167,6 @@ public class AttributeDialogController {
                 case "override":
                     modifiers.add(Modifier.OVERRIDE);
                     break;
-                case "abstract":
-                    modifiers.add(Modifier.ABSTRACT);
-                    break;
             }
         }
         System.out.println("Extracted modifiers: " + modifiers);

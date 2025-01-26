@@ -17,7 +17,6 @@ public enum Modifier {
     OVERRIDE("override", "<<override>>", ElementType.OPERATION),
     FINAL("final", "{final}", ElementType.OPERATION,
             ElementType.CLASS),
-    ABSTRACT("abstract", "{abstract}", ElementType.CLASS, ElementType.OPERATION),
     PURE_VIRTUAL("= 0", "{abstract}", ElementType.OPERATION);
 
     private final String cppText;
