@@ -134,7 +134,7 @@ public class UmlToCppTranslator {
 
     public String addRealization(String existingCode, String derivedClassName, String interfaceName) {
         try {
-            return addGeneralization(existingCode, derivedClassName, derivedClassName);
+            return addGeneralization(existingCode, derivedClassName, interfaceName);
         } catch (Exception e) {
             System.err.println("Failed to add realization: " + e.getMessage());
             return existingCode;
@@ -288,17 +288,23 @@ public class UmlToCppTranslator {
 
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
+            int semicolonIndex = line.indexOf(';');
+            if (semicolonIndex == -1)
+                continue;
 
-            if (line.contains(opName) && line.contains("(") && line.endsWith(";")) {
-                int start = line.indexOf("(") + 1;
-                int end = line.lastIndexOf(")");
+            // セミコロンまでの部分だけを取得
+            String codePart = line.substring(0, semicolonIndex).trim();
+
+            if (codePart.contains(opName) && codePart.contains("(")) {
+                int start = codePart.indexOf("(") + 1;
+                int end = codePart.lastIndexOf(")");
 
                 if (start > 0 && end > start) {
-                    String params = line.substring(start, end).trim();
+                    String params = codePart.substring(start, end).trim();
 
                     // パラメータがない場合は、パラメータ部分が空であることのみチェック
                     if (paramNames.isEmpty()) {
-                        System.out.println("DEBUG: Found empty param method: " + line); // デバッグ出力
+                        System.out.println("DEBUG: Found empty param method: " + codePart); // デバッグ出力
                         if (params.isEmpty()) {
                             lines.remove(i);
                             break;
@@ -330,9 +336,14 @@ public class UmlToCppTranslator {
 
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
-            if (line.contains(attrName) && line.endsWith(";") && !line.contains("(")) {
-                lines.remove(i);
-                break;
+            // セミコロンが存在する場合、セミコロンまでの部分だけを取得して比較
+            int semicolonIndex = line.indexOf(';');
+            if (semicolonIndex != -1 && !line.contains("(")) {
+                String codeBeforeSemicolon = line.substring(0, semicolonIndex).trim();
+                if (codeBeforeSemicolon.contains(attrName)) {
+                    lines.remove(i);
+                    break;
+                }
             }
         }
         return String.join("\n", lines);
