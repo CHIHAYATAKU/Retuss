@@ -337,7 +337,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
             String currentVisibility) {
 
         if (ctx == null || ctx.declSpecifier() == null)
-            return new Object[] { null };
+            return null;
 
         for (CPP14Parser.DeclSpecifierContext spec : ctx.declSpecifier()) {
             if (spec.typeSpecifier() == null)
@@ -395,7 +395,7 @@ public class AttributeAnalyzer extends AbstractAnalyzer {
                 return new Object[] { extractedTypeName, null };
             }
         }
-        return new Object[] { null };
+        return null;
 
     }
 
