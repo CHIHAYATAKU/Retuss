@@ -286,6 +286,10 @@ public class UmlToCppTranslator {
             // 引数取得に失敗した場合は空リストのまま
         }
 
+        // メソッド名のパターンを作成
+        String methodPattern = "\\b" + Pattern.quote(opName) + "\\s*\\(";
+        Pattern pattern = Pattern.compile(methodPattern);
+
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
             int semicolonIndex = line.indexOf(';');
@@ -294,23 +298,21 @@ public class UmlToCppTranslator {
 
             // セミコロンまでの部分だけを取得
             String codePart = line.substring(0, semicolonIndex).trim();
+            Matcher matcher = pattern.matcher(codePart);
 
-            if (codePart.contains(opName) && codePart.contains("(")) {
+            if (matcher.find()) {
                 int start = codePart.indexOf("(") + 1;
                 int end = codePart.lastIndexOf(")");
 
                 if (start > 0 && end > start) {
                     String params = codePart.substring(start, end).trim();
 
-                    // パラメータがない場合は、パラメータ部分が空であることのみチェック
                     if (paramNames.isEmpty()) {
-                        System.out.println("DEBUG: Found empty param method: " + codePart); // デバッグ出力
                         if (params.isEmpty()) {
                             lines.remove(i);
                             break;
                         }
                     } else {
-                        // パラメータがある場合は全てのパラメータ名を含むかチェック
                         boolean allParamsFound = paramNames.stream()
                                 .allMatch(params::contains);
                         if (allParamsFound) {
@@ -319,7 +321,6 @@ public class UmlToCppTranslator {
                         }
                     }
                 } else if (start > 0 && end == start) {
-                    // ()が連続している場合（空の引数リスト）
                     if (paramNames.isEmpty()) {
                         lines.remove(i);
                         break;
@@ -334,16 +335,17 @@ public class UmlToCppTranslator {
         List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
         String attrName = attribute.getName().getNameText();
 
+        // メンバ変数宣言のパターンを作成
+        // 修飾子（オプション） + 型 + 変数名 + セミコロン
+        String attributePattern = "\\s*(public|private|protected)?\\s*(static|const)?\\s*\\w+\\s*(\\*|&)?\\s*" +
+                Pattern.quote(attrName) + "\\s*;";
+        Pattern pattern = Pattern.compile(attributePattern);
+
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
-            // セミコロンが存在する場合、セミコロンまでの部分だけを取得して比較
-            int semicolonIndex = line.indexOf(';');
-            if (semicolonIndex != -1 && !line.contains("(")) {
-                String codeBeforeSemicolon = line.substring(0, semicolonIndex).trim();
-                if (codeBeforeSemicolon.contains(attrName)) {
-                    lines.remove(i);
-                    break;
-                }
+            if (pattern.matcher(line).matches()) {
+                lines.remove(i);
+                break;
             }
         }
         return String.join("\n", lines);
