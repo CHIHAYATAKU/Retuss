@@ -48,7 +48,7 @@ public class InheritanceAnalyzer extends AbstractAnalyzer {
 
         RelationshipInfo relation = new RelationshipInfo(
                 baseClassName,
-                RelationType.INHERITANCE);
+                RelationType.GENERALIZATION);
         // インターフェースである可能性
         CppModel.getInstance().findClass(baseClassName)
                 .ifPresent(targetClass -> {

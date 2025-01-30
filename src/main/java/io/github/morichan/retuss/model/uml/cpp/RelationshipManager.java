@@ -24,7 +24,7 @@ public class RelationshipManager {
 
     // 継承関係の追加
     public void addGeneralization(String targetClass) {
-        RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.INHERITANCE);
+        RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.GENERALIZATION);
         addRelationship(relation);
     }
 
@@ -72,7 +72,7 @@ public class RelationshipManager {
                 // 依存関係の収集
                 dependencyMap.computeIfAbsent(relation.getTargetClass(), k -> new HashSet<>())
                         .add(relation.getType());
-            } else if (relation.getType() == RelationType.INHERITANCE ||
+            } else if (relation.getType() == RelationType.GENERALIZATION ||
                     relation.getType() == RelationType.REALIZATION) {
                 // 継承/実現関係の処理
                 String targetClass = relation.getTargetClass();
@@ -152,7 +152,7 @@ public class RelationshipManager {
         List<String> issues = new ArrayList<>();
 
         // 継承の重複チェック
-        long inheritanceCount = getRelationshipsOfType(RelationType.INHERITANCE).size();
+        long inheritanceCount = getRelationshipsOfType(RelationType.GENERALIZATION).size();
         if (inheritanceCount > 1) {
             issues.add("Multiple inheritance detected: " + inheritanceCount + " parent classes");
         }

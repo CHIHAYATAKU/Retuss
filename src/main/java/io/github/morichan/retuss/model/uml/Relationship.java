@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Relationship {
     public enum RelationType {
-        INHERITANCE,
+        GENERALIZATION,
         AGGREGATION,
         COMPOSITION,
         DEPENDENCY,

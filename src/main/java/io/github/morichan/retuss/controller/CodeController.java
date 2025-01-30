@@ -378,24 +378,24 @@ public class CodeController implements CppModel.ModelChangeListener {
         codeTabPane.getTabs().setAll(tabs);
     }
 
-    private void markTabAsModified(Tab tab, boolean modified) {
-        Platform.runLater(() -> {
-            try {
-                String currentText = tab.getText();
-                String baseText = getTabBaseText(tab);
+    // private void markTabAsModified(Tab tab, boolean modified) {
+    // Platform.runLater(() -> {
+    // try {
+    // String currentText = tab.getText();
+    // String baseText = getTabBaseText(tab);
 
-                if (modified && !currentText.endsWith("*")) {
-                    tab.setText(baseText + "*");
-                    tab.setStyle("-fx-text-fill: #2196F3;"); // Material Designの青色
-                } else if (!modified) {
-                    tab.setText(baseText);
-                    tab.setStyle(""); // スタイルをリセット
-                }
-            } catch (Exception e) {
-                System.err.println("Error marking tab as modified: " + e.getMessage());
-            }
-        });
-    }
+    // if (modified && !currentText.endsWith("*")) {
+    // tab.setText(baseText + "*");
+    // tab.setStyle("-fx-text-fill: #2196F3;"); // Material Designの青色
+    // } else if (!modified) {
+    // tab.setText(baseText);
+    // tab.setStyle(""); // スタイルをリセット
+    // }
+    // } catch (Exception e) {
+    // System.err.println("Error marking tab as modified: " + e.getMessage());
+    // }
+    // });
+    // }
 
     private String getTabBaseText(Tab tab) {
         return tab.getText().replace("*", "");
@@ -604,7 +604,7 @@ public class CodeController implements CppModel.ModelChangeListener {
             CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
             codeArea.replaceText(content);
 
-            markTabAsModified(selectedTab, false);
+            // markTabAsModified(selectedTab, false);
         } catch (IOException e) {
             showError("Failed to save file: " + e.getMessage());
         }
@@ -629,7 +629,7 @@ public class CodeController implements CppModel.ModelChangeListener {
     private void setupCodeAreaChangeListener(CodeArea codeArea, Tab tab) {
         codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!Objects.equals(oldValue, newValue)) {
-                markTabAsModified(tab, true);
+                // markTabAsModified(tab, true);
                 updateCppCodeFile(tab, codeArea.getText());
             }
         });
@@ -680,7 +680,7 @@ public class CodeController implements CppModel.ModelChangeListener {
                 // タブの情報を更新
                 selectedTab.setText(file.getName());
                 tabPathMap.put(selectedTab, file.toPath());
-                markTabAsModified(selectedTab, false);
+                // markTabAsModified(selectedTab, false);
 
                 System.err.println("File saved: " + file.getName());
             } catch (IOException e) {
@@ -859,7 +859,7 @@ public class CodeController implements CppModel.ModelChangeListener {
         boolean wasModified = tab.getText().endsWith("*");
         tab.setText(fileName); // 基本名を設定
         if (wasModified) {
-            markTabAsModified(tab, true); // 変更状態を維持
+            // markTabAsModified(tab, true); // 変更状態を維持
         }
 
         // ツールチップの設定

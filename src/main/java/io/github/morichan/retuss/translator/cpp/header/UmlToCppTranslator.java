@@ -292,6 +292,29 @@ public class UmlToCppTranslator {
 
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
+
+            // コメントの除去
+            int lineCommentIndex = line.indexOf("//");
+            if (lineCommentIndex >= 0) {
+                line = line.substring(0, lineCommentIndex).trim();
+            }
+
+            while (true) {
+                int commentStart = line.indexOf("/*");
+                if (commentStart == -1)
+                    break;
+
+                int commentEnd = line.indexOf("*/", commentStart);
+                if (commentEnd == -1)
+                    break;
+
+                line = line.substring(0, commentStart).trim() + " " +
+                        line.substring(commentEnd + 2).trim();
+            }
+
+            if (line.isEmpty())
+                continue;
+
             int semicolonIndex = line.indexOf(';');
             if (semicolonIndex == -1)
                 continue;
@@ -335,17 +358,57 @@ public class UmlToCppTranslator {
         List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));
         String attrName = attribute.getName().getNameText();
 
-        // メンバ変数宣言のパターンを作成
-        // 修飾子（オプション） + 型 + 変数名 + セミコロン
-        String attributePattern = "\\s*(public|private|protected)?\\s*(static|const)?\\s*\\w+\\s*(\\*|&)?\\s*" +
-                Pattern.quote(attrName) + "\\s*;";
-        Pattern pattern = Pattern.compile(attributePattern);
-
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).trim();
-            if (pattern.matcher(line).matches()) {
-                lines.remove(i);
-                break;
+
+            // コメント除去処理（変更なし）
+            int lineCommentIndex = line.indexOf("//");
+            if (lineCommentIndex >= 0) {
+                line = line.substring(0, lineCommentIndex).trim();
+            }
+
+            while (true) {
+                int commentStart = line.indexOf("/*");
+                if (commentStart == -1)
+                    break;
+
+                int commentEnd = line.indexOf("*/", commentStart);
+                if (commentEnd == -1)
+                    break;
+
+                line = line.substring(0, commentStart).trim() + " " +
+                        line.substring(commentEnd + 2).trim();
+            }
+
+            if (line.isEmpty())
+                continue;
+
+            if (line.endsWith(";") && !line.contains("(")) {
+                // 属性名を検索
+                int nameEndIndex = -1;
+                if (line.contains("[")) {
+                    // 配列宣言の場合、[ の前までが属性名
+                    nameEndIndex = line.indexOf("[");
+                } else if (line.contains("=")) {
+                    // 配列宣言の場合、= の前までが属性名
+                    nameEndIndex = line.indexOf("=");
+                } else {
+                    // 通常の変数宣言の場合、; の前までが属性名（または型も含む）
+                    nameEndIndex = line.indexOf(";");
+                }
+
+                if (nameEndIndex > 0) {
+                    // アスタリスクの前後に空白を挿入して分割を適切に行う
+                    String declarationPart = line.substring(0, nameEndIndex);
+                    declarationPart = declarationPart.replace("*", " * ").replace("&", " & ");
+                    String[] parts = declarationPart.split("\\s+");
+
+                    // 最後の部分が属性名と一致するか確認
+                    if (parts[parts.length - 1].equals(attrName)) {
+                        lines.remove(i);
+                        break;
+                    }
+                }
             }
         }
         return String.join("\n", lines);

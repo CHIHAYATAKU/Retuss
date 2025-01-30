@@ -2,7 +2,7 @@ package io.github.morichan.retuss.translator.model;
 
 public class Relationship {
     public enum RelationType {
-        INHERITANCE,
+        GENERALIZATION,
         AGGREGATION,
         COMPOSITION,
         DEPENDENCY

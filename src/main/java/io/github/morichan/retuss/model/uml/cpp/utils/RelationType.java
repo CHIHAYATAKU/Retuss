@@ -1,7 +1,7 @@
 package io.github.morichan.retuss.model.uml.cpp.utils;
 
 public enum RelationType {
-    INHERITANCE("extends", "--|>"),
+    GENERALIZATION("extends", "--|>"),
     COMPOSITION("unique_ptr", "*--"),
     AGGREGATION("shared_ptr", "o--"),
     ASSOCIATION("pointer", "--"),

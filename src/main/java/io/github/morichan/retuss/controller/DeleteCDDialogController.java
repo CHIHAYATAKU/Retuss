@@ -159,7 +159,8 @@ public class DeleteCDDialogController {
             cdTreeItemList.add("relations");
             TreeItem<String> relationsNode = new TreeItem<>("Relations");
             for (RelationshipInfo relation : cls.getRelationshipManager().getAllRelationships()) {
-                if (relation.getType() == RelationType.INHERITANCE || relation.getType() == RelationType.REALIZATION) {
+                if (relation.getType() == RelationType.GENERALIZATION
+                        || relation.getType() == RelationType.REALIZATION) {
                     String relationText = formatCppRelationship(relation);
                     if (relationText != null) {
                         System.out.println("Adding relation: " + relationText); // デバッグ用
@@ -425,7 +426,7 @@ public class DeleteCDDialogController {
         System.out.println("DEBUG: Target class: " + relation.getTargetClass());
 
         switch (relation.getType()) {
-            case INHERITANCE:
+            case GENERALIZATION:
                 cppModel.removeGeberalization(className, relation.getTargetClass());
                 break;
             case REALIZATION:
