@@ -83,7 +83,7 @@ public class ClassAnalyzer extends AbstractAnalyzer {
             // System.err.println(" - Child " + i + ": [" + child.getClass().getSimpleName()
             // + "] " + child.getText());
             // }
-            debugNode(ctx, 0);
+            // debugNode(ctx, 0);
             String className = ctx.classHead().classHeadName().className().getText();
             CppHeaderClass cppClass = new CppHeaderClass(className);
             // cppClass.setNamespace(this.context.getCurrentNamespace());

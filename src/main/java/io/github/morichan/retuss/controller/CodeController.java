@@ -98,20 +98,26 @@ public class CodeController implements CppModel.ModelChangeListener {
 
     @FXML
     private void importDirectory() {
+
         DirectoryChooser dirChooser = new DirectoryChooser();
         dirChooser.setTitle("Import Project Directory");
 
         File selectedDir = dirChooser.showDialog(codeTabPane.getScene().getWindow());
+        long startTime = System.nanoTime();
         if (selectedDir != null) {
             LoadingIndicator loadingIndicator = new LoadingIndicator();
             loadingIndicator.show();
-            ;
             processDirectoryAsync(selectedDir)
                     .exceptionally(e -> {
                         handleError("Failed to import directory", e);
                         return null;
                     })
-                    .thenRun(() -> loadingIndicator.hide());
+                    .thenRun(() -> {
+                        loadingIndicator.hide();
+                        long endTime = System.nanoTime();
+                        long duration = (endTime - startTime) / 1_000_000; // ミリ秒に変換
+                        System.out.println("importDirectory execution time: " + duration + " ms");
+                    });
         }
     }
 
@@ -122,6 +128,7 @@ public class CodeController implements CppModel.ModelChangeListener {
         fileChooser.getExtensionFilters().setAll(FileType.createFilter());
 
         List<File> files = fileChooser.showOpenMultipleDialog(codeTabPane.getScene().getWindow());
+        long startTime = System.nanoTime();
         if (files != null) {
             LoadingIndicator loadingIndicator = new LoadingIndicator();
             loadingIndicator.show();
@@ -138,6 +145,10 @@ public class CodeController implements CppModel.ModelChangeListener {
                         loadingIndicator.hide();
                         sortTabs();
                         umlController.handleRefreshAll();
+
+                        long endTime = System.nanoTime();
+                        long duration = (endTime - startTime) / 1_000_000; // ミリ秒に変換
+                        System.out.println("importFiles execution time: " + duration + " ms");
                     });
                 }
             });
@@ -241,10 +252,13 @@ public class CodeController implements CppModel.ModelChangeListener {
     }
 
     private Tab processJavaFile(String fileName, String content) {
-        CodeFile javaFile = new CodeFile(fileName);
-        javaFile.updateCode(content);
-        javaModel.addNewFile(javaFile);
-        return createCodeTab(javaFile);
+        if (fileName.endsWith(".java")) {
+            CodeFile javaFile = new CodeFile(fileName);
+            javaFile.updateCode(content);
+            javaModel.addNewFile(javaFile);
+            return createCodeTab(javaFile);
+        }
+        return null;
     }
 
     private Tab processCppFile(String fileName, String content) {
@@ -429,8 +443,8 @@ public class CodeController implements CppModel.ModelChangeListener {
     private void handleError(String message, Throwable e) {
         Platform.runLater(() -> {
             System.err.println(message);
-            e.printStackTrace();
-            showError(message + "\n" + e.getMessage());
+            // e.printStackTrace();
+            // showError(message + "\n" + e.getMessage());
         });
     }
 
