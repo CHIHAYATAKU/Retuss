@@ -352,17 +352,22 @@ public class UmlController implements CppModel.ModelChangeListener {
         System.out.println("DEBUG: Starting Reload");
 
         try {
-            Collection<CppFile> headers = cppModel.getHeaderFiles().values();
-            System.out.println("DEBUG: Found " + headers.size() + " header files");
+            if (isCppSelected()) {
+                Collection<CppFile> headers = cppModel.getHeaderFiles().values();
+                System.out.println("DEBUG: Found " + headers.size() + " header files");
 
-            for (CppFile headerFile : headers) {
-                System.out.println("DEBUG: Processing " + headerFile.getFileName());
-                String currentCode = headerFile.getCode();
-                cppModel.updateCode(headerFile, currentCode);
+                for (CppFile headerFile : headers) {
+                    System.out.println("DEBUG: Processing " + headerFile.getFileName());
+                    String currentCode = headerFile.getCode();
+                    cppModel.updateCode(headerFile, currentCode);
+                }
+
+                System.out.println("DEBUG: Updating diagram");
+                System.out.println("DEBUG: Refresh completed");
+            } else if (isJavaSelected()) {
+                javaClassDiagramDrawer.draw();
+                sequenceDiagramDrawer.draw(null, null, classDiagramWebView);
             }
-
-            System.out.println("DEBUG: Updating diagram");
-            System.out.println("DEBUG: Refresh completed");
 
         } catch (Exception e) {
             System.err.println("Refresh failed: " + e.getMessage());

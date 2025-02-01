@@ -226,42 +226,40 @@ public class CodeController implements CppModel.ModelChangeListener {
             if (type == null)
                 return;
 
-            Tab tab;
             switch (type) {
                 case JAVA:
-                    tab = processJavaFile(file.getName(), content);
+                    processJavaFile(file.getName(), content);
                     break;
                 case HEADER:
                 case IMPLEMENTATION:
-                    tab = processCppFile(file.getName(), content);
+                    processCppFile(file.getName(), content);
                     break;
                 default:
-                    tab = null;
                     break;
             }
 
-            if (tab != null) {
-                if (!codeTabPane.getTabs().contains(tab)) {
-                    codeTabPane.getTabs().add(tab);
-                }
-                tabPathMap.put(tab, file.toPath());
-            }
+            // if (tab != null) {
+            // if (!codeTabPane.getTabs().contains(tab)) {
+            // codeTabPane.getTabs().add(tab);
+            // }
+            // tabPathMap.put(tab, file.toPath());
+            // }
         } catch (Exception e) {
             handleError("Error processing file: " + file.getName(), e);
         }
     }
 
-    private Tab processJavaFile(String fileName, String content) {
+    private void processJavaFile(String fileName, String content) {
         if (fileName.endsWith(".java")) {
             CodeFile javaFile = new CodeFile(fileName);
             javaFile.updateCode(content);
             javaModel.addNewFile(javaFile);
-            return createCodeTab(javaFile);
+            // createCodeTab(javaFile);
         }
-        return null;
+        return;
     }
 
-    private Tab processCppFile(String fileName, String content) {
+    private void processCppFile(String fileName, String content) {
         String baseName = fileName.replaceAll("\\.(h|cpp)$", "");
 
         if (fileName.endsWith(".h")) {
@@ -269,20 +267,17 @@ public class CodeController implements CppModel.ModelChangeListener {
             CppFile headerFile = cppModel.findHeaderFile(baseName);
             if (headerFile != null) {
                 headerFile.updateCode(content);
-                return createCppCodeTab(headerFile);
+                // createCppCodeTab(headerFile);
             }
         } else {
+            cppModel.addNewFile(fileName);
             CppFile implFile = cppModel.findImplFile(baseName);
-            if (implFile == null) {
-                cppModel.addNewFile(baseName + ".h");
-                implFile = cppModel.findImplFile(baseName);
-            }
             if (implFile != null) {
                 implFile.updateCode(content);
-                return createCppCodeTab(implFile);
+                // createCppCodeTab(implFile);
             }
         }
-        return null;
+        return;
     }
 
     private void addFileToTree(File file, TreeItem<String> parent) {

@@ -200,6 +200,9 @@ public class OperationAnalyzer extends AbstractAnalyzer {
 
                     // パラメータごとの処理
                     for (CPP14Parser.ParameterDeclarationContext paramDec : paramDecList.parameterDeclaration()) {
+                        int count = 0;
+                        System.out.println(count + " " + paramDec.getText());
+                        count++;
                         if (paramDec.declSpecifierSeq() == null ||
                                 paramDec.declSpecifierSeq().declSpecifier() == null) {
                             continue;
