@@ -135,6 +135,15 @@ public class UmlController implements CppModel.ModelChangeListener {
     }
 
     @Override
+    public void onClassAdded(CppFile file) {
+        if (file.isHeader()) {
+            Platform.runLater(() -> {
+                updateDiagram(file);
+            });
+        }
+    }
+
+    @Override
     public void onFileUpdated(CppFile file) {
         if (file.isHeader()) {
             Platform.runLater(() -> {
@@ -155,7 +164,7 @@ public class UmlController implements CppModel.ModelChangeListener {
         Platform.runLater(() -> {
             if (isCppSelected()) {
                 cppClassDiagramDrawer.clearCache();
-                cppClassDiagramDrawer.draw(codeController.getSelectedClassName());
+                cppClassDiagramDrawer.draw();
             }
         });
     }
@@ -217,7 +226,7 @@ public class UmlController implements CppModel.ModelChangeListener {
                 javaClassDiagramDrawer.draw();
                 javaClassDiagramDrawer.draw();
             } else if ("C++".equals(currentLanguage)) {
-                cppClassDiagramDrawer.draw(codeController.getSelectedClassName());
+                cppClassDiagramDrawer.draw();
             }
         }
     }
@@ -384,6 +393,7 @@ public class UmlController implements CppModel.ModelChangeListener {
 
             // UmlControllerの参照を設定
             dialogController.setUmlController(this);
+            dialogController.setCodeController(codeController);
 
             // デバッグ出力
             System.out.println("Opening Class Dialog");
@@ -498,7 +508,7 @@ public class UmlController implements CppModel.ModelChangeListener {
             // クラス図の更新
             if (isCppSelected()) {
                 cppClassDiagramDrawer.clearCache();
-                cppClassDiagramDrawer.draw(codeController.getSelectedClassName());
+                cppClassDiagramDrawer.draw();
             }
 
             // // シーケンス図のタブを削除
@@ -524,7 +534,7 @@ public class UmlController implements CppModel.ModelChangeListener {
                     classDiagramState.saveState(classDiagramWebView);
                     // クラス図の更新（関係抽出を含む）
                     cppClassDiagramDrawer.clearCache(); // キャッシュをクリアして強制的に再描画
-                    cppClassDiagramDrawer.draw(codeController.getSelectedClassName());
+                    cppClassDiagramDrawer.draw();
                     // シーケンス図の更新
                     // updateCppSequenceDiagram(cppFile);
                 } catch (Exception e) {
@@ -571,7 +581,7 @@ public class UmlController implements CppModel.ModelChangeListener {
                     try {
                         // クラス図の更新（関係抽出を含む）
                         cppClassDiagramDrawer.clearCache(); // キャッシュをクリアして強制的に再描画
-                        cppClassDiagramDrawer.draw(codeController.getSelectedClassName());
+                        cppClassDiagramDrawer.draw();
                         // シーケンス図の更新
                         // updateCppSequenceDiagram(cppFile);
                     } catch (Exception e) {

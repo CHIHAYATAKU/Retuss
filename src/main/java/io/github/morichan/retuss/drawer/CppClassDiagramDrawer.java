@@ -362,16 +362,16 @@ public class CppClassDiagramDrawer {
         return result.toString();
     }
 
-    public void draw(String selectedClassName) {
+    public void draw() {
         if (isUpdating) {
             updatePending = true; // 更新中の場合は次の更新をマーク
             return;
         }
-        System.out.println("DEBUG: selectedClassName = " + selectedClassName);
-        executeDraw(selectedClassName);
+        System.out.println();
+        executeDraw();
     }
 
-    private void executeDraw(String selectedClassName) {
+    private void executeDraw() {
         isUpdating = true;
         updatePending = false;
 
@@ -452,7 +452,7 @@ public class CppClassDiagramDrawer {
                         // 保留中の更新があれば再度描画を実行
                         if (updatePending) {
                             Platform.runLater(() -> {
-                                executeDraw(selectedClassName);
+                                executeDraw();
                                 ;
                             });
                         }

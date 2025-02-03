@@ -44,6 +44,57 @@ public class CppModel {
         createCppFiles(className);
     }
 
+    public void addNewClass(String className) {
+        String baseName = className;
+        if (!headerFiles.containsKey(baseName)) {
+            createCppClass(baseName);
+        }
+    }
+
+    private void createCppClass(String baseName) {
+        if (headerFiles.containsKey(baseName)) {
+            System.out.println("Files already exist for baseName: " + baseName);
+            return;
+        }
+        // ヘッダーファイル作成
+        CppFile headerFile = new CppFile(baseName + ".h", true, true);
+        CppFile implFile = new CppFile(baseName + ".cpp", false, true);
+
+        // 3. スケルトンコードの設定
+        String headerSkeleton = String.format(
+                "#ifndef %s_H\n" +
+                        "#define %s_H\n\n" +
+                        "class %s {\n" +
+                        "public:\n" +
+                        "private:\n" +
+                        "};\n\n" +
+                        "#endif // %s_H",
+                baseName.toUpperCase(), baseName.toUpperCase(),
+                baseName,
+                baseName.toUpperCase());
+
+        String implSkeleton = String.format(
+                "#include \"%s.h\"\n\n" +
+                        "%s::%s() {\n" +
+                        "}\n\n" +
+                        "%s::~%s() {\n" +
+                        "}\n",
+                baseName,
+                baseName, baseName,
+                baseName, baseName);
+        implFile.setCode(implSkeleton);
+        headerFile.setCode(headerSkeleton);
+
+        // if (headerClass.isPresent()) {
+        // headerFile.updateCode(headerFile.getCode());
+        // }
+        headerFiles.put(baseName, headerFile);
+        implFiles.put(baseName, implFile);
+
+        notifyFileAdded(implFile);
+        notifyFileAdded(headerFile);
+    }
+
     private void createCppFiles(String baseName) {
         if (headerFiles.containsKey(baseName)) {
             System.out.println("Files already exist for baseName: " + baseName);
@@ -60,8 +111,8 @@ public class CppModel {
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
 
-        notifyFileAdded(headerFile);
         notifyFileAdded(implFile);
+        notifyFileAdded(headerFile);
     }
 
     public void updateCode(CppFile file, String code) {
@@ -632,6 +683,8 @@ public class CppModel {
 
         void onFileAdded(CppFile file);
 
+        void onClassAdded(CppFile file);
+
         void onFileUpdated(CppFile file);
 
         void onFileDeleted(String className);
@@ -651,6 +704,16 @@ public class CppModel {
         for (ModelChangeListener listener : listeners) {
             try {
                 listener.onFileAdded(file);
+            } catch (Exception e) {
+                System.err.println("Error notifying file addition: " + e.getMessage());
+            }
+        }
+    }
+
+    private void notifyClassAdded(CppFile file) {
+        for (ModelChangeListener listener : listeners) {
+            try {
+                listener.onClassAdded(file);
             } catch (Exception e) {
                 System.err.println("Error notifying file addition: " + e.getMessage());
             }

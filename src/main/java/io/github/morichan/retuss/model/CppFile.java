@@ -34,6 +34,21 @@ public class CppFile {
         initializeFile();
     }
 
+    public CppFile(String fileName, boolean isHeader, boolean nonUpdate) {
+        this.fileName = fileName;
+        this.isHeader = isHeader;
+        if (isHeader) {
+            // 初期のヘッダークラスを追加
+            CppHeaderClass headerClass = new CppHeaderClass(getBaseName());
+            headerClassList.add(headerClass);
+        }
+    }
+
+    public void addClass(CppHeaderClass headerClass) {
+        // 内部のリストに直接追加
+        this.headerClassList.add(headerClass);
+    }
+
     private void initializeFile() {
         CppTranslator translator = new CppTranslator();
         if (isHeader) {

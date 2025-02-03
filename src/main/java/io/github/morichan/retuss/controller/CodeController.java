@@ -435,6 +435,20 @@ public class CodeController implements CppModel.ModelChangeListener {
         });
     }
 
+    @Override
+    public void onClassAdded(CppFile file) {
+        Platform.runLater(() -> {
+            try {
+                Tab tab = createCppCodeTab(file);
+                if (!codeTabPane.getTabs().contains(tab)) {
+                    codeTabPane.getTabs().add(tab);
+                }
+            } catch (Exception e) {
+                handleError("Error adding file: " + file.getFileName(), e);
+            }
+        });
+    }
+
     private void handleError(String message, Throwable e) {
         Platform.runLater(() -> {
             System.err.println(message);

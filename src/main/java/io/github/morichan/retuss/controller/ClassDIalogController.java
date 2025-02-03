@@ -42,29 +42,23 @@ public class ClassDialogController {
             return;
         }
 
-        System.out.println("Java selected: " + umlController.isJavaSelected());
-        System.out.println("C++ selected: " + umlController.isCppSelected());
-
         if (validateClassName()) {
             try {
                 String className = classNameTextField.getText().trim();
 
                 if (umlController.isJavaSelected()) {
-                    System.out.println("Creating Java class: " + className);
-                    // Class オブジェクトを作成
                     Class umlClass = new Class(className);
-                    // JavaModelに追加
                     javaModel.addNewUmlClass(umlClass);
                 }
 
                 if (umlController.isCppSelected()) {
-                    System.out.println("Creating C++ class: " + className);
-                    cppModel.addNewFileFromUml(className);
+                    CppHeaderClass umlClass = new CppHeaderClass(className);
+                    cppModel.addNewClass(className);
                 }
 
             } catch (Exception e) {
                 messageLabel.setText("Failed to create class: " + e.getMessage());
-                e.printStackTrace(); // デバッグ用にスタックトレースを出力
+                e.printStackTrace();
             }
         }
     }
