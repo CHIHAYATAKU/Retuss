@@ -22,6 +22,10 @@ public class SequenceDiagramDrawer {
     }
 
     public void draw(CodeFile codeFile, Interaction interaction, WebView webView) {
+        if (codeFile == null || interaction == null || webView == null) {
+            return; // 必要なオブジェクトが不足している場合は処理を終了
+        }
+
         // plantUML構文を生成する
         StringBuilder puStrBuilder = new StringBuilder("@startuml\n");
         puStrBuilder.append("scale 1.5\n");
@@ -33,22 +37,25 @@ public class SequenceDiagramDrawer {
         // plantUMLでSDのSVGを生成する
         SourceStringReader reader = new SourceStringReader(puStrBuilder.toString());
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        // Write the first image to "os"
         try {
             String desc = reader.generateImage(os, new FileFormatOption(FileFormat.SVG));
             os.close();
+
+            // The XML is stored into svg
+            final String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
+            webView.getEngine().loadContent(svg);
         } catch (Exception e) {
+            System.err.println("Error generating sequence diagram: " + e.getMessage());
             return;
         }
-
-        // The XML is stored into svg
-        final String svg = new String(os.toByteArray(), Charset.forName("UTF-8"));
-
-        webView.getEngine().loadContent(svg);
-
     }
 
     private String interactionToPlantUml(CodeFile codeFile, Interaction interaction) {
+        if (codeFile == null || interaction == null || codeFile.getUmlClassList() == null
+                || codeFile.getUmlClassList().isEmpty()) {
+            return ""; // 有効なデータがない場合は空文字列を返す
+        }
+
         StringBuilder sb = new StringBuilder();
 
         // フレーム
@@ -60,9 +67,13 @@ public class SequenceDiagramDrawer {
         // 活性区間開始
         sb.append(String.format("activate \"%s\"\n", mainLifelineName));
 
-        // メッセージ
-        for (InteractionFragment interactionFragment : interaction.getInteractionFragmentList()) {
-            sb.append(interactionFragmentToPlantUml(interactionFragment, mainLifelineName));
+        // メッセージ（null チェックを追加）
+        if (interaction.getInteractionFragmentList() != null) {
+            for (InteractionFragment interactionFragment : interaction.getInteractionFragmentList()) {
+                if (interactionFragment != null) {
+                    sb.append(interactionFragmentToPlantUml(interactionFragment, mainLifelineName));
+                }
+            }
         }
 
         // 図示対象の操作呼び出しメッセージの戻りメッセージ
@@ -82,6 +93,13 @@ public class SequenceDiagramDrawer {
             Lifeline startLifeline = occurenceSpecification.getLifeline();
             Lifeline endLifeline = occurenceSpecification.getMessage().getMessageEnd().getLifeline();
             Message message = occurenceSpecification.getMessage();
+
+            if (startLifeline == null || message == null || message.getMessageEnd() == null) {
+                return "";
+            }
+            if (endLifeline == null) {
+                return "";
+            }
 
             if (message.getMessageSort() == MessageSort.synchCall) {
                 InteractionUse interactionUse = (InteractionUse) occurenceSpecification.getMessage().getMessageEnd()

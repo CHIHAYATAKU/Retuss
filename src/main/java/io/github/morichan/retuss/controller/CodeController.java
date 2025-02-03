@@ -226,24 +226,34 @@ public class CodeController implements CppModel.ModelChangeListener {
             if (type == null)
                 return;
 
+            Tab tab = null;
             switch (type) {
                 case JAVA:
-                    processJavaFile(file.getName(), content);
+                    CodeFile javaFile = new CodeFile(file.getName());
+                    javaFile.updateCode(content);
+                    javaModel.addNewFile(javaFile);
+                    tab = createCodeTab(javaFile);
                     break;
                 case HEADER:
                 case IMPLEMENTATION:
-                    processCppFile(file.getName(), content);
-                    break;
-                default:
+                    String baseName = file.getName().replaceAll("\\.(h|cpp)$", "");
+                    cppModel.addNewFile(file.getName());
+                    CppFile cppFile = type == FileType.HEADER ? cppModel.findHeaderFile(baseName)
+                            : cppModel.findImplFile(baseName);
+                    if (cppFile != null) {
+                        cppFile.updateCode(content);
+                        tab = createCppCodeTab(cppFile);
+                    }
                     break;
             }
 
-            // if (tab != null) {
-            // if (!codeTabPane.getTabs().contains(tab)) {
-            // codeTabPane.getTabs().add(tab);
-            // }
-            // tabPathMap.put(tab, file.toPath());
-            // }
+            // タブが作成された場合のみパスをマップに追加
+            if (tab != null) {
+                tabPathMap.put(tab, file.toPath());
+                if (!codeTabPane.getTabs().contains(tab)) {
+                    codeTabPane.getTabs().add(tab);
+                }
+            }
         } catch (Exception e) {
             handleError("Error processing file: " + file.getName(), e);
         }

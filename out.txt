@@ -14,10 +14,10 @@ UmlController set in ClassDialogController
 Opening Class Dialog
 Java checkbox state: false
 C++ checkbox state: true
-DEBUG: Processing C++ file: Animal.h
+DEBUG: Processing C++ file: User.h
 
 CppModel classes: 1
-  Class: Animal
+  Class: User
   Attributes: []
   Operations: []
   Relations: 
@@ -25,12 +25,159 @@ DEBUG: CppClassDiagramDrawer - Number of classes: 1
 DEBUG: CppClassDiagramDrawer draw completed
 Saving scroll position - X: 0.0, Y: 0.0
 Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.cpp
-DEBUG: Updating code for file: Animal.h
+DEBUG: Processing C++ file: Book.h
+
+CppModel classes: 2
+  Class: User
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 2
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Processing C++ file: BookRecord.h
+
+CppModel classes: 3
+  Class: User
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 3
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Processing C++ file: Reservation.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+Zoom set to: 1.013970588235294
+Zoom set to: 1.0279411764705884
+Zoom set to: 1.0558823529411765
+Zoom set to: 1.0698529411764706
+Zoom set to: 1.097794117647059
+Zoom set to: 1.125735294117647
+Zoom set to: 1.1536764705882354
+Zoom set to: 1.1676470588235295
+Zoom set to: 1.1955882352941176
+Zoom set to: 1.2095588235294117
+Zoom set to: 1.223529411764706
+Zoom set to: 1.2375
+Zoom set to: 1.2654411764705884
+Zoom set to: 1.2794117647058825
+Zoom set to: 1.2933823529411765
+Zoom set to: 1.3073529411764706
+Zoom set to: 1.3213235294117647
+Zoom set to: 1.335294117647059
+Zoom set to: 1.349264705882353
+Zoom set to: 1.363235294117647
+Zoom set to: 1.3911764705882355
+Zoom set to: 1.4051470588235295
+Zoom set to: 1.4470588235294117
+Zoom set to: 1.475
+Zoom set to: 1.5029411764705884
+Zoom set to: 1.5169117647058825
+Zoom set to: 1.5308823529411766
+Zoom set to: 1.5588235294117647
+Zoom set to: 1.5727941176470588
+Zoom set to: 1.6007352941176471
+Zoom set to: 1.6147058823529414
+Zoom set to: 1.6286764705882355
+Zoom set to: 1.6426470588235296
+Zoom set to: 1.6566176470588236
+Zoom set to: 1.6705882352941177
+Zoom set to: 1.6845588235294118
+Zoom set to: 1.698529411764706
+Zoom set to: 1.7125000000000001
+Zoom set to: 1.7264705882352942
+Zoom set to: 1.7404411764705885
+Zoom set to: 1.7683823529411766
+Zoom set to: 1.7823529411764707
+Zoom set to: 1.8242647058823531
+Zoom set to: 1.8382352941176472
+Zoom set to: 1.8522058823529415
+Zoom set to: 1.8661764705882355
+Zoom set to: 1.8801470588235296
+Zoom set to: 1.8941176470588237
+Zoom set to: 1.9080882352941178
+Zoom set to: 1.9220588235294118
+Zoom set to: 1.9360294117647059
+Zoom set to: 1.963970588235294
+Zoom set to: 1.977941176470588
+Zoom set to: 2.0
+Opening Operation Dialog
+Java checkbox state: false
+C++ checkbox state: true
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char)]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: Updating code for file: User.h
 DEBUG: Starting C++ code analysis
 DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
 DEBUG: Processing access specifier
 DEBUG: Visibility changed to: public
 DEBUG: Processing access specifier
@@ -39,24 +186,37 @@ DEBUG: Exiting class specifier
 DEBUG: Completed C++ code analysis
 DEBUG: Extracted 1 classes
 
-Class: Animal
+Class: User
 Attributes: 0
 Operations: 0
-DEBUG: Processing C++ file: Animal.h
+DEBUG: Processing C++ file: User.h
 
-CppModel classes: 1
-  Class: Animal
+CppModel classes: 4
+  Class: Reservation
   Attributes: []
   Operations: []
   Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
+  Class: User
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
 DEBUG: CppClassDiagramDrawer draw completed
 Saving scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
 DEBUG: Starting C++ code analysis
 DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
 DEBUG: Processing access specifier
 DEBUG: Visibility changed to: public
 DEBUG: Processing access specifier
@@ -65,26 +225,1079 @@ DEBUG: Exiting class specifier
 DEBUG: Completed C++ code analysis
 DEBUG: Extracted 1 classes
 
-Class: Animal
+Class: User
 Attributes: 0
 Operations: 0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Processing C++ file: Animal.h
+DEBUG: Processing C++ file: User.h
 
-CppModel classes: 1
-  Class: Animal
+CppModel classes: 4
+  Class: Reservation
   Attributes: []
   Operations: []
   Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
+  Class: User
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
 DEBUG: CppClassDiagramDrawer draw completed
 Saving scroll position - X: 0.0, Y: 0.0
 Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
+DEBUG: Updating code for file: User.h
 DEBUG: Starting C++ code analysis
 DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 0
+Operations: 2
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: []
+  Operations: [+ User(id : int, name : char*), + ~User()]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolable
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 3
+Operations: 7
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: User.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: User
+DEBUG: Added new class to extracted classes: User
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 constchar*name
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolable
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: User
+Attributes: 3
+Operations: 7
+DEBUG: Processing C++ file: User.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Book.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Book
+DEBUG: Added new class to extracted classes: Book
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*title
+0 constchar*author
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolavailable
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Book
+Attributes: 4
+Operations: 7
+DEBUG: Processing C++ file: Book.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Book.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Book
+DEBUG: Added new class to extracted classes: Book
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*title
+0 constchar*author
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolavailable
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Book
+Attributes: 4
+Operations: 7
+DEBUG: Processing C++ file: Book.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Book.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Book
+DEBUG: Added new class to extracted classes: Book
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 constchar*title
+0 constchar*author
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolavailable
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Book
+Attributes: 4
+Operations: 7
+DEBUG: Processing C++ file: Book.h
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: BookRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BookRecord.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Bo
+DEBUG: Added new class to extracted classes: Bo
 DEBUG: Processing access specifier
 DEBUG: Visibility changed to: public
 DEBUG: Processing access specifier
@@ -93,878 +1306,58 @@ DEBUG: Exiting class specifier
 DEBUG: Completed C++ code analysis
 DEBUG: Extracted 1 classes
 
-Class: Animal
+Class: Bo
 Attributes: 0
 Operations: 0
-DEBUG: Processing C++ file: Animal.h
 
-CppModel classes: 1
-  Class: Animal
+CppModel classes: 4
+  Class: Reservation
   Attributes: []
   Operations: []
   Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: Bo
   Attributes: []
   Operations: []
   Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: Bo.h
 DEBUG: CppClassDiagramDrawer draw completed
 Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
+CppModel classes: 4
+  Class: Reservation
   Attributes: []
   Operations: []
   Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: Bo
   Attributes: []
   Operations: []
   Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
 DEBUG: CppClassDiagramDrawer draw completed
 Saving scroll position - X: 0.0, Y: 0.0
 Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
+DEBUG: Updating code for file: Bo.h
 DEBUG: Starting C++ code analysis
 DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 1
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 0 classes
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int]
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing member declaration
-Found comment line:   int a;
-
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 2
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int, + d : Animal]
-  Operations: []
-  Relations: 
-    Animal (COMPOSITION)
-      - d [1]
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: public
-DEBUG: Processing member declaration
-DEBUG: Processing member declaration
-Found comment line:   int a;
-
-DEBUG: Processing access specifier
-DEBUG: Visibility changed to: private
-DEBUG: Exiting class specifier
-DEBUG: Completed C++ code analysis
-DEBUG: Extracted 1 classes
-
-Class: Animal
-Attributes: 2
-Operations: 0
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int, + d : Animal]
-  Operations: []
-  Relations: 
-    Animal (COMPOSITION)
-      - d [1]
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Initializing DeleteCDDialogController
-DEBUG: Tree item: Class List
-DEBUG: Initializing DeleteCDDialogController
-DEBUG: Initializing C++ tree
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int, + d : Animal]
-  Operations: []
-  Relations: 
-    Animal (COMPOSITION)
-      - d [1]
-C++ classes found: 1
-Processing class: Animal
-Attributes found in Animal: 2
-Adding attribute: a
-Adding attribute: d
-Operations found in Animal: 0
-Finished processing class: Animal
-DEBUG: Tree item: Class List
-DEBUG: Tree item:   Animal
-DEBUG: Tree item:     Attributes
-DEBUG: Tree item:       + a : int
-DEBUG: Tree item:       + d : Animal
-DEBUG: Tree item:     Operations
-DEBUG: Tree item:     Relations
-DEBUG: Looking for object with name: + a : int
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ a : int, + d : Animal]
-  Operations: []
-  Relations: 
-    Animal (COMPOSITION)
-      - d [1]
-DEBUG: Comparing class: Animal with + a : int
-DEBUG: Selected object type: io.github.morichan.fescue.feature.Attribute
-DEBUG: Selected object toString: + a : int
-DEBUG: Deleting C++ element of type: io.github.morichan.fescue.feature.Attribute
-DEBUG: Parent class name: Animal
-DEBUG: Deleting attribute: a
-DEBUG: Initializing DeleteCDDialogController
-DEBUG: Initializing C++ tree
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ d : Animal]
-  Operations: []
-  Relations: 
-    Animal (COMPOSITION)
-      - d [1]
-C++ classes found: 1
-Processing class: Animal
-Attributes found in Animal: 1
-Adding attribute: d
-Operations found in Animal: 0
-Finished processing class: Animal
-DEBUG: Tree item: Class List
-DEBUG: Tree item:   Animal
-DEBUG: Tree item:     Attributes
-DEBUG: Tree item:       + d : Animal
-DEBUG: Tree item:     Operations
-DEBUG: Tree item:     Relations
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ d : Animal]
-  Operations: []
-  Relations: 
-    Animal (COMPOSITION)
-      - d [1]
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Looking for object with name: + d : Animal
-CppModel classes: 1
-  Class: Animal
-  Attributes: [+ d : Animal]
-  Operations: []
-  Relations: 
-    Animal (COMPOSITION)
-      - d [1]
-DEBUG: Comparing class: Animal with + d : Animal
-DEBUG: Selected object type: io.github.morichan.fescue.feature.Attribute
-DEBUG: Selected object toString: + d : Animal
-DEBUG: Deleting C++ element of type: io.github.morichan.fescue.feature.Attribute
-DEBUG: Parent class name: Animal
-DEBUG: Deleting attribute: d
-DEBUG: Initializing DeleteCDDialogController
-DEBUG: Initializing C++ tree
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-C++ classes found: 1
-Processing class: Animal
-Attributes found in Animal: 0
-Operations found in Animal: 0
-Finished processing class: Animal
-DEBUG: Tree item: Class List
-DEBUG: Tree item:   Animal
-DEBUG: Tree item:     Attributes
-DEBUG: Tree item:     Operations
-DEBUG: Tree item:     Relations
-DEBUG: Processing C++ file: Animal.h
-
-CppModel classes: 1
-  Class: Animal
-  Attributes: []
-  Operations: []
-  Relations: 
-DEBUG: CppClassDiagramDrawer - Number of classes: 1
-DEBUG: CppClassDiagramDrawer draw completed
-Saving scroll position - X: 0.0, Y: 0.0
-Restored scroll position - X: 0.0, Y: 0.0
-DEBUG: Updating code for file: Animal.h
-DEBUG: Starting C++ code analysis
-DEBUG: Entering class specifier
-DEBUG: Created class: Animal
-DEBUG: Added new class to extracted classes: Animal
+DEBUG: Created class: Bor
+DEBUG: Added new class to extracted classes: Bor
 DEBUG: Processing access specifier
 DEBUG: Visibility changed to: public
 DEBUG: Processing access specifier
@@ -973,6 +1366,2506 @@ DEBUG: Exiting class specifier
 DEBUG: Completed C++ code analysis
 DEBUG: Extracted 1 classes
 
-Class: Animal
+Class: Bor
 Attributes: 0
 Operations: 0
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Bor
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: Bor.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Bor
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Bor.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Borr
+DEBUG: Added new class to extracted classes: Borr
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Borr
+Attributes: 0
+Operations: 0
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Borr
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: Borr.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Borr
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Borr.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Borro
+DEBUG: Added new class to extracted classes: Borro
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Borro
+Attributes: 0
+Operations: 0
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Borro
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: Borro.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+Restored scroll position - X: 0.0, Y: 0.0
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Borro
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Borro.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Borrow
+DEBUG: Added new class to extracted classes: Borrow
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Borrow
+Attributes: 0
+Operations: 0
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Borrow
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: Borrow.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Borrow
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Borrow.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowR
+DEBUG: Added new class to extracted classes: BorrowR
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowR
+Attributes: 0
+Operations: 0
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: BorrowR
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: BorrowR.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+Restored scroll position - X: 0.0, Y: 0.0
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: BorrowR
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Updating code for file: BorrowR.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRe
+DEBUG: Added new class to extracted classes: BorrowRe
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRe
+Attributes: 0
+Operations: 0
+DEBUG: Processing C++ file: BorrowRe.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+Restored scroll position - X: 0.0, Y: 0.0
+  Class: BorrowRe
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRe.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRec
+DEBUG: Added new class to extracted classes: BorrowRec
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRec
+Attributes: 0
+Operations: 0
+
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BorrowRec
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: BorrowRec.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: BorrowRec
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRec.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowReco
+DEBUG: Added new class to extracted classes: BorrowReco
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowReco
+Attributes: 0
+Operations: 0
+DEBUG: Processing C++ file: BorrowReco.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowReco
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+Restored scroll position - X: 0.0, Y: 0.0
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Updating code for file: BorrowReco.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecor
+DEBUG: Added new class to extracted classes: BorrowRecor
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecor
+Attributes: 0
+Operations: 0
+DEBUG: Processing C++ file: BorrowRecor.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+Restored scroll position - X: 0.0, Y: 0.0
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: BorrowRecor
+  Attributes: []
+  Operations: []
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRecor.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecord
+DEBUG: Added new class to extracted classes: BorrowRecord
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecord
+Attributes: 0
+Operations: 0
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: BorrowRecord.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRecord.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecord
+DEBUG: Added new class to extracted classes: BorrowRecord
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecord
+Attributes: 0
+Operations: 0
+DEBUG: Processing C++ file: BorrowRecord.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRecord.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecord
+DEBUG: Added new class to extracted classes: BorrowRecord
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 longdate
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecord
+Attributes: 5
+Operations: 9
+DEBUG: Processing C++ file: BorrowRecord.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    Book (DEPENDENCY_PARAMETER)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRecord.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecord
+DEBUG: Added new class to extracted classes: BorrowRecord
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 longdate
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecord
+Attributes: 5
+Operations: 9
+DEBUG: Processing C++ file: BorrowRecord.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_USE)
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRecord.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecord
+DEBUG: Added new class to extracted classes: BorrowRecord
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 longdate
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecord
+Attributes: 5
+Operations: 9
+DEBUG: Processing C++ file: BorrowRecord.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRecord.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecord
+DEBUG: Added new class to extracted classes: BorrowRecord
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 longdate
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecord
+Attributes: 5
+Operations: 9
+DEBUG: Processing C++ file: BorrowRecord.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_PARAMETER)
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: BorrowRecord.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: BorrowRecord
+DEBUG: Added new class to extracted classes: BorrowRecord
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 longdate
+DEBUG: Processing member declaration
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: BorrowRecord
+Attributes: 5
+Operations: 9
+DEBUG: Processing C++ file: BorrowRecord.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: []
+  Operations: []
+  Relations: 
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Reservation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Reservation
+DEBUG: Added new class to extracted classes: Reservation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Reservation
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: Reservation.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Reservation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Reservation
+DEBUG: Added new class to extracted classes: Reservation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Zoom set to: 1.986029411764706
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+Zoom set to: 1.9720588235294119
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Reservation
+Attributes: 5
+Operations: 8
+Zoom set to: 1.9580882352941176
+DEBUG: Processing C++ file: Reservation.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Zoom set to: 1.9301470588235294
+Zoom set to: 1.902205882352941
+Zoom set to: 1.790441176470588
+Zoom set to: 1.7485294117647059
+DEBUG: CppClassDiagramDrawer draw completed
+Zoom set to: 1.7205882352941175
+Zoom set to: 1.678676470588235
+Saving scroll position - X: 0.0, Y: 0.0
+Zoom set to: 1.650735294117647
+Restored scroll position - X: 0.0, Y: 0.0
+Zoom set to: 1.636764705882353
+Zoom set to: 1.6088235294117648
+Zoom set to: 1.5948529411764705
+Zoom set to: 1.552941176470588
+Zoom set to: 1.525
+Zoom set to: 1.497058823529412
+Zoom set to: 1.4411764705882353
+Zoom set to: 1.4132352941176471
+Zoom set to: 1.385294117647059
+Zoom set to: 1.371323529411765
+Zoom set to: 1.3433823529411766
+Zoom set to: 1.3294117647058823
+Zoom set to: 1.3014705882352942
+Zoom set to: 1.2875
+Zoom set to: 1.273529411764706
+Zoom set to: 1.259558823529412
+Zoom set to: 1.2455882352941179
+Zoom set to: 1.2316176470588236
+Zoom set to: 1.2036764705882352
+Zoom set to: 1.1897058823529412
+Zoom set to: 1.175735294117647
+Zoom set to: 1.161764705882353
+Zoom set to: 1.133823529411765
+Zoom set to: 1.1198529411764706
+Zoom set to: 1.1058823529411765
+Zoom set to: 1.0919117647058822
+Zoom set to: 1.0779411764705882
+Zoom set to: 1.0639705882352941
+Zoom set to: 1.05
+Zoom set to: 1.036029411764706
+Zoom set to: 1.022058823529412
+Zoom set to: 1.0080882352941176
+Zoom set to: 0.9941176470588234
+Zoom set to: 0.9801470588235294
+Zoom set to: 0.9661764705882353
+Zoom set to: 0.952205882352941
+Zoom set to: 0.938235294117647
+Zoom set to: 0.9242647058823529
+Zoom set to: 0.9102941176470588
+Zoom set to: 0.8963235294117645
+Zoom set to: 0.8823529411764705
+DEBUG: Updating code for file: Reservation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Reservation
+DEBUG: Added new class to extracted classes: Reservation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Reservation
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: Reservation.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Reservation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Reservation
+DEBUG: Added new class to extracted classes: Reservation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Reservation
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: Reservation.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Reservation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationS
+DEBUG: Added new class to extracted classes: ReservationS
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationS
+Attributes: 5
+Operations: 8
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: ReservationS
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+    Book (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (DEPENDENCY_PARAMETER)
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: ReservationS.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+Restored scroll position - X: 0.0, Y: 0.0
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: ReservationS
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+    Book (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (DEPENDENCY_PARAMETER)
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Updating code for file: ReservationS.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSy
+DEBUG: Added new class to extracted classes: ReservationSy
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSy
+Attributes: 5
+Operations: 8
+
+CppModel classes: 4
+  Class: ReservationSy
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (DEPENDENCY_USE)
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: ReservationSy.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: ReservationSy
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (DEPENDENCY_USE)
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+Restored scroll position - X: 0.0, Y: 0.0
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Updating code for file: ReservationSy.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSys
+DEBUG: Added new class to extracted classes: ReservationSys
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSys
+Attributes: 5
+Operations: 8
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSys
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_PARAMETER)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: ReservationSys.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSys
+Restored scroll position - X: 0.0, Y: 0.0
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_PARAMETER)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: ReservationSys.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSyst
+DEBUG: Added new class to extracted classes: ReservationSyst
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Updating code for file: ReservationSys.h
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing C++ file: ReservationSys.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSys
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_PARAMETER)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSyst
+Attributes: 5
+Operations: 8
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSyste
+DEBUG: Added new class to extracted classes: ReservationSyste
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSyste
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: ReservationSyste.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSyste
+Restored scroll position - X: 0.0, Y: 0.0
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: ReservationSyste.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSystem
+DEBUG: Added new class to extracted classes: ReservationSystem
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSystem
+Attributes: 5
+Operations: 8
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: ReservationSystem
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_USE)
+    User (DEPENDENCY_USE)
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: ReservationSystem.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+Restored scroll position - X: 0.0, Y: 0.0
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: ReservationSystem
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_USE)
+    User (DEPENDENCY_USE)
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: ReservationSystem.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSyste
+DEBUG: Added new class to extracted classes: ReservationSyste
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSyste
+Attributes: 5
+Operations: 8
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSyste
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: ReservationSyste.h
+DEBUG: Updating code for file: ReservationSyste.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSyst
+DEBUG: Added new class to extracted classes: ReservationSyst
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSyste
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (ASSOCIATION)
+      - user [0..1]
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSyst
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: ReservationSyst.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSyst
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+Restored scroll position - X: 0.0, Y: 0.0
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (DEPENDENCY_USE)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Updating code for file: ReservationSyst.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSys
+DEBUG: Added new class to extracted classes: ReservationSys
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: CppClassDiagramDrawer draw completed
+DEBUG: Processing member declaration
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSys
+Attributes: 5
+Operations: 8
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSys
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_USE)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: ReservationSys.h
+DEBUG: Updating code for file: ReservationSys.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationSy
+DEBUG: Added new class to extracted classes: ReservationSy
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: ReservationSys
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_USE)
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationSy
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: ReservationSy.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: ReservationSy
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+Restored scroll position - X: 0.0, Y: 0.0
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: ReservationSy.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: ReservationS
+DEBUG: Added new class to extracted classes: ReservationS
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: ReservationS
+Attributes: 5
+Operations: 8
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: ReservationS
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_PARAMETER)
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing C++ file: ReservationS.h
+DEBUG: Updating code for file: ReservationS.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Reservation
+DEBUG: Added new class to extracted classes: Reservation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+  Class: ReservationS
+Restored scroll position - X: 0.0, Y: 0.0
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_PARAMETER)
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Reservation
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: Reservation.h
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+Restored scroll position - X: 0.0, Y: 0.0
+  Relations: 
+    Book (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (DEPENDENCY_PARAMETER)
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0
+DEBUG: Updating code for file: Reservation.h
+DEBUG: Starting C++ code analysis
+DEBUG: Entering class specifier
+DEBUG: Created class: Reservation
+DEBUG: Added new class to extracted classes: Reservation
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: public
+DEBUG: Processing member declaration
+0 intid
+0 User*user
+0 Book*book
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+0 boolactive
+DEBUG: Processing access specifier
+DEBUG: Visibility changed to: private
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+Found comment line:     int id;
+
+DEBUG: Processing member declaration
+Found comment line:     User* user;
+
+DEBUG: Processing member declaration
+DEBUG: Processing member declaration
+DEBUG: Exiting class specifier
+DEBUG: Completed C++ code analysis
+DEBUG: Extracted 1 classes
+
+Class: Reservation
+Attributes: 5
+Operations: 8
+DEBUG: Processing C++ file: Reservation.h
+
+CppModel classes: 4
+  Class: BorrowRecord
+  Attributes: [- id : int, - user : User*, - book : Book*, - borrowDate : long, - returnDate : long]
+  Operations: [+ BorrowRecord(id : int, user : User*, book : Book*), + ~BorrowRecord(), + getId() : int, + getUser() : User, + getBook() : Book, + getBorrowDate() : long, + getReturnDate() : long, + setReturnDate(date : long) : void, + isReturned() : bool]
+  Relations: 
+    User (DEPENDENCY_PARAMETER)
+    User (DEPENDENCY_USE)
+    Book (ASSOCIATION)
+      - book [0..1]
+    Book (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_USE)
+    User (ASSOCIATION)
+      - user [0..1]
+  Class: Reservation
+  Attributes: [- id : int, - user : User*, - book : Book*, - reservationDate : long, - active : bool]
+  Operations: [+ Reservation(id : int, user : User*, book : Book*), + ~Reservation(), + getId() : int, + getUser() : User, + getBook() : Book, + getReservationDate() : long, + isActive() : bool, + setActive(active : bool) : void]
+  Relations: 
+    Book (ASSOCIATION)
+      - book [0..1]
+    User (ASSOCIATION)
+      - user [0..1]
+    Book (DEPENDENCY_USE)
+    User (DEPENDENCY_USE)
+    User (DEPENDENCY_PARAMETER)
+    Book (DEPENDENCY_PARAMETER)
+  Class: User
+  Attributes: [- id : int, - name : char*, - borrowable : bool]
+  Operations: [+ User(id : int, name : char*), + ~User(), + getId() : int, + getName() : char, + setName(name : char*) : void, + canBorrow() : bool, + setBorrowable(able : bool) : void]
+  Relations: 
+  Class: Book
+  Attributes: [- id : int, - title : char*, - author : char*, - available : bool]
+  Operations: [+ Book(id : int, title : char*, author : char*), + ~Book(), + getId() : int, + getTitle() : char, + getAuthor() : char, + isAvailable() : bool, + setAvailable(available : bool) : void]
+  Relations: 
+DEBUG: CppClassDiagramDrawer - Number of classes: 4
+DEBUG: CppClassDiagramDrawer draw completed
+Saving scroll position - X: 0.0, Y: 0.0
+Restored scroll position - X: 0.0, Y: 0.0

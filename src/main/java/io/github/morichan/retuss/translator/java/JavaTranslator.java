@@ -38,8 +38,18 @@ public class JavaTranslator extends AbstractTranslator {
      */
     @Override
     public List<Class> translateCodeToUml(String code) {
-        CompilationUnit compilationUnit = StaticJavaParser.parse(code);
-        return translateCodeToUml(compilationUnit);
+        if (code == null || code.trim().isEmpty()) {
+            throw new IllegalArgumentException("Code cannot be null or empty");
+        }
+
+        try {
+            CompilationUnit compilationUnit = StaticJavaParser.parse(code);
+            return translateCodeToUml(compilationUnit);
+        } catch (com.github.javaparser.ParseProblemException e) {
+            throw new IllegalStateException("Failed to parse Java code: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unexpected error during translation", e);
+        }
     }
 
     private List<Class> translateCodeToUml(CompilationUnit compilationUnit) {
@@ -529,54 +539,6 @@ public class JavaTranslator extends AbstractTranslator {
         return messageStart;
     }
 
-    private CombinedFragment toCombinedFragment(Class umlClass, IfStmt ifStmt) {
-        Lifeline lifeline = new Lifeline("", umlClass.getName());
-        Optional<Statement> elseStmtOptional = ifStmt.getElseStmt();
-
-        InteractionOperandKind interactionOperandKind;
-        if (elseStmtOptional.isPresent()) {
-            interactionOperandKind = InteractionOperandKind.alt;
-        } else if (isBreakCF(ifStmt)) {
-            interactionOperandKind = InteractionOperandKind.BREAK;
-        } else {
-            interactionOperandKind = InteractionOperandKind.opt;
-        }
-
-        CombinedFragment combinedFragment = new CombinedFragment(lifeline, interactionOperandKind);
-        combinedFragment.setStatement(ifStmt);
-        combinedFragment.getInteractionOperandList().addAll(ifStmtToInteractionOperand(umlClass, ifStmt));
-
-        return combinedFragment;
-    }
-
-    private Boolean isBreakCF(IfStmt ifStmt) {
-        // thenStmtにbreak文を含む、かつ、while文またはfor文の中にあるif文である場合は、複合フラグメントbreakとする
-        if (ifStmt.getThenStmt().findFirst(BreakStmt.class).isPresent()) {
-            try {
-                Node parentParentNode = ifStmt.getParentNode().get().getParentNode().get();
-                if (parentParentNode instanceof WhileStmt || parentParentNode instanceof ForStmt) {
-                    return true;
-                }
-            } catch (Exception e) {
-                return false;
-            }
-        }
-
-        // thenStmtにreturn文を含む、かつ、メソッド内に直接書かれているif文である (while文等の中ではない)
-        if (ifStmt.getThenStmt().findFirst(ReturnStmt.class).isPresent()) {
-            try {
-                Node parentParentNode = ifStmt.getParentNode().get().getParentNode().get();
-                if (parentParentNode instanceof MethodDeclaration) {
-                    return true;
-                }
-            } catch (Exception e) {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
     private CombinedFragment toCombinedFragment(Class umlClass, WhileStmt whileStmt) {
         Lifeline lifeline = new Lifeline("", umlClass.getName());
         CombinedFragment combinedFragment = new CombinedFragment(lifeline, InteractionOperandKind.loop);
@@ -621,46 +583,178 @@ public class JavaTranslator extends AbstractTranslator {
 
     private ArrayList<InteractionOperand> ifStmtToInteractionOperand(Class umlClass, IfStmt ifStmt) {
         ArrayList<InteractionOperand> interactionOperands = new ArrayList<>();
+        // logger.debug("Processing if statement conversion to interaction operand");
 
-        // thenのステートメント
-        Lifeline lifeline = new Lifeline("", umlClass.getName());
-        InteractionOperand thenInteractionOperand = new InteractionOperand(lifeline, ifStmt.getCondition().toString());
-        NodeList thenStatements = ifStmt.getThenStmt().asBlockStmt().getStatements();
-        for (int i = 0; i < thenStatements.size(); i++) {
-            Statement statement = (Statement) thenStatements.get(i);
-            Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
-            if (interactionFragmentOptional.isPresent()) {
-                thenInteractionOperand.getInteractionFragmentList().add(interactionFragmentOptional.get());
+        try {
+            // thenのステートメント
+            Lifeline lifeline = new Lifeline("", umlClass.getName());
+            InteractionOperand thenInteractionOperand = new InteractionOperand(lifeline,
+                    ifStmt.getCondition().toString());
+
+            // BlockStmtの処理
+            Statement thenStmt = ifStmt.getThenStmt();
+            if (thenStmt instanceof BlockStmt) {
+                NodeList<Statement> thenStatements = ((BlockStmt) thenStmt).getStatements();
+                processStatements(umlClass, thenStatements, thenInteractionOperand);
+            } else {
+                // 単一のステートメントの場合（BlockStmtでない場合）
+                processStatement(umlClass, thenStmt, thenInteractionOperand);
             }
-        }
-        interactionOperands.add(thenInteractionOperand);
 
-        Optional<Statement> elseStmtOptional = ifStmt.getElseStmt();
+            interactionOperands.add(thenInteractionOperand);
 
-        // elseステートメント
-        if (elseStmtOptional.isEmpty()) {
-            return interactionOperands;
-        }
+            // elseステートメントの処理
+            Optional<Statement> elseStmtOptional = ifStmt.getElseStmt();
+            if (elseStmtOptional.isPresent()) {
+                Statement elseStmt = elseStmtOptional.get();
 
-        String elseGuard = "";
-        NodeList elseStatements;
-        if (elseStmtOptional.get() instanceof IfStmt) {
-            IfStmt elseIfStmt = (IfStmt) elseStmtOptional.get();
-            interactionOperands.addAll(ifStmtToInteractionOperand(umlClass, elseIfStmt));
-        } else {
-            elseStatements = elseStmtOptional.get().asBlockStmt().getStatements();
-            InteractionOperand elseInteractionOperand = new InteractionOperand(lifeline, "else");
-            for (int i = 0; i < elseStatements.size(); i++) {
-                Statement statement = (Statement) elseStatements.get(i);
-                Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
-                if (interactionFragmentOptional.isPresent()) {
-                    elseInteractionOperand.getInteractionFragmentList().add(interactionFragmentOptional.get());
+                if (elseStmt instanceof IfStmt) {
+                    // else ifの場合
+                    interactionOperands.addAll(ifStmtToInteractionOperand(umlClass, (IfStmt) elseStmt));
+                } else {
+                    // 通常のelseの場合
+                    InteractionOperand elseInteractionOperand = new InteractionOperand(lifeline, "else");
+
+                    if (elseStmt instanceof BlockStmt) {
+                        NodeList<Statement> elseStatements = ((BlockStmt) elseStmt).getStatements();
+                        processStatements(umlClass, elseStatements, elseInteractionOperand);
+                    } else {
+                        processStatement(umlClass, elseStmt, elseInteractionOperand);
+                    }
+
+                    interactionOperands.add(elseInteractionOperand);
                 }
             }
-            interactionOperands.add(elseInteractionOperand);
+
+            return interactionOperands;
+
+        } catch (Exception e) {
+            // logger.error("Error processing if statement to interaction operand", e);
+            throw new TranslationException("Failed to convert if statement to interaction operand", e);
+        }
+    }
+
+    private void processStatements(Class umlClass, NodeList<Statement> statements,
+            InteractionOperand interactionOperand) {
+        for (Statement statement : statements) {
+            processStatement(umlClass, statement, interactionOperand);
+        }
+    }
+
+    /**
+     * 単一のステートメントを処理する
+     */
+    private void processStatement(Class umlClass, Statement statement, InteractionOperand interactionOperand) {
+        if (statement instanceof ReturnStmt) {
+            // ReturnStmtの特別処理
+            handleReturnStatement((ReturnStmt) statement, interactionOperand);
+        } else if (statement instanceof BreakStmt) {
+            // BreakStmtの特別処理
+            handleBreakStatement((BreakStmt) statement, interactionOperand);
+        } else {
+            // 通常のステートメント処理
+            Optional<InteractionFragment> interactionFragmentOptional = toInteractionFragment(umlClass, statement);
+            if (interactionFragmentOptional.isPresent()) {
+                interactionOperand.getInteractionFragmentList().add(interactionFragmentOptional.get());
+            }
+        }
+    }
+
+    /**
+     * ReturnStmtの処理
+     */
+    private void handleReturnStatement(ReturnStmt returnStmt, InteractionOperand interactionOperand) {
+        // ReturnStmtを特別な形式のInteractionFragmentとして処理
+        // 必要に応じて特別な処理を追加
+        // logger.debug("Processing return statement");
+        // 例: 特別なフラグを設定したり、終了メッセージを追加したりする
+    }
+
+    /**
+     * BreakStmtの処理
+     */
+    private void handleBreakStatement(BreakStmt breakStmt, InteractionOperand interactionOperand) {
+        // BreakStmtを特別な形式のInteractionFragmentとして処理
+        // logger.debug("Processing break statement");
+        // 例: ループ終了のマーカーを追加する
+    }
+
+    /**
+     * CombinedFragmentの処理を改善
+     */
+    private CombinedFragment toCombinedFragment(Class umlClass, IfStmt ifStmt) {
+        Lifeline lifeline = new Lifeline("", umlClass.getName());
+
+        // Break条件の判定を改善
+        InteractionOperandKind interactionOperandKind = determineOperandKind(ifStmt);
+
+        CombinedFragment combinedFragment = new CombinedFragment(lifeline, interactionOperandKind);
+        combinedFragment.setStatement(ifStmt);
+
+        try {
+            combinedFragment.getInteractionOperandList().addAll(ifStmtToInteractionOperand(umlClass, ifStmt));
+        } catch (Exception e) {
+            // logger.error("Error creating combined fragment", e);
+            throw new TranslationException("Failed to create combined fragment", e);
         }
 
-        return interactionOperands;
+        return combinedFragment;
+    }
+
+    /**
+     * InteractionOperandKindの判定を改善
+     */
+    private InteractionOperandKind determineOperandKind(IfStmt ifStmt) {
+        if (isBreakCF(ifStmt)) {
+            return InteractionOperandKind.BREAK;
+        }
+
+        return ifStmt.getElseStmt().isPresent() ? InteractionOperandKind.alt : InteractionOperandKind.opt;
+    }
+
+    /**
+     * Break条件の判定を改善
+     */
+    private Boolean isBreakCF(IfStmt ifStmt) {
+        Statement thenStmt = ifStmt.getThenStmt();
+
+        // BlockStmtの場合は中身を確認
+        if (thenStmt instanceof BlockStmt) {
+            BlockStmt blockStmt = (BlockStmt) thenStmt;
+            if (containsBreakOrReturn(blockStmt)) {
+                return isInLoopOrMethod(ifStmt);
+            }
+        } else if (thenStmt instanceof ReturnStmt || thenStmt instanceof BreakStmt) {
+            return isInLoopOrMethod(ifStmt);
+        }
+
+        return false;
+    }
+
+    /**
+     * BlockStmt内のbreak/return文の存在確認
+     */
+    private boolean containsBreakOrReturn(BlockStmt blockStmt) {
+        return !blockStmt.findAll(BreakStmt.class).isEmpty() ||
+                !blockStmt.findAll(ReturnStmt.class).isEmpty();
+    }
+
+    /**
+     * ステートメントの親コンテキストの確認
+     */
+    private boolean isInLoopOrMethod(Statement stmt) {
+        Optional<Node> parent = stmt.getParentNode();
+        while (parent.isPresent()) {
+            Node node = parent.get();
+            if (node instanceof WhileStmt || node instanceof ForStmt) {
+                return true;
+            }
+            if (node instanceof MethodDeclaration) {
+                return true;
+            }
+            parent = node.getParentNode();
+        }
+        return false;
     }
 
     private Visibility toVisibility(List<Modifier> modifierList) {
@@ -737,4 +831,13 @@ public class JavaTranslator extends AbstractTranslator {
         return "";
     }
 
+    public class TranslationException extends RuntimeException {
+        public TranslationException(String message) {
+            super(message);
+        }
+
+        public TranslationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

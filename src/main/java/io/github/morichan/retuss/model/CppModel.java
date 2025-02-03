@@ -90,9 +90,9 @@ public class CppModel {
         // }
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
-
-        notifyFileAdded(implFile);
         notifyFileAdded(headerFile);
+        notifyFileAdded(implFile);
+
     }
 
     private void createCppFiles(String baseName) {
@@ -111,8 +111,9 @@ public class CppModel {
         headerFiles.put(baseName, headerFile);
         implFiles.put(baseName, implFile);
 
-        notifyFileAdded(implFile);
         notifyFileAdded(headerFile);
+        notifyFileAdded(implFile);
+
     }
 
     public void updateCode(CppFile file, String code) {
@@ -425,7 +426,7 @@ public class CppModel {
 
     public void addGeneralization(String derivedClassName, String baseClassName) {
         Optional<CppHeaderClass> headerClass = findHeaderClassByName(derivedClassName);
-        if (headerClass.isEmpty())
+        if (headerClass.isEmpty() || baseClassName == null)
             return;
 
         try {
@@ -447,7 +448,7 @@ public class CppModel {
 
     public void addRealization(String sourceClassName, String interfaceName) {
         Optional<CppHeaderClass> headerClass = findHeaderClassByName(sourceClassName);
-        if (headerClass.isEmpty())
+        if (headerClass.isEmpty() || interfaceName == null)
             return;
 
         try {
