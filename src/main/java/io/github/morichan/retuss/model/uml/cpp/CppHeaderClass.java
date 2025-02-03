@@ -1,6 +1,9 @@
 package io.github.morichan.retuss.model.uml.cpp;
 
 import java.util.*;
+
+import com.google.common.base.Predicate;
+
 import io.github.morichan.fescue.feature.*;
 import io.github.morichan.retuss.model.uml.Interaction;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
@@ -96,6 +99,15 @@ public class CppHeaderClass {
 
     public Boolean getAbstruct() {
         return isAbstruct;
+    }
+
+    // CppHeaderClassに追加
+    public boolean removeAttributeIf(Predicate<Attribute> predicate) {
+        return attributeList.removeIf(predicate);
+    }
+
+    public boolean removeOperationIf(Predicate<Operation> predicate) {
+        return operationList.removeIf(predicate);
     }
 
     public void setAbstruct(Boolean abstruct) {

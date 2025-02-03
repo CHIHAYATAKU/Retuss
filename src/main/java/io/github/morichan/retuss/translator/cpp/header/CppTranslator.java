@@ -104,8 +104,8 @@ public class CppTranslator {
         return umlToCppTranslator.addRealization(code, className, interfaceName);
     }
 
-    public String removeGeberalization(String code, String baseClassName) {
-        return umlToCppTranslator.removeGeberalization(code, baseClassName);
+    public String removeGeneralization(String code, String baseClassName) {
+        return umlToCppTranslator.removeGeneralization(code, baseClassName);
     }
 
     public String removeRealization(String code, String interfaceName) {

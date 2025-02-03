@@ -2,7 +2,9 @@ package io.github.morichan.retuss.model;
 
 import io.github.morichan.fescue.feature.Attribute;
 import io.github.morichan.fescue.feature.Operation;
+import io.github.morichan.fescue.feature.name.Name;
 import io.github.morichan.fescue.feature.parameter.Parameter;
+import io.github.morichan.fescue.feature.type.Type;
 import io.github.morichan.fescue.feature.visibility.Visibility;
 import io.github.morichan.retuss.model.uml.cpp.*;
 import io.github.morichan.retuss.model.uml.cpp.utils.*;
@@ -128,18 +130,38 @@ public class CppModel {
         }
     }
 
+    private Optional<CppHeaderClass> findHeaderClassByName(String className) {
+        return headerFiles.values().stream()
+                .flatMap(file -> file.getHeaderClasses().stream())
+                .filter(cls -> cls.getName().equals(className))
+                .findFirst();
+    }
+
     public void addAttribute(String className, Attribute attribute) {
-        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        if (headerFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(className);
+        if (headerClass.isEmpty())
             return;
 
-        CppFile headerFile = headerFileOpt.get();
         try {
-            if (!headerFile.getHeaderClasses().isEmpty()) {
+            // まずCppHeaderClassにデータを追加
+            headerClass.get().addAttribute(attribute);
 
-                String newCode = translator.addAttribute(headerFile.getCode(), attribute);
-                headerFile.updateCode(newCode);
-                notifyFileUpdated(headerFile);
+            // 型からコンポジション関係を追加（プリミティブ型でない場合）
+            String typeName = attribute.getType().toString();
+            if (!isPrimitiveType(typeName)) {
+                headerClass.get().getRelationshipManager().addComposition(
+                        typeName,
+                        attribute.getName().getNameText(),
+                        "1",
+                        attribute.getVisibility());
+            }
+
+            // 対応するファイルを見つけてコードを更新
+            Optional<CppFile> headerFile = findHeaderFileByClassName(className);
+            if (headerFile.isPresent()) {
+                String newCode = translator.addAttribute(headerFile.get().getCode(), attribute);
+                headerFile.get().setCode(newCode);
+                notifyFileUpdated(headerFile.get());
             }
         } catch (Exception e) {
             System.err.println("Failed to add attribute: " + e.getMessage());
@@ -147,17 +169,49 @@ public class CppModel {
     }
 
     public void addOperation(String className, Operation operation) {
-        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        if (headerFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(className);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile headerFile = headerFileOpt.get();
-            CppHeaderClass targetClass = headerFile.getHeaderClasses().get(0);
+            // まずCppHeaderClassにデータを追加
+            headerClass.get().addOperation(operation);
 
-            String newCode = translator.addOperation(headerFile.getCode(), operation);
-            headerFile.updateCode(newCode);
-            notifyFileUpdated(headerFile);
+            // 戻り値の型から依存関係を追加（プリミティブ型でない場合）
+            if (operation.getReturnType() != null) {
+                String returnType = normalizeTypeName(operation.getReturnType().toString());
+                if (!isPrimitiveType(returnType)) {
+                    headerClass.get().getRelationshipManager().addRelationship(
+                            new RelationshipInfo(returnType, RelationType.DEPENDENCY_USE));
+                }
+            }
+
+            // パラメータの型から依存関係を追加（パラメータがある場合のみ）
+            try {
+                List<Parameter> parameters = operation.getParameters();
+                if (parameters != null && !parameters.isEmpty()) {
+                    for (Parameter param : parameters) {
+                        if (param.getType() != null) {
+                            String paramType = normalizeTypeName(param.getType().toString());
+                            if (!isPrimitiveType(paramType)) {
+                                headerClass.get().getRelationshipManager().addRelationship(
+                                        new RelationshipInfo(paramType, RelationType.DEPENDENCY_PARAMETER));
+                            }
+                        }
+                    }
+                }
+            } catch (IllegalStateException e) {
+                // パラメータリストが初期化されていない場合は無視して続行
+                System.out.println("No parameters list available");
+            }
+
+            // コードの更新
+            Optional<CppFile> headerFile = findHeaderFileByClassName(className);
+            if (headerFile.isPresent()) {
+                String newCode = translator.addOperation(headerFile.get().getCode(), operation);
+                headerFile.get().setCode(newCode);
+                notifyFileUpdated(headerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to add operation: " + e.getMessage());
             e.printStackTrace();
@@ -198,205 +252,345 @@ public class CppModel {
         }
     }
 
+    private String normalizeTypeName(String type) {
+        return type.replaceAll("[*&\\[\\]]+", "").trim();
+    }
+
     public void delete(String className, Attribute attribute) {
-        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        if (headerFileOpt.isEmpty()) {
-            System.out.println("Header file not found for class: " + className);
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(className);
+        if (headerClass.isEmpty())
             return;
-        }
 
         try {
-            CppFile headerFile = headerFileOpt.get();
+            // CppHeaderClassから属性を削除
+            headerClass.get()
+                    .removeAttributeIf(attr -> attr.getName().getNameText().equals(attribute.getName().getNameText()) &&
+                            attr.getType().toString().equals(attribute.getType().toString()));
 
-            System.out.println("Attempting to delete attribute: " + attribute.getName().getNameText() + " from class: "
-                    + className);
+            // 関連する関係を削除
+            String typeName = normalizeTypeName(attribute.getType().toString());
+            String attrName = attribute.getName().getNameText();
+            if (!isPrimitiveType(typeName)) {
+                RelationshipManager relationshipManager = headerClass.get().getRelationshipManager();
+                relationshipManager.removeRelationshipsByCondition(r -> (r.getType() == RelationType.COMPOSITION ||
+                        r.getType() == RelationType.AGGREGATION ||
+                        r.getType() == RelationType.ASSOCIATION) &&
+                        normalizeTypeName(r.getTargetClass()).equals(typeName) &&
+                        r.getElement() != null &&
+                        r.getElement().getName().equals(attrName));
+            }
 
-            // コードから属性を削除
-            String currentCode = headerFile.getCode();
-            String newCode = translator.removeAttribute(currentCode, attribute);
-
-            headerFile.updateCode(newCode);
-            notifyFileUpdated(headerFile);
+            // コードの更新
+            Optional<CppFile> headerFile = findHeaderFileByClassName(className);
+            if (headerFile.isPresent()) {
+                String newCode = translator.removeAttribute(headerFile.get().getCode(), attribute);
+                headerFile.get().setCode(newCode);
+                notifyFileUpdated(headerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to delete attribute: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public void delete(String className, Operation operation) {
-        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        if (headerFileOpt.isEmpty()) {
-            System.out.println("Header file not found for class: " + className);
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(className);
+        if (headerClass.isEmpty())
             return;
-        }
 
         try {
-            CppFile headerFile = headerFileOpt.get();
+            // 操作を削除
+            headerClass.get()
+                    .removeOperationIf(op -> op.getName().getNameText().equals(operation.getName().getNameText()) &&
+                            op.getReturnType().toString().equals(operation.getReturnType().toString()));
 
-            System.out.println("Attempting to delete operation: " + operation.getName().getNameText() + " from class: "
-                    + className);
+            RelationshipManager relationshipManager = headerClass.get().getRelationshipManager();
+            String returnType = normalizeTypeName(operation.getReturnType().toString());
 
-            // コードから操作を削除
-            String currentCode = headerFile.getCode();
-            String newCode = translator.removeOperation(currentCode, operation);
+            // 戻り値の型に関する関係を1つ削除
+            if (!isPrimitiveType(returnType)) {
+                relationshipManager.getAllRelationships().stream()
+                        .filter(r -> r.getType() == RelationType.DEPENDENCY_USE &&
+                                normalizeTypeName(r.getTargetClass()).equals(returnType))
+                        .findFirst()
+                        .ifPresent(relation -> relationshipManager.removeRelationshipsByCondition(r -> r == relation));
+            }
 
-            headerFile.updateCode(newCode);
-            notifyFileUpdated(headerFile);
+            // パラメータの型の関係をそれぞれ1つずつ削除
+            try {
+                List<Parameter> parameters = operation.getParameters();
+                if (parameters != null) {
+                    for (Parameter param : parameters) {
+                        String paramType = normalizeTypeName(param.getType().toString());
+                        if (!isPrimitiveType(paramType)) {
+                            relationshipManager.getAllRelationships().stream()
+                                    .filter(r -> r.getType() == RelationType.DEPENDENCY_PARAMETER &&
+                                            normalizeTypeName(r.getTargetClass()).equals(paramType))
+                                    .findFirst()
+                                    .ifPresent(relation -> relationshipManager
+                                            .removeRelationshipsByCondition(r -> r == relation));
+                        }
+                    }
+                }
+            } catch (IllegalStateException e) {
+                System.out.println("No parameters list available for deletion");
+            }
+
+            // コードの更新
+            Optional<CppFile> headerFile = findHeaderFileByClassName(className);
+            if (headerFile.isPresent()) {
+                String newCode = translator.removeOperation(headerFile.get().getCode(), operation);
+                headerFile.get().setCode(newCode);
+                notifyFileUpdated(headerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to delete operation: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public void addGeneralization(String derivedClassName, String baseClassName) {
-        Optional<CppFile> derivedFileOpt = findHeaderFileByClassName(derivedClassName);
-
-        if (derivedFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(derivedClassName);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile derivedFile = derivedFileOpt.get();
-            String newCode = translator.addGeneralization(derivedFile.getCode(), derivedClassName, baseClassName);
-            derivedFile.updateCode(newCode);
-            notifyFileUpdated(derivedFile);
+            // まずRelationshipManagerに追加
+            headerClass.get().getRelationshipManager().addGeneralization(baseClassName);
+
+            // 対応するファイルを見つけてコードを更新
+            Optional<CppFile> derivedFile = findHeaderFileByClassName(derivedClassName);
+            if (derivedFile.isPresent()) {
+                String newCode = translator.addGeneralization(derivedFile.get().getCode(), derivedClassName,
+                        baseClassName);
+                derivedFile.get().setCode(newCode);
+                notifyFileUpdated(derivedFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to add inheritance: " + e.getMessage());
         }
     }
 
     public void addRealization(String sourceClassName, String interfaceName) {
-        Optional<CppFile> sourceFileOpt = findHeaderFileByClassName(sourceClassName);
-        Optional<CppFile> interfaceFileOpt = findHeaderFileByClassName(interfaceName);
-
-        if (sourceFileOpt.isEmpty() || interfaceFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(sourceClassName);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile sourceFile = sourceFileOpt.get();
+            // RelationshipManagerに追加
+            headerClass.get().getRelationshipManager().addRealization(interfaceName);
 
-            String newCode = translator.addRealization(
-                    sourceFile.getCode(), sourceClassName,
-                    interfaceName);
-
-            sourceFile.updateCode(newCode);
-            notifyFileUpdated(sourceFile);
+            // コードの更新
+            Optional<CppFile> sourceFile = findHeaderFileByClassName(sourceClassName);
+            if (sourceFile.isPresent()) {
+                String newCode = translator.addRealization(
+                        sourceFile.get().getCode(),
+                        sourceClassName,
+                        interfaceName);
+                sourceFile.get().setCode(newCode);
+                notifyFileUpdated(sourceFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to add realization: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
+    private boolean isPrimitiveType(String type) {
+        Set<String> primitiveTypes = new HashSet<>(Arrays.asList(
+                "int", "char", "bool", "float", "double", "void",
+                "long", "short", "signed", "unsigned"));
+        return primitiveTypes.contains(type.toLowerCase());
+    }
+
     public void addComposition(String ownerClassName, String componentClassName, Visibility visibility) {
-        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
-        if (ownerFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(ownerClassName);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile ownerFile = ownerFileOpt.get();
-
             String memberName = componentClassName.toLowerCase();
-            String newCode = translator.addComposition(
-                    ownerFile.getCode(),
+
+            // RelationshipManagerに追加
+            headerClass.get().getRelationshipManager().addComposition(
                     componentClassName,
                     memberName,
+                    "1", // multiplicity
                     visibility);
 
-            ownerFile.updateCode(newCode);
-            notifyFileUpdated(ownerFile);
+            // メンバ変数（Attribute）の追加
+            Attribute attribute = new Attribute(new Name(memberName));
+            attribute.setType(new Type(componentClassName));
+            attribute.setVisibility(visibility);
+            headerClass.get().addAttribute(attribute);
+
+            // コードの更新
+            Optional<CppFile> ownerFile = findHeaderFileByClassName(ownerClassName);
+            if (ownerFile.isPresent()) {
+                String newCode = translator.addComposition(
+                        ownerFile.get().getCode(),
+                        componentClassName,
+                        memberName,
+                        visibility);
+                ownerFile.get().setCode(newCode);
+                notifyFileUpdated(ownerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to add composition: " + e.getMessage());
         }
     }
 
     public void addCompositionWithAnnotation(String ownerClassName, String componentClassName, Visibility visibility) {
-        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
-        if (ownerFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(ownerClassName);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile ownerFile = ownerFileOpt.get();
-
             String memberName = componentClassName.toLowerCase() + "CompositionPtr";
-            String newCode = translator.addCompositionWithAnnotation(
-                    ownerFile.getCode(),
+
+            // RelationshipManagerに追加
+            headerClass.get().getRelationshipManager().addComposition(
                     componentClassName,
                     memberName,
+                    "0..1",
                     visibility);
 
-            ownerFile.updateCode(newCode);
-            notifyFileUpdated(ownerFile);
+            // メンバ変数の追加
+            Attribute attribute = new Attribute(new Name(memberName));
+            attribute.setType(new Type(componentClassName + "*"));
+            attribute.setVisibility(visibility);
+            headerClass.get().addAttribute(attribute);
+
+            // コードの更新
+            Optional<CppFile> ownerFile = findHeaderFileByClassName(ownerClassName);
+            if (ownerFile.isPresent()) {
+                String newCode = translator.addCompositionWithAnnotation(
+                        ownerFile.get().getCode(),
+                        componentClassName,
+                        memberName,
+                        visibility);
+                ownerFile.get().setCode(newCode);
+                notifyFileUpdated(ownerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to add annotated composition: " + e.getMessage());
         }
     }
 
     public void addAggregationWithAnnotation(String ownerClassName, String componentClassName, Visibility visibility) {
-        Optional<CppFile> ownerFileOpt = findHeaderFileByClassName(ownerClassName);
-        if (ownerFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(ownerClassName);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile ownerFile = ownerFileOpt.get();
-
             String memberName = componentClassName.toLowerCase() + "AggregationPtr";
-            String newCode = translator.addAggregationWithAnnotation(
-                    ownerFile.getCode(),
+
+            // RelationshipManagerに追加
+            headerClass.get().getRelationshipManager().addAggregation(
                     componentClassName,
                     memberName,
+                    "0..1",
                     visibility);
 
-            ownerFile.updateCode(newCode);
-            notifyFileUpdated(ownerFile);
+            // メンバ変数の追加
+            Attribute attribute = new Attribute(new Name(memberName));
+            attribute.setType(new Type(componentClassName + "*"));
+            attribute.setVisibility(visibility);
+            headerClass.get().addAttribute(attribute);
+
+            // コードの更新
+            Optional<CppFile> ownerFile = findHeaderFileByClassName(ownerClassName);
+            if (ownerFile.isPresent()) {
+                String newCode = translator.addAggregationWithAnnotation(
+                        ownerFile.get().getCode(),
+                        componentClassName,
+                        memberName,
+                        visibility);
+                ownerFile.get().setCode(newCode);
+                notifyFileUpdated(ownerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to add annotated aggregation: " + e.getMessage());
         }
     }
 
     public void addAssociation(String sourceClassName, String targetClassName, Visibility visibility) {
-        Optional<CppFile> sourceFileOpt = findHeaderFileByClassName(sourceClassName);
-        if (sourceFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(sourceClassName);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile sourceFile = sourceFileOpt.get();
-
             String memberName = targetClassName.toLowerCase() + "AssociationPtr";
-            String newCode = translator.addAssociation(
-                    sourceFile.getCode(),
+
+            // RelationshipManagerに追加
+            headerClass.get().getRelationshipManager().addAssociation(
                     targetClassName,
                     memberName,
+                    "0..1",
                     visibility);
 
-            sourceFile.updateCode(newCode);
-            notifyFileUpdated(sourceFile);
+            // メンバ変数の追加
+            Attribute attribute = new Attribute(new Name(memberName));
+            attribute.setType(new Type(targetClassName + "*")); // ポインタとして追加
+            attribute.setVisibility(visibility);
+            headerClass.get().addAttribute(attribute);
+
+            // コードの更新処理
+            Optional<CppFile> sourceFile = findHeaderFileByClassName(sourceClassName);
+            if (sourceFile.isPresent()) {
+                String newCode = translator.addAssociation(
+                        sourceFile.get().getCode(),
+                        targetClassName,
+                        memberName,
+                        visibility);
+                sourceFile.get().setCode(newCode);
+                notifyFileUpdated(sourceFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to add association: " + e.getMessage());
         }
     }
 
-    public void removeGeberalization(String className, String baseClassName) {
-        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        if (headerFileOpt.isEmpty())
+    public void removeGeneralization(String className, String baseClassName) {
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(className);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile headerFile = headerFileOpt.get();
-            String newCode = translator.removeGeberalization(headerFile.getCode(), baseClassName);
-            headerFile.updateCode(newCode);
-            notifyFileUpdated(headerFile);
+            // 継承関係を削除
+            RelationshipManager relationshipManager = headerClass.get().getRelationshipManager();
+            relationshipManager.removeRelationshipsByCondition(r -> r.getType() == RelationType.GENERALIZATION &&
+                    r.getTargetClass().equals(baseClassName));
+
+            // コードの更新
+            Optional<CppFile> headerFile = findHeaderFileByClassName(className);
+            if (headerFile.isPresent()) {
+                String newCode = translator.removeGeneralization(headerFile.get().getCode(), baseClassName);
+                headerFile.get().setCode(newCode);
+                notifyFileUpdated(headerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to remove inheritance: " + e.getMessage());
         }
     }
 
     public void removeRealization(String className, String interfaceName) {
-        Optional<CppFile> headerFileOpt = findHeaderFileByClassName(className);
-        if (headerFileOpt.isEmpty())
+        Optional<CppHeaderClass> headerClass = findHeaderClassByName(className);
+        if (headerClass.isEmpty())
             return;
 
         try {
-            CppFile headerFile = headerFileOpt.get();
-            String newCode = translator.removeRealization(headerFile.getCode(), interfaceName);
-            headerFile.updateCode(newCode);
-            notifyFileUpdated(headerFile);
+            // 実現関係を削除
+            RelationshipManager relationshipManager = headerClass.get().getRelationshipManager();
+            relationshipManager.removeRelationshipsByCondition(r -> r.getType() == RelationType.REALIZATION &&
+                    r.getTargetClass().equals(interfaceName));
+
+            // コードの更新
+            Optional<CppFile> headerFile = findHeaderFileByClassName(className);
+            if (headerFile.isPresent()) {
+                String newCode = translator.removeRealization(headerFile.get().getCode(), interfaceName);
+                headerFile.get().setCode(newCode);
+                notifyFileUpdated(headerFile.get());
+            }
         } catch (Exception e) {
             System.err.println("Failed to remove realization: " + e.getMessage());
         }

@@ -162,6 +162,11 @@ public class CppFile {
         return fileName.replaceAll("\\.(h|hpp|cpp)$", "");
     }
 
+    public void setCode(String code) {
+        this.sourceCode = code;
+
+    }
+
     // リソースの解放
     public void shutdown() {
         analysisExecutor.shutdown();

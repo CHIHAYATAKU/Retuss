@@ -635,11 +635,21 @@ public class CodeController implements CppModel.ModelChangeListener {
         Files.writeString(path, content, StandardCharsets.UTF_8);
     }
 
+    private Map<Tab, CompletableFuture<Void>> updateFutures = new HashMap<>();
+
     private void setupCodeAreaChangeListener(CodeArea codeArea, Tab tab) {
-        codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!Objects.equals(oldValue, newValue)) {
-                // markTabAsModified(tab, true);
+        // フォーカスの監視
+        codeArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) {
+                // フォーカスを失った時に最後の状態を保存
                 updateCppCodeFile(tab, codeArea.getText());
+            }
+        });
+
+        // テキスト変更の監視（フォーカスがある時のみ）
+        codeArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!Objects.equals(oldValue, newValue) && codeArea.isFocused()) {
+                updateCppCodeFile(tab, newValue);
             }
         });
     }

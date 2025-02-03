@@ -5,6 +5,8 @@ import io.github.morichan.retuss.model.uml.cpp.utils.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Predicate;
+
 public class RelationshipManager {
     private final Set<RelationshipInfo> relationshipInfoSet = new HashSet<>();
     private final String sourceClassName; // 関係元のクラス名
@@ -17,6 +19,10 @@ public class RelationshipManager {
         return sourceClassName;
     }
 
+    public void removeRelationshipsByCondition(Predicate<RelationshipInfo> condition) {
+        relationshipInfoSet.removeIf(condition);
+    }
+
     // 関係の追加
     public void addRelationship(RelationshipInfo relationship) {
         relationshipInfoSet.add(relationship);
@@ -25,6 +31,12 @@ public class RelationshipManager {
     // 継承関係の追加
     public void addGeneralization(String targetClass) {
         RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.GENERALIZATION);
+        addRelationship(relation);
+    }
+
+    // 継承関係の追加
+    public void addRealization(String targetClass) {
+        RelationshipInfo relation = new RelationshipInfo(targetClass, RelationType.REALIZATION);
         addRelationship(relation);
     }
 

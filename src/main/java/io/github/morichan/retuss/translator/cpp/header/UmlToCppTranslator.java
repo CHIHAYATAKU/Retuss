@@ -415,10 +415,10 @@ public class UmlToCppTranslator {
     }
 
     public String removeRealization(String existingCode, String interfaceName) {
-        return removeGeberalization(existingCode, interfaceName);
+        return removeGeneralization(existingCode, interfaceName);
     }
 
-    public String removeGeberalization(String existingCode, String baseClassName) {
+    public String removeGeneralization(String existingCode, String baseClassName) {
         System.out.println("Removing inheritance/realization for base class: " + baseClassName);
         try {
             List<String> lines = new ArrayList<>(Arrays.asList(existingCode.split("\n")));

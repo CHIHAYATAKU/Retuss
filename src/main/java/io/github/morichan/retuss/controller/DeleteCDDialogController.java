@@ -427,7 +427,7 @@ public class DeleteCDDialogController {
 
         switch (relation.getType()) {
             case GENERALIZATION:
-                cppModel.removeGeberalization(className, relation.getTargetClass());
+                cppModel.removeGeneralization(className, relation.getTargetClass());
                 break;
             case REALIZATION:
                 cppModel.removeRealization(className, relation.getTargetClass());
