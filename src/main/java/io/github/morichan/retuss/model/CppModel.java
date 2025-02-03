@@ -350,15 +350,39 @@ public class CppModel {
             return;
 
         try {
-            // 操作を削除
-            headerClass.get()
-                    .removeOperationIf(op -> op.getName().getNameText().equals(operation.getName().getNameText()) &&
-                            op.getReturnType().toString().equals(operation.getReturnType().toString()));
+            // 操作の削除（引数の型も考慮）
+            headerClass.get().removeOperationIf(op -> {
+                if (!op.getName().getNameText().equals(operation.getName().getNameText()) ||
+                        !op.getReturnType().toString().equals(operation.getReturnType().toString())) {
+                    return false;
+                }
+
+                List<Parameter> params1 = new ArrayList<>();
+                List<Parameter> params2 = new ArrayList<>();
+                try {
+                    params1.addAll(op.getParameters());
+                } catch (IllegalStateException e) {
+                }
+                try {
+                    params2.addAll(operation.getParameters());
+                } catch (IllegalStateException e) {
+                }
+
+                if (params1.size() != params2.size())
+                    return false;
+
+                for (int i = 0; i < params1.size(); i++) {
+                    if (!params1.get(i).getType().toString().equals(params2.get(i).getType().toString())) {
+                        return false;
+                    }
+                }
+                return true;
+            });
 
             RelationshipManager relationshipManager = headerClass.get().getRelationshipManager();
-            String returnType = normalizeTypeName(operation.getReturnType().toString());
 
-            // 戻り値の型に関する関係を1つ削除
+            // 戻り値の型の依存関係を削除
+            String returnType = normalizeTypeName(operation.getReturnType().toString());
             if (!isPrimitiveType(returnType)) {
                 relationshipManager.getAllRelationships().stream()
                         .filter(r -> r.getType() == RelationType.DEPENDENCY_USE &&
@@ -367,24 +391,23 @@ public class CppModel {
                         .ifPresent(relation -> relationshipManager.removeRelationshipsByCondition(r -> r == relation));
             }
 
-            // パラメータの型の関係をそれぞれ1つずつ削除
+            // パラメータからの依存関係を削除
+            List<Parameter> parameters = new ArrayList<>();
             try {
-                List<Parameter> parameters = operation.getParameters();
-                if (parameters != null) {
-                    for (Parameter param : parameters) {
-                        String paramType = normalizeTypeName(param.getType().toString());
-                        if (!isPrimitiveType(paramType)) {
-                            relationshipManager.getAllRelationships().stream()
-                                    .filter(r -> r.getType() == RelationType.DEPENDENCY_PARAMETER &&
-                                            normalizeTypeName(r.getTargetClass()).equals(paramType))
-                                    .findFirst()
-                                    .ifPresent(relation -> relationshipManager
-                                            .removeRelationshipsByCondition(r -> r == relation));
-                        }
-                    }
-                }
+                parameters.addAll(operation.getParameters());
             } catch (IllegalStateException e) {
-                System.out.println("No parameters list available for deletion");
+            }
+
+            for (Parameter param : parameters) {
+                String paramType = normalizeTypeName(param.getType().toString());
+                if (!isPrimitiveType(paramType)) {
+                    relationshipManager.getAllRelationships().stream()
+                            .filter(r -> r.getType() == RelationType.DEPENDENCY_PARAMETER &&
+                                    normalizeTypeName(r.getTargetClass()).equals(paramType))
+                            .findFirst()
+                            .ifPresent(
+                                    relation -> relationshipManager.removeRelationshipsByCondition(r -> r == relation));
+                }
             }
 
             // コードの更新
