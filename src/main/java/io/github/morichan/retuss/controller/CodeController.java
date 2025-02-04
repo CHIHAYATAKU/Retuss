@@ -763,9 +763,14 @@ public class CodeController implements CppModel.ModelChangeListener {
         Optional<Tab> existingTab = findTabByName(fileName);
 
         if (existingTab.isPresent()) {
+            // タブが見つかった場合は選択
             codeTabPane.getSelectionModel().select(existingTab.get());
         } else if (fileName.endsWith(".h") || fileName.endsWith(".cpp")) {
+            // C++ファイルの場合
             openCppFile(fileName);
+        } else if (fileName.endsWith(".java")) {
+            // Javaファイルの場合を追加
+            openJavaFile(fileName);
         }
     }
 
@@ -781,9 +786,34 @@ public class CodeController implements CppModel.ModelChangeListener {
         }
     }
 
+    private void openJavaFile(String fileName) {
+        CodeFile javaFile = new CodeFile(fileName);
+        // 既存のファイルを探す
+        for (Pair<CodeFile, Tab> pair : javaFileTabList) {
+            if (pair.getKey().getFileName().equals(fileName)) {
+                codeTabPane.getSelectionModel().select(pair.getValue());
+                return;
+            }
+        }
+        // 見つからない場合は新しいタブを作成
+        Tab tab = createCodeTab(javaFile);
+        if (!codeTabPane.getTabs().contains(tab)) {
+            codeTabPane.getTabs().add(tab);
+        }
+        codeTabPane.getSelectionModel().select(tab);
+    }
+
     private Optional<Tab> findTabByName(String fileName) {
-        return codeTabPane.getTabs().stream()
-                .filter(tab -> getTabBaseText(tab).equals(fileName)) // タブ名から*を除いて比較
+        // C++ファイルのタブを確認
+        Tab cppTab = cppFileNameToTabMap.get(fileName);
+        if (cppTab != null) {
+            return Optional.of(cppTab);
+        }
+
+        // Javaファイルのタブを確認
+        return javaFileTabList.stream()
+                .filter(pair -> pair.getKey().getFileName().equals(fileName))
+                .map(Pair::getValue)
                 .findFirst();
     }
 
