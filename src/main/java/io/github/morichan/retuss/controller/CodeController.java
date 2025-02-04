@@ -633,9 +633,9 @@ public class CodeController implements CppModel.ModelChangeListener {
             String content = getTabContent(selectedTab);
             saveFile(selectedTab, content);
             // エディタの初期テキストを更新
-            AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
-            CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
-            codeArea.replaceText(content);
+            // AnchorPane anchorPane = (AnchorPane) selectedTab.getContent();
+            // CodeArea codeArea = (CodeArea) anchorPane.getChildren().get(0);
+            // codeArea.replaceText(content);
 
             // markTabAsModified(selectedTab, false);
         } catch (IOException e) {
@@ -666,7 +666,7 @@ public class CodeController implements CppModel.ModelChangeListener {
         codeArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue) {
                 // フォーカスを失った時に最後の状態を保存
-                updateCppCodeFile(tab, codeArea.getText());
+                // updateCppCodeFile(tab, codeArea.getText());
             }
         });
 
